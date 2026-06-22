@@ -1,0 +1,175 @@
+import { useState, useEffect } from "react";
+import api from "../api/client";
+import "../styles/ReportsPage.css";
+
+function formatTime12Hour(timeString) {
+  if (!timeString || timeString === "—") return "—";
+  const parts = timeString.split(":");
+  if (parts.length < 2) return timeString;
+  let hours = parseInt(parts[0], 10);
+  const minutes = parts[1];
+  if (isNaN(hours)) return timeString;
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const paddedHours = String(hours).padStart(2, "0");
+  return `${paddedHours}:${minutes} ${ampm}`;
+}
+
+function ReportsPage() {
+  const [advocates, setAdvocates] = useState([]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [advocateId, setAdvocateId] = useState("all");
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [searched, setSearched] = useState(false);
+
+  useEffect(() => {
+    async function fetchAdvocates() {
+      try {
+        const { data } = await api.get("/advocates");
+        setAdvocates(data);
+      } catch (err) {
+        console.error("Failed to load advocates", err);
+        setError("Failed to load advocates.");
+      }
+    }
+    fetchAdvocates();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!startDate || !endDate) {
+      setError("Start date and End date are required.");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    try {
+      const { data } = await api.get("/appointments/report", {
+        params: { startDate, endDate, advocateId },
+      });
+      setAppointments(data);
+      setSearched(true);
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Failed to load report.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setStartDate("");
+    setEndDate("");
+    setAdvocateId("all");
+    setAppointments([]);
+    setError("");
+    setSearched(false);
+  };
+
+  return (
+    <div className="reports-page">
+      <h1 className="reports-title">Appointment Report</h1>
+
+      <form className="reports-form" onSubmit={handleSubmit}>
+        {error && <div className="reports-error">{error}</div>}
+
+        <div className="form-grid">
+          <div className="form-row">
+            <label htmlFor="start-date">Start Date</label>
+            <input
+              id="start-date"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-row">
+            <label htmlFor="end-date">End Date</label>
+            <input
+              id="end-date"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-row">
+            <label htmlFor="advocate">Advocate</label>
+            <select
+              id="advocate"
+              value={advocateId}
+              onChange={(e) => setAdvocateId(e.target.value)}
+            >
+              <option value="all">Select All</option>
+              {advocates.map((adv) => (
+                <option key={adv.id} value={adv.id}>
+                  {adv.advocateName}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="reports-form-actions">
+          <button type="submit" className="reports-submit-btn" disabled={loading}>
+            {loading ? "Loading..." : "Submit"}
+          </button>
+          <button
+            type="button"
+            className="reports-reset-btn"
+            onClick={handleReset}
+            disabled={loading}
+          >
+            Reset
+          </button>
+        </div>
+      </form>
+
+      {loading && <div className="reports-loading">Loading report data...</div>}
+
+      {!loading && searched && (
+        <div className="reports-results">
+          {appointments.length === 0 ? (
+            <div className="reports-empty">No appointments found for the selected criteria.</div>
+          ) : (
+            <div className="reports-table-wrap">
+              <table className="reports-table">
+                <thead>
+                  <tr>
+                    <th>Client Name</th>
+                    <th>Case Number</th>
+                    <th>Advocate Name</th>
+                    <th>Date</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.map((appoint) => (
+                    <tr key={appoint.id}>
+                      <td>{appoint.clientName}</td>
+                      <td>{appoint.caseNumber}</td>
+                      <td>{appoint.advocateName || "—"}</td>
+                      <td>{appoint.date}</td>
+                      <td>{appoint.startTime ? formatTime12Hour(appoint.startTime) : "—"}</td>
+                      <td>{appoint.endTime ? formatTime12Hour(appoint.endTime) : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default ReportsPage;

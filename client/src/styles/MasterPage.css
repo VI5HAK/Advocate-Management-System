@@ -1,0 +1,252 @@
+.master-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.master-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.master-title {
+  flex: 1;
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  color: #111827;
+}
+
+.master-search {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.master-search-input-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+}
+
+.search-icon-svg {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.master-search-input {
+  flex: 1;
+  width: 100%;
+  height: 3rem;
+  padding: 0 1rem 0 3rem;
+  font-family: inherit;
+  font-size: 1.05rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.master-search-input:focus {
+  outline: none;
+  border-color: #9ca3af;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.master-search .master-btn {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+}
+
+.master-search .master-btn:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.master-btn {
+  height: 3rem;
+  padding: 0 1.5rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: #4b5563;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.master-btn:hover {
+  background: #374151;
+}
+
+.master-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Custom button themes */
+.btn-create {
+  background: #10b981;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+}
+.btn-create:hover {
+  background: #059669;
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.5);
+}
+
+.btn-update {
+  background: #3b82f6;
+}
+.btn-update:hover {
+  background: #2563eb;
+}
+
+.btn-delete {
+  background: #ef4444;
+}
+.btn-delete:hover {
+  background: #dc2626;
+}
+
+.master-btn-outline {
+  color: #374151;
+  background: #fff;
+  border: 1px solid #9ca3af;
+}
+
+.master-btn-outline:hover {
+  background: #f9fafb;
+}
+
+.master-btn-sm {
+  height: 2.5rem;
+  padding: 0 1rem;
+  font-size: 0.875rem;
+}
+
+.master-error {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #991b1b;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+}
+
+.master-table-wrap {
+  background: #fff;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.master-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.master-table th,
+.master-table td {
+  padding: 1.125rem 1.25rem;
+  text-align: left;
+  border-bottom: 1px solid #d1d5db;
+  font-size: 1.05rem;
+  color: #111827;
+}
+
+.master-table th {
+  font-weight: 600;
+  text-decoration: underline;
+  background: #f9fafb;
+}
+
+.master-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.master-actions-col {
+  width: 200px;
+}
+
+.master-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.master-empty {
+  text-align: center;
+  color: #6b7280;
+  padding: 2rem !important;
+}
+
+.master-page-form {
+  max-width: 960px;
+}
+
+.master-form {
+  background: #fff;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  padding: 3rem;
+}
+
+.master-field {
+  margin-bottom: 1.5rem;
+}
+
+.master-field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.master-field input,
+.master-field textarea,
+.master-field select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  font-size: 1.05rem;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.master-field input,
+.master-field select {
+  height: 3.25rem;
+}
+
+.master-field textarea {
+  resize: vertical;
+  min-height: 8rem;
+}
+
+.master-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
