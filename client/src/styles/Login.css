@@ -143,7 +143,6 @@
 
 .login-forgot a:hover {
   color: var(--navy);
-  text-decoration: underline;
 }
 
 .login-hero-panel {
