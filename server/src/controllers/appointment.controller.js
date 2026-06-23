@@ -31,7 +31,7 @@ async function assertExists({ table, idColumn, deleteFlagColumn, idValue }) {
 export async function parseAppointmentBody(body, excludeAppointmentId = null) {
   const clientId = Number.parseInt(body.clientId, 10);
   const caseId = Number.parseInt(body.caseId, 10);
-  
+
   let advocateIds = [];
   if (Array.isArray(body.advocateIds)) {
     advocateIds = body.advocateIds.map(id => Number.parseInt(id, 10)).filter(id => !Number.isNaN(id));
@@ -121,30 +121,18 @@ export async function parseAppointmentBody(body, excludeAppointmentId = null) {
   let excludeQuery = "";
   const excludeParams = [];
   if (excludeAppointmentId) {
-    const [existing] = await pool.query(
-      `SELECT Appoint_Client_ID, Appoint_Case_ID, Appoint_Date, Appoint_Start_Time, Appoint_End_Time
-       FROM Appointment WHERE Appoint_ID = ?`,
-      [excludeAppointmentId]
-    );
-    if (existing.length > 0) {
-      const ext = existing[0];
-      excludeQuery = `
-        AND NOT (
-          ap.Appoint_Client_ID = ?
-          AND ap.Appoint_Case_ID = ?
-          AND ap.Appoint_Date = ?
-          AND ap.Appoint_Start_Time = ?
-          AND ap.Appoint_End_Time = ?
-        )
-      `;
-      excludeParams.push(
-        ext.Appoint_Client_ID,
-        ext.Appoint_Case_ID,
-        ext.Appoint_Date,
-        ext.Appoint_Start_Time,
-        ext.Appoint_End_Time
-      );
-    }
+    excludeQuery = `
+      AND NOT EXISTS (
+        SELECT 1 FROM Appointment ap_ex
+        WHERE ap_ex.Appoint_ID = ?
+          AND ap.Appoint_Client_ID = ap_ex.Appoint_Client_ID
+          AND ap.Appoint_Case_ID = ap_ex.Appoint_Case_ID
+          AND ap.Appoint_Date = ap_ex.Appoint_Date
+          AND ap.Appoint_Start_Time = ap_ex.Appoint_Start_Time
+          AND ap.Appoint_End_Time = ap_ex.Appoint_End_Time
+      )
+    `;
+    excludeParams.push(excludeAppointmentId);
   }
 
   const [overlapping] = await pool.query(
@@ -270,7 +258,7 @@ export async function updateAppointment(req, res, next) {
     }
 
     const [existingRows] = await pool.query(
-      `SELECT Appoint_Client_ID, Appoint_Case_ID, Appoint_Date, Appoint_Start_Time, Appoint_End_Time
+      `SELECT Appoint_ID
        FROM Appointment WHERE Appoint_ID = ?`,
       [req.params.id]
     );
@@ -279,17 +267,17 @@ export async function updateAppointment(req, res, next) {
       return res.status(404).json({ message: "Appointment not found." });
     }
 
-    const ext = existingRows[0];
-
     await pool.query(
-      `DELETE FROM Appointment
-       WHERE Appoint_Client_ID = ?
-         AND Appoint_Case_ID = ?
-         AND Appoint_Date = ?
-         AND Appoint_Start_Time = ?
-         AND Appoint_End_Time = ?
-         AND (Appoint_Created_By IS NULL OR Appoint_Created_By != '${SYSTEM_CASE_LINK}')`,
-      [ext.Appoint_Client_ID, ext.Appoint_Case_ID, ext.Appoint_Date, ext.Appoint_Start_Time, ext.Appoint_End_Time]
+      `DELETE a2 FROM Appointment a1
+       INNER JOIN Appointment a2 ON 
+         a2.Appoint_Client_ID = a1.Appoint_Client_ID
+         AND a2.Appoint_Case_ID = a1.Appoint_Case_ID
+         AND a2.Appoint_Date = a1.Appoint_Date
+         AND a2.Appoint_Start_Time = a1.Appoint_Start_Time
+         AND a2.Appoint_End_Time = a1.Appoint_End_Time
+       WHERE a1.Appoint_ID = ?
+         AND (a2.Appoint_Created_By IS NULL OR a2.Appoint_Created_By != '${SYSTEM_CASE_LINK}')`,
+      [req.params.id]
     );
 
     let firstInsertId = null;
@@ -420,7 +408,7 @@ export async function listAppointments(req, res, next) {
 export async function deleteAppointment(req, res, next) {
   try {
     const [apptRows] = await pool.query(
-      `SELECT Appoint_Client_ID, Appoint_Case_ID, Appoint_Date, Appoint_Start_Time, Appoint_End_Time
+      `SELECT Appoint_ID
        FROM Appointment
        WHERE Appoint_ID = ?`,
       [req.params.id]
@@ -430,18 +418,19 @@ export async function deleteAppointment(req, res, next) {
       return res.status(404).json({ message: "Appointment not found." });
     }
 
-    const appt = apptRows[0];
-    const [result] = await pool.query(
-      `UPDATE Appointment
-       SET Appoint_Delete_Flag = TRUE
-       WHERE Appoint_Client_ID = ?
-         AND Appoint_Case_ID = ?
-         AND Appoint_Date = ?
-         AND Appoint_Start_Time = ?
-         AND Appoint_End_Time = ?
-         AND (Appoint_Created_By IS NULL OR Appoint_Created_By != '${SYSTEM_CASE_LINK}')
-         AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
-      [appt.Appoint_Client_ID, appt.Appoint_Case_ID, appt.Appoint_Date, appt.Appoint_Start_Time, appt.Appoint_End_Time],
+    await pool.query(
+      `UPDATE Appointment a1
+       INNER JOIN Appointment a2 ON 
+         a2.Appoint_Client_ID = a1.Appoint_Client_ID
+         AND a2.Appoint_Case_ID = a1.Appoint_Case_ID
+         AND a2.Appoint_Date = a1.Appoint_Date
+         AND a2.Appoint_Start_Time = a1.Appoint_Start_Time
+         AND a2.Appoint_End_Time = a1.Appoint_End_Time
+       SET a2.Appoint_Delete_Flag = TRUE
+       WHERE a1.Appoint_ID = ?
+         AND (a2.Appoint_Created_By IS NULL OR a2.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
+         AND (a2.Appoint_Delete_Flag = FALSE OR a2.Appoint_Delete_Flag = 0)`,
+      [req.params.id],
     );
 
     res.json({ message: "Deleted successfully." });
@@ -456,7 +445,7 @@ export async function getAppointmentRemarks(req, res, next) {
 
     // Verify appointment exists
     const [apptRows] = await pool.query(
-      `SELECT Appoint_Client_ID, Appoint_Case_ID, Appoint_Date, Appoint_Start_Time, Appoint_End_Time
+      `SELECT Appoint_Case_ID
        FROM Appointment
        WHERE Appoint_ID = ? AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
       [appointmentId]
@@ -471,15 +460,19 @@ export async function getAppointmentRemarks(req, res, next) {
     if (req.user.role === "advocate") {
       const advocateId = req.user.advocateId || req.user.id;
       const [authRows] = await pool.query(
-        `SELECT Appoint_ID FROM Appointment
-         WHERE Appoint_Client_ID = ?
-           AND Appoint_Case_ID = ?
-           AND Appoint_Date = ?
-           AND Appoint_Start_Time = ?
-           AND Appoint_End_Time = ?
-           AND Appoint_Advocate_ID = ?
-           AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
-        [appt.Appoint_Client_ID, appt.Appoint_Case_ID, appt.Appoint_Date, appt.Appoint_Start_Time, appt.Appoint_End_Time, advocateId]
+        `SELECT a2.Appoint_ID
+         FROM Appointment a1
+         INNER JOIN Appointment a2 ON 
+           a2.Appoint_Client_ID = a1.Appoint_Client_ID
+           AND a2.Appoint_Case_ID = a1.Appoint_Case_ID
+           AND a2.Appoint_Date = a1.Appoint_Date
+           AND a2.Appoint_Start_Time = a1.Appoint_Start_Time
+           AND a2.Appoint_End_Time = a1.Appoint_End_Time
+         WHERE a1.Appoint_ID = ?
+           AND a2.Appoint_Advocate_ID = ?
+           AND (a1.Appoint_Delete_Flag = FALSE OR a1.Appoint_Delete_Flag = 0)
+           AND (a2.Appoint_Delete_Flag = FALSE OR a2.Appoint_Delete_Flag = 0)`,
+        [appointmentId, advocateId]
       );
       if (authRows.length === 0) {
         return res.status(403).json({ message: "Access denied to this appointment's remarks." });
@@ -517,9 +510,9 @@ export async function addAppointmentRemark(req, res, next) {
       return res.status(400).json({ message: "Remark text is required." });
     }
 
-    // Verify appointment exists and get Appoint_Date as formatted string
+    // Verify appointment exists
     const [apptRows] = await pool.query(
-      `SELECT Appoint_Client_ID, Appoint_Case_ID, Appoint_Date, Appoint_Start_Time, Appoint_End_Time
+      `SELECT Appoint_ID
        FROM Appointment
        WHERE Appoint_ID = ? AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
       [appointmentId]
@@ -529,23 +522,25 @@ export async function addAppointmentRemark(req, res, next) {
       return res.status(404).json({ message: "Appointment not found." });
     }
 
-    const appt = apptRows[0];
-
     if (req.user.role !== "advocate") {
       return res.status(403).json({ message: "Only advocates can add remarks." });
     }
 
     const advocateId = req.user.advocateId || req.user.id;
     const [authRows] = await pool.query(
-      `SELECT Appoint_ID FROM Appointment
-       WHERE Appoint_Client_ID = ?
-         AND Appoint_Case_ID = ?
-         AND Appoint_Date = ?
-         AND Appoint_Start_Time = ?
-         AND Appoint_End_Time = ?
-         AND Appoint_Advocate_ID = ?
-         AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
-      [appt.Appoint_Client_ID, appt.Appoint_Case_ID, appt.Appoint_Date, appt.Appoint_Start_Time, appt.Appoint_End_Time, advocateId]
+      `SELECT a2.Appoint_ID
+       FROM Appointment a1
+       INNER JOIN Appointment a2 ON 
+         a2.Appoint_Client_ID = a1.Appoint_Client_ID
+         AND a2.Appoint_Case_ID = a1.Appoint_Case_ID
+         AND a2.Appoint_Date = a1.Appoint_Date
+         AND a2.Appoint_Start_Time = a1.Appoint_Start_Time
+         AND a2.Appoint_End_Time = a1.Appoint_End_Time
+       WHERE a1.Appoint_ID = ?
+         AND a2.Appoint_Advocate_ID = ?
+         AND (a1.Appoint_Delete_Flag = FALSE OR a1.Appoint_Delete_Flag = 0)
+         AND (a2.Appoint_Delete_Flag = FALSE OR a2.Appoint_Delete_Flag = 0)`,
+      [appointmentId, advocateId]
     );
     if (authRows.length === 0) {
       return res.status(403).json({ message: "Access denied. This appointment is not assigned to you." });
@@ -561,8 +556,10 @@ export async function addAppointmentRemark(req, res, next) {
     // Insert remark preserving the current appointment date
     const [result] = await pool.query(
       `INSERT INTO Appointment_Remarks (Appoint_ID, Remark_Text, Remark_Created_By, Appoint_Date)
-       VALUES (?, ?, ?, ?)`,
-      [appointmentId, remarkText.trim(), creatorName, appt.Appoint_Date]
+       SELECT ?, ?, ?, Appoint_Date
+       FROM Appointment
+       WHERE Appoint_ID = ?`,
+      [appointmentId, remarkText.trim(), creatorName, appointmentId]
     );
 
     res.status(201).json({
