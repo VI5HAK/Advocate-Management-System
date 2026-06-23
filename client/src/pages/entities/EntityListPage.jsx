@@ -330,7 +330,7 @@ function RemarksModal({ appointment, onClose }) {
     <div className="remarks-modal-overlay">
       <div className="remarks-modal">
         <header className="remarks-modal-header">
-          <h2>Remarks for Case: {appointment.caseNumber}</h2>
+          <h2>Remarks for Case: {appointment.caseNumber}{appointment.clientName ? ` (Client: ${appointment.clientName})` : ""}</h2>
           <button type="button" className="remarks-close-btn" onClick={onClose} aria-label="Close">
             &times;
           </button>
