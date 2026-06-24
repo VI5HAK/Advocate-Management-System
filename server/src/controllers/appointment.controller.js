@@ -273,8 +273,10 @@ export async function updateAppointment(req, res, next) {
       return res.status(404).json({ message: "Appointment not found." });
     }
 
-    await pool.query(
-      `DELETE a2 FROM Appointment a1
+    // Find all old Appoint_ID records for this appointment
+    const [existingIdsRows] = await pool.query(
+      `SELECT a2.Appoint_ID
+       FROM Appointment a1
        INNER JOIN Appointment a2 ON 
          a2.Appoint_Client_ID = a1.Appoint_Client_ID
          AND a2.Appoint_Case_ID = a1.Appoint_Case_ID
@@ -282,10 +284,12 @@ export async function updateAppointment(req, res, next) {
          AND TIME(a2.Appoint_Start_Time) <=> TIME(a1.Appoint_Start_Time)
          AND TIME(a2.Appoint_End_Time) <=> TIME(a1.Appoint_End_Time)
        WHERE a1.Appoint_ID = ?
-         AND (a2.Appoint_Created_By IS NULL OR a2.Appoint_Created_By != '${SYSTEM_CASE_LINK}')`,
+         AND (a2.Appoint_Created_By IS NULL OR a2.Appoint_Created_By != 'SYSTEM_CASE_LINK')`,
       [req.params.id]
     );
+    const oldIds = existingIdsRows.map(r => r.Appoint_ID);
 
+    // Insert new appointment records
     let firstInsertId = null;
     for (const advId of parsed.advocateIds) {
       const [result] = await pool.query(
@@ -309,6 +313,25 @@ export async function updateAppointment(req, res, next) {
         ],
       );
       if (!firstInsertId) firstInsertId = result.insertId;
+    }
+
+    // Move existing remarks to point to the new firstInsertId
+    if (oldIds.length > 0 && firstInsertId) {
+      await pool.query(
+        `UPDATE Appointment_Remarks
+         SET Appoint_ID = ?
+         WHERE Appoint_ID IN (?)`,
+        [firstInsertId, oldIds]
+      );
+    }
+
+    // Now delete the old appointment records
+    if (oldIds.length > 0) {
+      await pool.query(
+        `DELETE FROM Appointment
+         WHERE Appoint_ID IN (?)`,
+        [oldIds]
+      );
     }
 
     res.json({ message: "Appointment updated." });
