@@ -318,6 +318,13 @@ function RemarksModal({ appointment, onClose }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${yyyy}-${mm}-${dd}`;
+  const isToday = appointment.date === todayStr;
+
   const fetchRemarks = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -367,25 +374,31 @@ function RemarksModal({ appointment, onClose }) {
         <div className="remarks-modal-content">
           {error && <p className="master-error">{error}</p>}
 
-          <form onSubmit={handleSubmit} className="remarks-new-form">
-            <label htmlFor="new-remark-textarea">Add New Remark</label>
-            <textarea
-              id="new-remark-textarea"
-              placeholder="Type your progress remark here..."
-              value={newRemark}
-              onChange={(e) => setNewRemark(e.target.value)}
-              required
-            />
-            <div className="remarks-form-actions">
-              <button
-                type="submit"
-                className="master-btn btn-create"
-                disabled={saving || !newRemark.trim()}
-              >
-                {saving ? "Saving..." : "Add Remark"}
-              </button>
+          {isToday ? (
+            <form onSubmit={handleSubmit} className="remarks-new-form">
+              <label htmlFor="new-remark-textarea">Add New Remark</label>
+              <textarea
+                id="new-remark-textarea"
+                placeholder="Type your progress remark here..."
+                value={newRemark}
+                onChange={(e) => setNewRemark(e.target.value)}
+                required
+              />
+              <div className="remarks-form-actions">
+                <button
+                  type="submit"
+                  className="master-btn btn-create"
+                  disabled={saving || !newRemark.trim()}
+                >
+                  {saving ? "Saving..." : "Add Remark"}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="remarks-locked-message" style={{ padding: "1rem", background: "#f3f4f6", borderRadius: "8px", color: "#6b7280", textAlign: "center", marginBottom: "1.5rem" }}>
+              Remarks can only be added on the scheduled appointment date ({appointment.date ? String(appointment.date).split("-").reverse().join("/") : "—"}).
             </div>
-          </form>
+          )}
 
           <hr className="remarks-divider" />
 

@@ -516,7 +516,7 @@ export async function addAppointmentRemark(req, res, next) {
 
     // Verify appointment exists
     const [apptRows] = await pool.query(
-      `SELECT Appoint_ID
+      `SELECT Appoint_ID, Appoint_Date
        FROM Appointment
        WHERE Appoint_ID = ? AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
       [appointmentId]
@@ -528,6 +528,16 @@ export async function addAppointmentRemark(req, res, next) {
 
     if (req.user.role !== "advocate") {
       return res.status(403).json({ message: "Only advocates can add remarks." });
+    }
+
+    const appt = apptRows[0];
+    const apptDateStr = formatDate(appt.Appoint_Date);
+    const todayStr = formatDate(new Date());
+
+    if (apptDateStr !== todayStr) {
+      return res.status(400).json({
+        message: `Remarks can only be added on the scheduled appointment date (${apptDateStr}).`
+      });
     }
 
     const advocateId = req.user.advocateId || req.user.id;
