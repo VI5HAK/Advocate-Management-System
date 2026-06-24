@@ -16,6 +16,9 @@
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--sidebar-border);
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 10;
 }
 
 .sidebar-brand {
@@ -71,20 +74,23 @@
 .sidebar-section-toggle:hover,
 .sidebar-top-link:hover,
 .sidebar-sublink:hover {
-  background: var(--sidebar-hover);
-  color: #111827;
+  background: #eff6ff;
+  color: #1e40af;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
 .sidebar-top-link.is-active,
 .sidebar-sublink.is-active {
   background: var(--sidebar-active-bg);
   color: var(--sidebar-active-text);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
 }
 
 .sidebar-top-link.is-active:hover,
 .sidebar-sublink.is-active:hover {
   background: var(--sidebar-active-bg);
   color: var(--sidebar-active-text);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
 }
 
 .sidebar-chevron {

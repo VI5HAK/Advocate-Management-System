@@ -109,6 +109,11 @@ function EntityListPage({ config, readOnly = false }) {
     setActiveSearch(searchInput.trim());
   };
 
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setActiveSearch("");
+  };
+
   const handleCreate = () => {
     if (createPath) {
       navigate(createPath);
@@ -179,6 +184,15 @@ function EntityListPage({ config, readOnly = false }) {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
+          {searchInput && (
+            <button
+              type="button"
+              className="search-clear-btn"
+              onClick={handleClearSearch}
+            >
+              ✕
+            </button>
+          )}
         </div>
         <button type="submit" className="master-btn">
           Search

@@ -88,6 +88,11 @@ function CourtMaster() {
     setActiveSearch(searchInput.trim());
   };
 
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setActiveSearch("");
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) return;
@@ -249,13 +254,37 @@ function CourtMaster() {
       </header>
 
       <form className="master-search" onSubmit={handleSearch}>
-        <input
-          type="text"
-          className="master-search-input"
-          placeholder="Search by court name, description, district, or type"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
+        <div className="master-search-input-wrap">
+          <svg
+            className="search-icon-svg"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            className="master-search-input"
+            placeholder="Search by court name, description, district, or type"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+          {searchInput && (
+            <button
+              type="button"
+              className="search-clear-btn"
+              onClick={handleClearSearch}
+            >
+              ✕
+            </button>
+          )}
+        </div>
         <button type="submit" className="master-btn">
           Search
         </button>
