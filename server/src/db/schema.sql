@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS District_Master (
 CREATE TABLE IF NOT EXISTS Court_Master (
     Court_ID INT AUTO_INCREMENT PRIMARY KEY,
     Court_District_ID INT,
-    Court_Type ENUM('Supreme Court', 'High Court', 'District Court', 'Family Court'),
+    Court_Type ENUM('Supreme Court', 'High Court', 'District Court', 'Family Court', 'Municipal Court', 'Sessions Court'),
     Court_Name VARCHAR(150) NOT NULL,
     Court_Description VARCHAR(500),
     Court_Delete_Flag BOOLEAN DEFAULT FALSE,
