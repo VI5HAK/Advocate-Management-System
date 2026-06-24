@@ -24,6 +24,34 @@ function formatTime12Hour(timeString) {
   return `${paddedHours}:${minutes} ${ampm}`;
 }
 
+function formatRemarkDate(dateValue) {
+  if (!dateValue) return "—";
+  const dateStr = String(dateValue).trim();
+  const isoStr = dateStr.includes(" ") && !dateStr.includes("T")
+    ? dateStr.replace(" ", "T")
+    : dateStr;
+  const d = new Date(isoStr);
+  if (!isNaN(d.getTime())) {
+    return d.toLocaleString();
+  }
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})$/);
+  if (match) {
+    const [_, year, month, day, hour, minute, second] = match;
+    const localDate = new Date(
+      parseInt(year, 10),
+      parseInt(month, 10) - 1,
+      parseInt(day, 10),
+      parseInt(hour, 10),
+      parseInt(minute, 10),
+      parseInt(second, 10)
+    );
+    if (!isNaN(localDate.getTime())) {
+      return localDate.toLocaleString();
+    }
+  }
+  return dateStr;
+}
+
 function EntityListPage({ config, readOnly = false }) {
   const {
     apiPath,
@@ -373,7 +401,7 @@ function RemarksModal({ appointment, onClose }) {
                   <div className="remark-item-meta">
                     <span className="remark-author">{r.createdBy}</span>
                     <span className="remark-date">
-                      {new Date(r.remarkDate).toLocaleString()} (Appt Date: {r.appointmentDate ? String(r.appointmentDate).slice(0, 10) : "—"})
+                      {formatRemarkDate(r.remarkDate)} (Appt Date: {r.appointmentDate ? String(r.appointmentDate).slice(0, 10) : "—"})
                     </span>
                   </div>
                   <p className="remark-text">{r.remarkText}</p>

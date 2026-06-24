@@ -134,6 +134,8 @@
   flex-direction: column;
   gap: 1.25rem;
   max-height: 450px;
+  min-height: 100px;
+  flex-shrink: 0;
   overflow-y: auto;
   padding-right: 0.5rem;
 }

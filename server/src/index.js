@@ -18,6 +18,14 @@ app.use(
 );
 app.use(express.json());
 
+// Prevent browser caching of API responses
+app.use((req, res, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  next();
+});
+
 app.use("/api", routes);
 
 app.use(errorHandler);
@@ -35,7 +43,7 @@ async function start() {
   }
 
   app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+    console.log(`Server running on ${port}`);
   });
 }
 

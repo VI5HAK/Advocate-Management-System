@@ -7,12 +7,18 @@ function formatTime(value) {
   return value;
 }
 
-function parseOptionalDate(value) {
-  const s = value?.trim();
-  return s || null;
+function formatDate(value) {
+  if (!value) return null;
+  if (value instanceof Date) {
+    const yyyy = value.getFullYear();
+    const mm = String(value.getMonth() + 1).padStart(2, '0');
+    const dd = String(value.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  return String(value).slice(0, 10);
 }
 
-function parseOptionalTime(value) {
+function parseOptionalDate(value) {
   const s = value?.trim();
   return s || null;
 }
@@ -127,9 +133,9 @@ export async function parseAppointmentBody(body, excludeAppointmentId = null) {
         WHERE ap_ex.Appoint_ID = ?
           AND ap.Appoint_Client_ID = ap_ex.Appoint_Client_ID
           AND ap.Appoint_Case_ID = ap_ex.Appoint_Case_ID
-          AND ap.Appoint_Date = ap_ex.Appoint_Date
-          AND ap.Appoint_Start_Time = ap_ex.Appoint_Start_Time
-          AND ap.Appoint_End_Time = ap_ex.Appoint_End_Time
+          AND DATE(ap.Appoint_Date) = DATE(ap_ex.Appoint_Date)
+          AND TIME(ap.Appoint_Start_Time) <=> TIME(ap_ex.Appoint_Start_Time)
+          AND TIME(ap.Appoint_End_Time) <=> TIME(ap_ex.Appoint_End_Time)
       )
     `;
     excludeParams.push(excludeAppointmentId);
@@ -140,9 +146,9 @@ export async function parseAppointmentBody(body, excludeAppointmentId = null) {
      FROM Appointment ap
      INNER JOIN Advocate_Master am ON ap.Appoint_Advocate_ID = am.Advocate_ID
      WHERE ap.Appoint_Advocate_ID IN (?)
-       AND ap.Appoint_Date = ?
-       AND ap.Appoint_Start_Time < ?
-       AND ap.Appoint_End_Time > ?
+       AND DATE(ap.Appoint_Date) = DATE(?)
+       AND TIME(ap.Appoint_Start_Time) < TIME(?)
+       AND TIME(ap.Appoint_End_Time) > TIME(?)
        AND (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
        AND (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
        ${excludeQuery}`,
@@ -192,16 +198,16 @@ export async function getAppointment(req, res, next) {
        FROM Appointment
        WHERE Appoint_Client_ID = ?
          AND Appoint_Case_ID = ?
-         AND Appoint_Date = ?
-         AND Appoint_Start_Time = ?
-         AND Appoint_End_Time = ?
+         AND DATE(Appoint_Date) = DATE(?)
+         AND TIME(Appoint_Start_Time) <=> TIME(?)
+         AND TIME(Appoint_End_Time) <=> TIME(?)
          AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
       [row.clientId, row.caseId, row.filingDate, row.startTime, row.endTime]
     );
 
     res.json({
       ...row,
-      filingDate: row.filingDate ? String(row.filingDate).slice(0, 10) : null,
+      filingDate: formatDate(row.filingDate),
       startTime: formatTime(row.startTime),
       endTime: formatTime(row.endTime),
       advocateIds: advRows.map(r => r.advocateId),
@@ -272,9 +278,9 @@ export async function updateAppointment(req, res, next) {
        INNER JOIN Appointment a2 ON 
          a2.Appoint_Client_ID = a1.Appoint_Client_ID
          AND a2.Appoint_Case_ID = a1.Appoint_Case_ID
-         AND a2.Appoint_Date = a1.Appoint_Date
-         AND a2.Appoint_Start_Time = a1.Appoint_Start_Time
-         AND a2.Appoint_End_Time = a1.Appoint_End_Time
+         AND DATE(a2.Appoint_Date) = DATE(a1.Appoint_Date)
+         AND TIME(a2.Appoint_Start_Time) <=> TIME(a1.Appoint_Start_Time)
+         AND TIME(a2.Appoint_End_Time) <=> TIME(a1.Appoint_End_Time)
        WHERE a1.Appoint_ID = ?
          AND (a2.Appoint_Created_By IS NULL OR a2.Appoint_Created_By != '${SYSTEM_CASE_LINK}')`,
       [req.params.id]
@@ -325,9 +331,9 @@ export async function listAppointments(req, res, next) {
           INNER JOIN Advocate_Master a2 ON ap2.Appoint_Advocate_ID = a2.Advocate_ID
           WHERE ap2.Appoint_Client_ID = ap.Appoint_Client_ID
             AND ap2.Appoint_Case_ID = ap.Appoint_Case_ID
-            AND ap2.Appoint_Date = ap.Appoint_Date
-            AND ap2.Appoint_Start_Time = ap.Appoint_Start_Time
-            AND ap2.Appoint_End_Time = ap.Appoint_End_Time
+            AND DATE(ap2.Appoint_Date) = DATE(ap.Appoint_Date)
+            AND TIME(ap2.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
+            AND TIME(ap2.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
             AND (ap2.Appoint_Delete_Flag = FALSE OR ap2.Appoint_Delete_Flag = 0)
         ) AS advocateName,
         (
@@ -335,9 +341,9 @@ export async function listAppointments(req, res, next) {
           FROM Appointment ap2
           WHERE ap2.Appoint_Client_ID = ap.Appoint_Client_ID
             AND ap2.Appoint_Case_ID = ap.Appoint_Case_ID
-            AND ap2.Appoint_Date = ap.Appoint_Date
-            AND ap2.Appoint_Start_Time = ap.Appoint_Start_Time
-            AND ap2.Appoint_End_Time = ap.Appoint_End_Time
+            AND DATE(ap2.Appoint_Date) = DATE(ap.Appoint_Date)
+            AND TIME(ap2.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
+            AND TIME(ap2.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
             AND (ap2.Appoint_Delete_Flag = FALSE OR ap2.Appoint_Delete_Flag = 0)
         ) AS advocateCount,
         ap.Appoint_Date AS date,
@@ -356,9 +362,9 @@ export async function listAppointments(req, res, next) {
         SELECT 1 FROM Appointment ap3
         WHERE ap3.Appoint_Client_ID = ap.Appoint_Client_ID
           AND ap3.Appoint_Case_ID = ap.Appoint_Case_ID
-          AND ap3.Appoint_Date = ap.Appoint_Date
-          AND ap3.Appoint_Start_Time = ap.Appoint_Start_Time
-          AND ap3.Appoint_End_Time = ap.Appoint_End_Time
+          AND DATE(ap3.Appoint_Date) = DATE(ap.Appoint_Date)
+          AND TIME(ap3.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
+          AND TIME(ap3.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
           AND ap3.Appoint_Advocate_ID = ?
           AND (ap3.Appoint_Delete_Flag = FALSE OR ap3.Appoint_Delete_Flag = 0)
       )`;
@@ -374,9 +380,9 @@ export async function listAppointments(req, res, next) {
           INNER JOIN Advocate_Master adv4 ON ap4.Appoint_Advocate_ID = adv4.Advocate_ID
           WHERE ap4.Appoint_Client_ID = ap.Appoint_Client_ID
             AND ap4.Appoint_Case_ID = ap.Appoint_Case_ID
-            AND ap4.Appoint_Date = ap.Appoint_Date
-            AND ap4.Appoint_Start_Time = ap.Appoint_Start_Time
-            AND ap4.Appoint_End_Time = ap.Appoint_End_Time
+            AND DATE(ap4.Appoint_Date) = DATE(ap.Appoint_Date)
+            AND TIME(ap4.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
+            AND TIME(ap4.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
             AND adv4.Advocate_Name LIKE ?
             AND (ap4.Appoint_Delete_Flag = FALSE OR ap4.Appoint_Delete_Flag = 0)
         )
@@ -395,7 +401,7 @@ export async function listAppointments(req, res, next) {
     res.json(
       rows.map((row) => ({
         ...row,
-        date: row.date ? String(row.date).slice(0, 10) : null,
+        date: formatDate(row.date),
         startTime: formatTime(row.startTime),
         endTime: formatTime(row.endTime),
       })),
@@ -423,9 +429,9 @@ export async function deleteAppointment(req, res, next) {
        INNER JOIN Appointment a2 ON 
          a2.Appoint_Client_ID = a1.Appoint_Client_ID
          AND a2.Appoint_Case_ID = a1.Appoint_Case_ID
-         AND a2.Appoint_Date = a1.Appoint_Date
-         AND a2.Appoint_Start_Time = a1.Appoint_Start_Time
-         AND a2.Appoint_End_Time = a1.Appoint_End_Time
+         AND DATE(a2.Appoint_Date) = DATE(a1.Appoint_Date)
+         AND TIME(a2.Appoint_Start_Time) <=> TIME(a1.Appoint_Start_Time)
+         AND TIME(a2.Appoint_End_Time) <=> TIME(a1.Appoint_End_Time)
        SET a2.Appoint_Delete_Flag = TRUE
        WHERE a1.Appoint_ID = ?
          AND (a2.Appoint_Created_By IS NULL OR a2.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
@@ -440,9 +446,8 @@ export async function deleteAppointment(req, res, next) {
 }
 
 export async function getAppointmentRemarks(req, res, next) {
+  const { appointmentId } = req.params;
   try {
-    const { appointmentId } = req.params;
-
     // Verify appointment exists
     const [apptRows] = await pool.query(
       `SELECT Appoint_Case_ID
@@ -465,9 +470,9 @@ export async function getAppointmentRemarks(req, res, next) {
          INNER JOIN Appointment a2 ON 
            a2.Appoint_Client_ID = a1.Appoint_Client_ID
            AND a2.Appoint_Case_ID = a1.Appoint_Case_ID
-           AND a2.Appoint_Date = a1.Appoint_Date
-           AND a2.Appoint_Start_Time = a1.Appoint_Start_Time
-           AND a2.Appoint_End_Time = a1.Appoint_End_Time
+           AND DATE(a2.Appoint_Date) = DATE(a1.Appoint_Date)
+           AND TIME(a2.Appoint_Start_Time) <=> TIME(a1.Appoint_Start_Time)
+           AND TIME(a2.Appoint_End_Time) <=> TIME(a1.Appoint_End_Time)
          WHERE a1.Appoint_ID = ?
            AND a2.Appoint_Advocate_ID = ?
            AND (a1.Appoint_Delete_Flag = FALSE OR a1.Appoint_Delete_Flag = 0)
@@ -502,10 +507,9 @@ export async function getAppointmentRemarks(req, res, next) {
 }
 
 export async function addAppointmentRemark(req, res, next) {
+  const { appointmentId } = req.params;
+  const { remarkText } = req.body;
   try {
-    const { appointmentId } = req.params;
-    const { remarkText } = req.body;
-
     if (!remarkText || !remarkText.trim()) {
       return res.status(400).json({ message: "Remark text is required." });
     }
@@ -533,9 +537,9 @@ export async function addAppointmentRemark(req, res, next) {
        INNER JOIN Appointment a2 ON 
          a2.Appoint_Client_ID = a1.Appoint_Client_ID
          AND a2.Appoint_Case_ID = a1.Appoint_Case_ID
-         AND a2.Appoint_Date = a1.Appoint_Date
-         AND a2.Appoint_Start_Time = a1.Appoint_Start_Time
-         AND a2.Appoint_End_Time = a1.Appoint_End_Time
+         AND DATE(a2.Appoint_Date) = DATE(a1.Appoint_Date)
+         AND TIME(a2.Appoint_Start_Time) <=> TIME(a1.Appoint_Start_Time)
+         AND TIME(a2.Appoint_End_Time) <=> TIME(a1.Appoint_End_Time)
        WHERE a1.Appoint_ID = ?
          AND a2.Appoint_Advocate_ID = ?
          AND (a1.Appoint_Delete_Flag = FALSE OR a1.Appoint_Delete_Flag = 0)
@@ -609,7 +613,7 @@ export async function getAppointmentReport(req, res, next) {
     res.json(
       rows.map((row) => ({
         ...row,
-        date: row.date ? String(row.date).slice(0, 10) : null,
+        date: formatDate(row.date),
         startTime: formatTime(row.startTime),
         endTime: formatTime(row.endTime),
       })),
@@ -657,7 +661,7 @@ export async function getClientReport(req, res, next) {
     res.json(
       rows.map((row) => ({
         ...row,
-        date: row.date ? String(row.date).slice(0, 10) : null,
+        date: formatDate(row.date),
         startTime: formatTime(row.startTime),
         endTime: formatTime(row.endTime),
       })),
