@@ -228,6 +228,12 @@ function EntityListPage({ config, readOnly = false }) {
                     if ((col.key === "startTime" || col.key === "endTime") && value !== "—") {
                       value = formatTime12Hour(value);
                     }
+                    if (col.key === "date" && value !== "—" && value.includes("-")) {
+                      const parts = value.split("-");
+                      if (parts.length === 3) {
+                        value = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                      }
+                    }
                     if (col.key === "clientName" && apiPath === "/cases") {
                       const clientNames = value.split(",").map(n => n.trim()).filter(Boolean);
                       if (clientNames.length > 1) {
