@@ -29,14 +29,14 @@ function CustomDatePicker({ id, value, onChange, min, required }) {
 
   const handleInputChange = (e) => {
     let val = e.target.value;
-    
+
     // Automatically insert slashes as user types
     if (val.length > inputValue.length) {
       if (val.length === 2 || val.length === 5) {
         val += "/";
       }
     }
-    
+
     // Limit to 10 characters (DD/MM/YYYY)
     if (val.length <= 10) {
       setInputValue(val);
@@ -240,7 +240,7 @@ function CaseForm() {
 
   const getAvailableTypesForDistrict = (districtId) => {
     if (!districtId) {
-      return ["Supreme Court", "High Court", "District Court", "Family Court"];
+      return ["Supreme Court", "High Court", "District Court", "Family Court", "Municipal Court", "Sessions Court"];
     }
     const types = new Set();
     courts.forEach((c) => {
@@ -370,9 +370,9 @@ function CaseForm() {
             >
               {selectedClientIds.length > 0
                 ? clients
-                    .filter((c) => selectedClientIds.includes(c.id))
-                    .map((c) => c.clientName)
-                    .join(", ")
+                  .filter((c) => selectedClientIds.includes(c.id))
+                  .map((c) => c.clientName)
+                  .join(", ")
                 : "Select clients"}
               <span className="dropdown-arrow">▼</span>
             </button>
@@ -520,9 +520,9 @@ function CaseForm() {
             >
               {selectedAdvocateIds.length > 0
                 ? advocates
-                    .filter((a) => selectedAdvocateIds.includes(a.id))
-                    .map((a) => a.advocateName)
-                    .join(", ")
+                  .filter((a) => selectedAdvocateIds.includes(a.id))
+                  .map((a) => a.advocateName)
+                  .join(", ")
                 : "Select advocates"}
               <span className="dropdown-arrow">▼</span>
             </button>

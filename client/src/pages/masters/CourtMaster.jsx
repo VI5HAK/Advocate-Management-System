@@ -190,6 +190,8 @@ function CourtMaster() {
               <option value="High Court">High Court</option>
               <option value="District Court">District Court</option>
               <option value="Family Court">Family Court</option>
+              <option value="Municipal Court">Municipal Court</option>
+              <option value="Sessions Court">Sessions Court</option>
             </select>
           </div>
 
