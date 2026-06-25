@@ -1,6 +1,7 @@
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: linear-gradient(135deg, #f3f4f6 0%, #ffffff 100%);
 }
 
@@ -9,6 +10,8 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .app-header {
@@ -179,20 +182,20 @@
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
   margin-top: 2.5rem;
-  max-width: 1200px;
+  max-width: 1000px;
 }
 
 .dashboard-stat-card {
   position: relative;
   overflow: hidden;
   border-radius: 12px;
-  padding: 3.5rem 3rem;
+  padding: 2.5rem 2rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border: none;
+  border: 3px solid transparent;
   cursor: pointer;
 }
 
@@ -205,7 +208,7 @@
   display: block;
   font-size: 4.5rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #111827;
   line-height: 1;
 }
 
@@ -214,26 +217,54 @@
   margin-top: 0.75rem;
   font-size: 1.35rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
+  color: #4b5563;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
-/* Vibrant modern gradients */
+/* Soft modern cards with thick saturated borders */
 .card-advocates {
-  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  background: #eff6ff;
+  border-color: #3b82f6;
+}
+.card-advocates .dashboard-stat-value {
+  color: #1d4ed8;
+}
+.card-advocates .dashboard-stat-label {
+  color: #1e40af;
 }
 
 .card-clients {
-  background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+  background: #ecfdf5;
+  border-color: #10b981;
+}
+.card-clients .dashboard-stat-value {
+  color: #047857;
+}
+.card-clients .dashboard-stat-label {
+  color: #065f46;
 }
 
 .card-cases {
-  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  background: #f5f3ff;
+  border-color: #8b5cf6;
+}
+.card-cases .dashboard-stat-value {
+  color: #6d28d9;
+}
+.card-cases .dashboard-stat-label {
+  color: #5b21b6;
 }
 
 .card-appointments {
-  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  background: #fffbeb;
+  border-color: #f59e0b;
+}
+.card-appointments .dashboard-stat-value {
+  color: #b45309;
+}
+.card-appointments .dashboard-stat-label {
+  color: #92400e;
 }
 
 @media (max-width: 768px) {
@@ -242,7 +273,7 @@
     gap: 1.5rem;
   }
   .dashboard-stat-card {
-    padding: 2.5rem 2rem;
+    padding: 2rem 1.5rem;
   }
   .dashboard-stat-value {
     font-size: 3.5rem;

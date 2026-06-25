@@ -9,7 +9,7 @@
 
   flex-shrink: 0;
   width: 280px;
-  min-height: 100vh;
+  height: 100vh;
   background: var(--sidebar-bg);
   color: var(--sidebar-text);
   font-family: "Inter", system-ui, sans-serif;
@@ -42,6 +42,12 @@
   padding: 1rem 0;
   flex: 1;
   overflow-y: auto;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.sidebar-menu::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 .sidebar-menu > li {

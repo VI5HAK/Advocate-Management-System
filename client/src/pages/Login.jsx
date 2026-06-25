@@ -40,7 +40,7 @@ function Login() {
             Advocate Login
           </h1>
           <p className="login-subtitle">
-            Secure access to Advocate management systems.
+            Secure access to Advocate Management System.
           </p>
 
           <form className="login-form" onSubmit={handleSubmit}>
