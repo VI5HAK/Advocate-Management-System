@@ -5,7 +5,7 @@ import { getMenuItemsForRole } from "../config/menu";
 import sidebarLogo from "../assets/sidebar-logo.png";
 import "../styles/Sidebar.css";
 
-function SidebarLink({ item, className }) {
+function SidebarLink({ item, className, onClick }) {
   if (item.path) {
     return (
       <NavLink
@@ -13,6 +13,7 @@ function SidebarLink({ item, className }) {
         className={({ isActive }) =>
           `${className} ${isActive ? "is-active" : ""}`
         }
+        onClick={onClick}
       >
         {item.label}
       </NavLink>
@@ -26,7 +27,7 @@ function SidebarLink({ item, className }) {
   );
 }
 
-function Sidebar() {
+function Sidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth();
   const menuItems = getMenuItemsForRole(user?.role);
   const location = useLocation();
@@ -48,9 +49,29 @@ function Sidebar() {
   };
 
   return (
-    <nav className="sidebar" aria-label="Main navigation">
+    <nav className={`sidebar ${isOpen ? "is-open" : ""}`} aria-label="Main navigation">
       <div className="sidebar-brand">
         <img src={sidebarLogo} alt="AMS Logo" className="sidebar-brand-logo" />
+        <button
+          type="button"
+          className="sidebar-close-btn"
+          onClick={onClose}
+          aria-label="Close sidebar"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
 
       <ul className="sidebar-menu">
@@ -75,6 +96,7 @@ function Sidebar() {
                       <SidebarLink
                         item={child}
                         className="sidebar-link sidebar-sublink"
+                        onClick={onClose}
                       />
                     </li>
                   ))}
@@ -83,7 +105,7 @@ function Sidebar() {
             </li>
           ) : (
             <li key={item.id}>
-              <SidebarLink item={item} className="sidebar-link sidebar-top-link" />
+              <SidebarLink item={item} className="sidebar-link sidebar-top-link" onClick={onClose} />
             </li>
           ),
         )}

@@ -298,3 +298,72 @@
   background: #ffffff;
   border-top: 1px solid #e5e7eb;
 }
+
+/* Sidebar Hamburger Toggle Button */
+.sidebar-toggle-btn {
+  display: none;
+}
+
+/* Sidebar Backdrop */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(17, 24, 39, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 999;
+  transition: opacity 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 1rem;
+    gap: 0.5rem;
+  }
+
+  .sidebar-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #4b5563;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background-color 0.2s, color 0.2s;
+    flex-shrink: 0;
+  }
+
+  .sidebar-toggle-btn:hover {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
+
+  .app-header-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .profile-username {
+    display: none;
+  }
+
+  .app-profile-trigger {
+    padding: 0.5rem;
+  }
+
+  .down-arrow-img {
+    display: none;
+  }
+
+  .app-content {
+    padding: 1rem 1rem 2rem;
+  }
+}
