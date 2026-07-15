@@ -51,3 +51,9 @@ export const aadhaarSchema = z
   .string({ required_error: "Aadhaar number is required." })
   .trim()
   .regex(/^\d{12}$/, "Aadhaar number must be exactly 12 digits.");
+
+export const gstSchema = z
+  .string({ required_error: "GST number is required." })
+  .trim()
+  .toUpperCase()
+  .regex(/^[A-Z0-9]{15}$/, "GST number must be exactly 15 alphanumeric characters.");
