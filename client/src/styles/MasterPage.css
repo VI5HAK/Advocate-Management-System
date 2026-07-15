@@ -142,6 +142,7 @@
   border: 1px solid #a7f3d0;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
 }
+
 .btn-create:hover {
   background: #10b981;
   color: #fff;
@@ -155,6 +156,7 @@
   border: 1px solid #bfdbfe;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
+
 .btn-update:hover {
   background: #3b82f6;
   color: #fff;
@@ -168,6 +170,7 @@
   border: 1px solid #fecaca;
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
 }
+
 .btn-delete:hover {
   background: #ef4444;
   color: #fff;
@@ -321,6 +324,7 @@
 }
 
 @media (max-width: 600px) {
+
   /* Hide all table columns except the first (Name) and the last (Actions) */
   .master-table th:not(:first-child):not(:last-child),
   .master-table td:not(:first-child):not(:last-child) {
@@ -364,7 +368,8 @@
     padding: 0 !important;
     width: 3rem;
     height: 3rem;
-    border-radius: 8px; /* Squircle */
+    border-radius: 8px;
+    /* Squircle */
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
@@ -376,7 +381,8 @@
     padding: 0 !important;
     width: 2.5rem;
     height: 2.5rem;
-    border-radius: 8px; /* Squircle */
+    border-radius: 8px;
+    /* Squircle */
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
