@@ -23,13 +23,13 @@ export const MASTER_CONFIG = {
     descriptionColumn: "Case_Type_Description",
     deleteFlagColumn: "Case_Type_Delete_Flag",
   },
-  statuses: {
+  /*statuses: {
     table: "Status_Master",
     idColumn: "Status_ID",
     nameColumn: "Status_Name",
     descriptionColumn: "Status_Description",
     deleteFlagColumn: "Status_Delete_Flag",
-  },
+  },*/
   courts: {
     table: "Court_Master",
     idColumn: "Court_ID",
