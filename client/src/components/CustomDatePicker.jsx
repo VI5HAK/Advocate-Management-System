@@ -6,7 +6,7 @@ import dayjs from "../utils/datePicker";
  * Displays a text input formatted as DD/MM/YYYY which synchronizes with
  * an underlying native HTML5 date input (using ISO format YYYY-MM-DD).
  */
-export function CustomDatePicker({ id, value, onChange, min, required, disabled }) {
+export function CustomDatePicker({ id, value, onChange, min, max, required, disabled }) {
   const dateInputRef = useRef(null);
   const [inputValue, setInputValue] = useState("");
 
@@ -51,6 +51,10 @@ export function CustomDatePicker({ id, value, onChange, min, required, disabled 
       const parsed = dayjs(val);
       if (parsed.isValid()) {
         const isoDate = parsed.format("YYYY-MM-DD");
+        // Check max bounds if specified
+        if (max && isoDate > max) {
+          return;
+        }
         onChange({ target: { value: isoDate } });
       }
     } else if (val === "") {
@@ -113,6 +117,7 @@ export function CustomDatePicker({ id, value, onChange, min, required, disabled 
         ref={dateInputRef}
         type="date"
         min={min}
+        max={max}
         value={value || ""}
         onChange={onChange}
         required={required}

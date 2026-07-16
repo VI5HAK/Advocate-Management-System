@@ -1,126 +1,18 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
 import "../../styles/MasterPage.css";
 import "../../styles/AdvocateForm.css";
-
-function CustomDatePicker({ id, value, onChange, min, required }) {
-  const dateInputRef = useRef(null);
-  const [inputValue, setInputValue] = useState("");
-
-  useEffect(() => {
-    if (value) {
-      const display = value.split("-").reverse().join("/");
-      setInputValue(display);
-    } else {
-      setInputValue("");
-    }
-  }, [value]);
-
-  const handleClick = () => {
-    if (dateInputRef.current) {
-      try {
-        dateInputRef.current.showPicker();
-      } catch (err) {
-        dateInputRef.current.focus();
-      }
-    }
-  };
-
-  const handleInputChange = (e) => {
-    let val = e.target.value;
-
-    // Automatically insert slashes as user types
-    if (val.length > inputValue.length) {
-      if (val.length === 2 || val.length === 5) {
-        val += "/";
-      }
-    }
-
-    // Limit to 10 characters (DD/MM/YYYY)
-    if (val.length <= 10) {
-      setInputValue(val);
-    }
-
-    const dmyPattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    const match = val.match(dmyPattern);
-    if (match) {
-      const dd = match[1];
-      const mm = match[2];
-      const yyyy = match[3];
-      const isoDate = `${yyyy}-${mm}-${dd}`;
-      const d = new Date(isoDate);
-      if (!isNaN(d.getTime())) {
-        onChange({ target: { value: isoDate } });
-      }
-    } else if (val === "") {
-      onChange({ target: { value: "" } });
-    }
-  };
-
-  const handleBlur = () => {
-    const dmyPattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    if (inputValue && !inputValue.match(dmyPattern)) {
-      if (value) {
-        setInputValue(value.split("-").reverse().join("/"));
-      } else {
-        setInputValue("");
-      }
-    }
-  };
-
-  return (
-    <div style={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
-      <input
-        type="text"
-        className="master-input-text"
-        value={inputValue}
-        placeholder="DD/MM/YYYY"
-        onChange={handleInputChange}
-        onBlur={handleBlur}
-        style={{ width: "100%", height: "3rem", padding: "0 2.5rem 0 0.75rem", border: "1px solid #9ca3af", borderRadius: "6px", boxSizing: "border-box", background: "#fff", fontSize: "1.05rem" }}
-      />
-      <button
-        type="button"
-        onClick={handleClick}
-        style={{
-          position: "absolute",
-          right: "0.75rem",
-          background: "transparent",
-          border: "none",
-          cursor: "pointer",
-          fontSize: "1.2rem",
-          display: "flex",
-          alignItems: "center",
-          color: "#6b7280"
-        }}
-      >
-        📅
-      </button>
-      <input
-        id={id}
-        ref={dateInputRef}
-        type="date"
-        min={min}
-        value={value || ""}
-        onChange={onChange}
-        required={required}
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          width: 0,
-          height: 0,
-          opacity: 0,
-          pointerEvents: "none"
-        }}
-      />
-    </div>
-  );
-}
+import { useForm } from "../../hooks/useForm";
+import { CustomDatePicker } from "../../components/CustomDatePicker";
+import { CheckboxDropdown } from "../../components/CheckboxDropdown";
+import {
+  caseSchema,
+  uppercaseAlphaAndSpaces,
+} from "../../utils/validation";
 
 const EMPTY_FORM = {
-  clientId: "",
+  clientIds: [],
   caseNumber: "",
   caseTypeId: "",
   courtId: "",
@@ -128,7 +20,7 @@ const EMPTY_FORM = {
   respondent: "",
   filingDate: "",
   courtName: "",
-  advocateId: "",
+  advocateIds: [],
 };
 
 function CaseForm() {
@@ -136,7 +28,6 @@ function CaseForm() {
   const isEdit = Boolean(id);
   const navigate = useNavigate();
 
-  const [form, setForm] = useState(EMPTY_FORM);
   const [clients, setClients] = useState([]);
   const [caseTypes, setCaseTypes] = useState([]);
   const [courts, setCourts] = useState([]);
@@ -147,22 +38,59 @@ function CaseForm() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [selectedClientIds, setSelectedClientIds] = useState([]);
-  const [selectedAdvocateIds, setSelectedAdvocateIds] = useState([]);
-  const [clientDropdownOpen, setClientDropdownOpen] = useState(false);
-  const [advocateDropdownOpen, setAdvocateDropdownOpen] = useState(false);
 
-  useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (!e.target.closest(".custom-checkbox-dropdown")) {
-        setClientDropdownOpen(false);
-        setAdvocateDropdownOpen(false);
+  const handleSave = async (formValues) => {
+    const payload = {
+      clientIds: formValues.clientIds,
+      caseNumber: formValues.caseNumber.trim(),
+      caseTypeId: Number(formValues.caseTypeId),
+      courtId: Number(formValues.courtId),
+      petitioner: formValues.petitioner,
+      respondent: formValues.respondent,
+      filingDate: formValues.filingDate,
+      courtName: formValues.courtName,
+      advocateIds: formValues.advocateIds,
+    };
+
+    setSaving(true);
+    setError("");
+    try {
+      if (isEdit) {
+        await api.put(`/cases/${id}`, payload);
+      } else {
+        await api.post("/cases", payload);
       }
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
+      navigate("/case");
+    } catch (err) {
+      setError(
+        err.response?.data?.message ||
+        (isEdit ? "Failed to update case." : "Failed to create case."),
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const {
+    values,
+    errors,
+    setValues,
+    isSubmitting,
+    handleSubmit,
+    register,
+    setValue,
+  } = useForm({
+    initialValues: EMPTY_FORM,
+    schema: caseSchema,
+    onSubmit: handleSave,
+  });
+
+  const today = useMemo(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   }, []);
 
   useEffect(() => {
@@ -191,10 +119,8 @@ function CaseForm() {
         if (isEdit) {
           const { data } = await api.get(`/cases/${id}`);
           if (cancelled) return;
-          setSelectedClientIds(data.clientIds || []);
-          setSelectedAdvocateIds(data.advocateIds || []);
-          setForm({
-            clientId: data.clientId != null ? String(data.clientId) : "",
+          setValues({
+            clientIds: data.clientIds || [],
             caseNumber: data.caseNumber || "",
             caseTypeId: data.caseTypeId != null ? String(data.caseTypeId) : "",
             courtId: data.courtId != null ? String(data.courtId) : "",
@@ -202,7 +128,7 @@ function CaseForm() {
             respondent: data.respondent || "",
             filingDate: data.filingDate ? data.filingDate.slice(0, 10) : "",
             courtName: data.courtName || "",
-            advocateId: data.advocateId != null ? String(data.advocateId) : "",
+            advocateIds: data.advocateIds || [],
           });
 
           // Pre-populate District and Court Type filters based on the case's assigned court ID
@@ -232,11 +158,7 @@ function CaseForm() {
     return () => {
       cancelled = true;
     };
-  }, [id, isEdit]);
-
-  const updateField = (field) => (e) => {
-    setForm((f) => ({ ...f, [field]: e.target.value }));
-  };
+  }, [id, isEdit, setValues]);
 
   const getAvailableTypesForDistrict = (districtId) => {
     if (!districtId) {
@@ -261,71 +183,26 @@ function CaseForm() {
     if (selectedCourtType && !nextAvailableTypes.includes(selectedCourtType)) {
       setSelectedCourtType("");
     }
-    setForm((f) => ({ ...f, courtId: "", courtName: "" }));
+    setValue("courtId", "");
+    setValue("courtName", "");
   };
 
   const handleCourtTypeChange = (e) => {
     const value = e.target.value;
     setSelectedCourtType(value);
-    setForm((f) => ({ ...f, courtId: "", courtName: "" }));
+    setValue("courtId", "");
+    setValue("courtName", "");
   };
 
   const handleCourtChange = (e) => {
     const courtIdStr = e.target.value;
     const matched = courts.find((c) => String(c.id) === courtIdStr);
-    setForm((f) => ({
-      ...f,
-      courtId: courtIdStr,
-      courtName: matched ? matched.name : "",
-    }));
+    setValue("courtId", courtIdStr);
+    setValue("courtName", matched ? matched.name : "");
   };
 
   const handleCancel = () => {
     navigate("/case");
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (selectedClientIds.length === 0) return setError("At least one client must be selected.");
-    if (!form.caseNumber.trim()) return setError("Case number is required.");
-    if (!form.caseTypeId) return setError("Case type is required.");
-    if (!form.courtId) return setError("Court name is required.");
-    if (selectedAdvocateIds.length === 0) return setError("At least one advocate must be selected.");
-    if (!form.petitioner) return setError("Petitioner is required.");
-    if (!form.respondent) return setError("Respondent is required.");
-    if (!form.filingDate) return setError("Filing date is required.");
-    if (!form.courtName) return setError("Court name is required.");
-
-    const payload = {
-      clientIds: selectedClientIds,
-      caseNumber: form.caseNumber.trim(),
-      caseTypeId: Number(form.caseTypeId),
-      courtId: Number(form.courtId),
-      petitioner: form.petitioner,
-      respondent: form.respondent,
-      filingDate: form.filingDate,
-      courtName: form.courtName,
-      advocateIds: selectedAdvocateIds,
-    };
-
-    setSaving(true);
-    setError("");
-    try {
-      if (isEdit) {
-        await api.put(`/cases/${id}`, payload);
-      } else {
-        await api.post("/cases", payload);
-      }
-      navigate("/case");
-    } catch (err) {
-      setError(
-        err.response?.data?.message ||
-        (isEdit ? "Failed to update case." : "Failed to create case."),
-      );
-    } finally {
-      setSaving(false);
-    }
   };
 
   const filteredCourts = courts.filter((c) => {
@@ -361,101 +238,93 @@ function CaseForm() {
       <form className="advocate-form" onSubmit={handleSubmit}>
         <div className="advocate-form-row">
           <label htmlFor="case-client">Client Name</label>
-          <div className="custom-checkbox-dropdown">
-            <button
+          <div className="form-input-wrapper">
+            <CheckboxDropdown
               id="case-client"
-              type="button"
-              className="dropdown-trigger-btn"
-              onClick={() => setClientDropdownOpen(!clientDropdownOpen)}
-            >
-              {selectedClientIds.length > 0
-                ? clients
-                  .filter((c) => selectedClientIds.includes(c.id))
-                  .map((c) => c.clientName)
-                  .join(", ")
-                : "Select clients"}
-              <span className="dropdown-arrow">▼</span>
-            </button>
-            {clientDropdownOpen && (
-              <div className="dropdown-options-list">
-                {clients.map((c) => {
-                  const isChecked = selectedClientIds.includes(c.id);
-                  return (
-                    <label key={c.id} className="dropdown-option-item">
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {
-                          if (isChecked) {
-                            setSelectedClientIds(selectedClientIds.filter((id) => id !== c.id));
-                          } else {
-                            setSelectedClientIds([...selectedClientIds, c.id]);
-                          }
-                        }}
-                      />
-                      <span className="option-label-text">{c.clientName}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
+              options={clients.map((c) => ({ id: c.id, name: c.clientName }))}
+              selectedIds={values.clientIds}
+              onChange={(newIds) => {
+                setValue("clientIds", newIds);
+              }}
+              placeholder="Select clients"
+            />
+            {errors.clientIds && <span className="field-error">{errors.clientIds}</span>}
           </div>
         </div>
 
         <div className="advocate-form-row">
           <label htmlFor="case-number">Case Number</label>
-          <input
-            id="case-number"
-            type="text"
-            value={form.caseNumber}
-            onChange={updateField("caseNumber")}
-            required
-            autoFocus
-          />
+          <div className="form-input-wrapper">
+            <input
+              id="case-number"
+              type="text"
+              className={errors.caseNumber ? "input-has-error" : ""}
+              {...register("caseNumber")}
+              required
+              autoFocus
+            />
+            {errors.caseNumber && <span className="field-error">{errors.caseNumber}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row">
           <label htmlFor="case-type">Case Type</label>
-          <select
-            id="case-type"
-            value={form.caseTypeId}
-            onChange={updateField("caseTypeId")}
-            required
-          >
-            <option value="">Select case type</option>
-            {caseTypes.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
+          <div className="form-input-wrapper">
+            <select
+              id="case-type"
+              className={errors.caseTypeId ? "input-has-error" : ""}
+              {...register("caseTypeId")}
+              required
+            >
+              <option value="">Select case type</option>
+              {caseTypes.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            {errors.caseTypeId && <span className="field-error">{errors.caseTypeId}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row advocate-form-row-pair">
           <label htmlFor="case-petitioner">Petitioner</label>
-          <input
-            id="case-petitioner"
-            type="text"
-            value={form.petitioner}
-            onChange={updateField("petitioner")}
-          />
+          <div className="form-input-wrapper">
+            <input
+              id="case-petitioner"
+              type="text"
+              className={errors.petitioner ? "input-has-error" : ""}
+              {...register("petitioner", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
+              required
+            />
+            {errors.petitioner && <span className="field-error">{errors.petitioner}</span>}
+          </div>
 
           <label htmlFor="case-respondent">Respondent</label>
-          <input
-            id="case-respondent"
-            type="text"
-            value={form.respondent}
-            onChange={updateField("respondent")}
-          />
+          <div className="form-input-wrapper">
+            <input
+              id="case-respondent"
+              type="text"
+              className={errors.respondent ? "input-has-error" : ""}
+              {...register("respondent", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
+              required
+            />
+            {errors.respondent && <span className="field-error">{errors.respondent}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row">
           <label htmlFor="case-filing-date">Filing Date</label>
-          <CustomDatePicker
-            id="case-filing-date"
-            value={form.filingDate}
-            onChange={updateField("filingDate")}
-          />
+          <div className="form-input-wrapper">
+            <CustomDatePicker
+              id="case-filing-date"
+              value={values.filingDate}
+              onChange={(e) => setValue("filingDate", e.target.value)}
+              max={today}
+              required
+            />
+            {errors.filingDate && <span className="field-error">{errors.filingDate}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row">
@@ -494,61 +363,38 @@ function CaseForm() {
 
         <div className="advocate-form-row">
           <label htmlFor="case-court">Court Name</label>
-          <select
-            id="case-court"
-            value={form.courtId}
-            onChange={handleCourtChange}
-            required
-          >
-            <option value="">Select court</option>
-            {filteredCourts.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <div className="form-input-wrapper">
+            <select
+              id="case-court"
+              className={errors.courtId ? "input-has-error" : ""}
+              value={values.courtId}
+              onChange={handleCourtChange}
+              required
+            >
+              <option value="">Select court</option>
+              {filteredCourts.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            {errors.courtId && <span className="field-error">{errors.courtId}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row advocate-form-row-wide">
           <label htmlFor="case-advocate">Assign Advocate</label>
-          <div className="custom-checkbox-dropdown">
-            <button
+          <div className="form-input-wrapper">
+            <CheckboxDropdown
               id="case-advocate"
-              type="button"
-              className="dropdown-trigger-btn"
-              onClick={() => setAdvocateDropdownOpen(!advocateDropdownOpen)}
-            >
-              {selectedAdvocateIds.length > 0
-                ? advocates
-                  .filter((a) => selectedAdvocateIds.includes(a.id))
-                  .map((a) => a.advocateName)
-                  .join(", ")
-                : "Select advocates"}
-              <span className="dropdown-arrow">▼</span>
-            </button>
-            {advocateDropdownOpen && (
-              <div className="dropdown-options-list">
-                {advocates.map((a) => {
-                  const isChecked = selectedAdvocateIds.includes(a.id);
-                  return (
-                    <label key={a.id} className="dropdown-option-item">
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {
-                          if (isChecked) {
-                            setSelectedAdvocateIds(selectedAdvocateIds.filter((id) => id !== a.id));
-                          } else {
-                            setSelectedAdvocateIds([...selectedAdvocateIds, a.id]);
-                          }
-                        }}
-                      />
-                      <span className="option-label-text">{a.advocateName}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
+              options={advocates.map((a) => ({ id: a.id, name: a.advocateName }))}
+              selectedIds={values.advocateIds}
+              onChange={(newIds) => {
+                setValue("advocateIds", newIds);
+              }}
+              placeholder="Select advocates"
+            />
+            {errors.advocateIds && <span className="field-error">{errors.advocateIds}</span>}
           </div>
         </div>
 
@@ -556,15 +402,15 @@ function CaseForm() {
           <button
             type="submit"
             className={`master-btn ${isEdit ? "btn-update" : "btn-create"}`}
-            disabled={saving}
+            disabled={saving || isSubmitting}
           >
-            {saving ? "Saving…" : isEdit ? "Update" : "Submit"}
+            {saving || isSubmitting ? "Saving…" : isEdit ? "Update" : "Submit"}
           </button>
           <button
             type="button"
             className="master-btn master-btn-outline"
             onClick={handleCancel}
-            disabled={saving}
+            disabled={saving || isSubmitting}
           >
             Cancel
           </button>

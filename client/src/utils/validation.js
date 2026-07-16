@@ -142,3 +142,28 @@ export const getClientSchema = (showAadhaar) => {
     }
   });
 };
+
+// Case Schema definition
+export const caseSchema = z.object({
+  clientIds: z.array(z.number()).min(1, "At least one client must be selected."),
+  caseNumber: requiredText("Case number"),
+  caseTypeId: z.string().min(1, "Case type is required."),
+  courtId: z.string().min(1, "Court name is required."),
+  petitioner: alphaField("Petitioner"),
+  respondent: alphaField("Respondent"),
+  filingDate: z.string()
+    .min(1, "Filing date is required.")
+    .refine((val) => {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const localToday = `${year}-${month}-${day}`;
+      return val <= localToday;
+    }, {
+      message: "Filing date cannot be in the future.",
+    }),
+  courtName: z.string().min(1, "Court name is required."),
+  advocateIds: z.array(z.number()).min(1, "At least one advocate must be selected."),
+});
+
