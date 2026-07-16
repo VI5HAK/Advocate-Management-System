@@ -24,8 +24,9 @@ export function useForm({ initialValues, schema, onSubmit }) {
   };
 
   const handleBlur = (name) => {
-    if (!schema) return;
-    const result = schema.safeParse(values);
+    const activeSchema = typeof schema === "function" ? schema() : schema;
+    if (!activeSchema) return;
+    const result = activeSchema.safeParse(values);
     if (!result.success) {
       // Find if there is an error for this field
       const fieldError = result.error.issues.find((err) => err.path.includes(name));
@@ -48,8 +49,9 @@ export function useForm({ initialValues, schema, onSubmit }) {
   };
 
   const validate = () => {
-    if (!schema) return true;
-    const result = schema.safeParse(values);
+    const activeSchema = typeof schema === "function" ? schema() : schema;
+    if (!activeSchema) return true;
+    const result = activeSchema.safeParse(values);
     if (result.success) {
       setErrors({});
       return true;

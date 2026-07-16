@@ -27,43 +27,62 @@ export function uppercaseAlphaNum(value, maxLength) {
   return cleanVal.slice(0, maxLength);
 }
 
+// Reusable field-level validators
+export const requiredText = (field, max = 50) =>
+  z.string()
+    .trim()
+    .min(1, `${field} is required.`)
+    .max(max, `${field} must be less than ${max + 1} characters.`);
+
+export const alphaField = (field, max = 49) =>
+  requiredText(field, max).regex(
+    alphaSpaceRegex,
+    `${field} must contain only alphabets and spaces (uppercase).`
+  );
+
+export const phoneField = (field = "Contact number") =>
+  z.string().length(10, `${field} must be exactly 10 digits.`);
+
+export const pincodeField =
+  z.string().length(6, "Pincode must be exactly 6 digits.");
+
+export const aadhaarField =
+  z.string().length(12, "Aadhaar number must be exactly 12 digits.");
+
+export const emailField =
+  z.string()
+    .trim()
+    .min(1, "Email is required.")
+    .email("Invalid email format.");
+
+export const panField =
+  z.string().regex(
+    panRegex,
+    "PAN must be 5 alphabets, 4 digits, and 1 alphabet (e.g. ABCDE1234F)."
+  );
+
+// Common fields objects
+export const addressFields = {
+  address: requiredText("Address", 200),
+  city: alphaField("City"),
+  state: alphaField("State"),
+  Pincode: pincodeField,
+};
+
+export const contactFields = {
+  contactNumber: phoneField(),
+  alternateContactNumber: phoneField("Alternate contact number"),
+  emailId: emailField,
+};
+
 // Base Advocate Schema
 const baseAdvocateSchema = z.object({
-  name: z.string()
-    .min(1, "Name is required.")
-    .max(49, "Name must be less than 50 characters.")
-    .refine((val) => alphaSpaceRegex.test(val), {
-      message: "Name must contain only alphabets and spaces (uppercase).",
-    }),
+  name: alphaField("Name"),
   roleId: z.string().min(1, "Role is required."),
-  address: z.string()
-    .min(1, "Address is required.")
-    .max(200, "Address cannot exceed 200 characters."),
-  city: z.string()
-    .min(1, "City is required.")
-    .max(49, "City must be less than 50 characters.")
-    .refine((val) => alphaSpaceRegex.test(val), {
-      message: "City must contain only alphabets and spaces (uppercase).",
-    }),
-  state: z.string()
-    .min(1, "State is required.")
-    .max(49, "State must be less than 50 characters.")
-    .refine((val) => alphaSpaceRegex.test(val), {
-      message: "State must contain only alphabets and spaces (uppercase).",
-    }),
-  Pincode: z.string()
-    .length(6, "Pincode must be exactly 6 digits."),
-  contactNumber: z.string()
-    .length(10, "Contact number must be exactly 10 digits."),
-  alternateContactNumber: z.string()
-    .length(10, "Alternate contact number must be exactly 10 digits."),
-  emailId: z.string()
-    .min(1, "Email is required.")
-    .email("Invalid email format."),
-  panNumber: z.string()
-    .regex(panRegex, "PAN must be 5 alphabets, 4 digits, and 1 alphabet (e.g. ABCDE1234F)."),
-  aadhaarNumber: z.string()
-    .length(12, "Aadhaar number must be exactly 12 digits."),
+  ...addressFields,
+  ...contactFields,
+  panNumber: panField,
+  aadhaarNumber: aadhaarField,
 });
 
 // Create Advocate Schema (passwords mandatory)
@@ -88,3 +107,38 @@ export const updateAdvocateSchema = baseAdvocateSchema.extend({
   message: "Password and confirm password do not match.",
   path: ["confirmPassword"],
 });
+
+// Client Schema definitions
+export const clientSchema = z.object({
+  name: alphaField("Client name"),
+  clientTypeId: z.string().min(1, "Client type is required."),
+  ...addressFields,
+  contactPerson: requiredText("Contact person name", 50),
+  ...contactFields,
+  panNumber: panField,
+  aadhaarNumber: z.string().optional().or(z.literal("")),
+  gstNumber: z.string().optional().or(z.literal("")),
+});
+
+export const getClientSchema = (showAadhaar) => {
+  return clientSchema.superRefine((data, ctx) => {
+    if (showAadhaar) {
+      if (!data.aadhaarNumber || data.aadhaarNumber.length !== 12) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Aadhaar number must be exactly 12 digits.",
+          path: ["aadhaarNumber"],
+        });
+      }
+    } else {
+      const gstRegex = /^[A-Z0-9]{15}$/;
+      if (!data.gstNumber || !gstRegex.test(data.gstNumber)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "GST number must be exactly 15 alphanumeric characters.",
+          path: ["gstNumber"],
+        });
+      }
+    }
+  });
+};

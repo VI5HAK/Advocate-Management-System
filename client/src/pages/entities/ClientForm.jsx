@@ -3,6 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
 import "../../styles/MasterPage.css";
 import "../../styles/AdvocateForm.css";
+import { useForm } from "../../hooks/useForm";
+import {
+  getClientSchema,
+  digitsOnly,
+  uppercaseAlphaAndSpaces,
+  uppercaseAlphaNum,
+} from "../../utils/validation";
 
 const EMPTY_FORM = {
   name: "",
@@ -20,23 +27,8 @@ const EMPTY_FORM = {
   contactPerson: "",
 };
 
-function toInputValue(value) {
-  if (value === null || value === undefined) return "";
-  return String(value);
-}
-
 function isIndividualType(typeName) {
   return typeName?.trim().toLowerCase() === "individual";
-}
-
-function digitsOnly(value, maxLength) {
-  const digits = String(value ?? "").replace(/\D/g, "");
-  if (!maxLength) return digits;
-  return digits.slice(0, maxLength);
-}
-
-function uppercaseValue(value) {
-  return String(value ?? "").toUpperCase();
 }
 
 function ClientForm() {
@@ -44,191 +36,29 @@ function ClientForm() {
   const isEdit = Boolean(id);
   const navigate = useNavigate();
 
-  const [form, setForm] = useState(EMPTY_FORM);
   const [clientTypes, setClientTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const selectedClientType = useMemo(
-    () => clientTypes.find((t) => String(t.id) === String(form.clientTypeId)),
-    [clientTypes, form.clientTypeId],
-  );
-
-  const showAadhaar = isIndividualType(selectedClientType?.name);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError("");
-      try {
-        const typesRes = await api.get("/masters/client-types");
-        if (cancelled) return;
-        setClientTypes(typesRes.data);
-
-        if (isEdit) {
-          const { data } = await api.get(`/clients/${id}`);
-          if (cancelled) return;
-          setForm({
-            name: data.name || "",
-            clientTypeId:
-              data.clientTypeId != null ? String(data.clientTypeId) : "",
-            address: data.address || "",
-            city: data.city || "",
-            state: data.state || "",
-            Pincode: toInputValue(data.Pincode),
-            contactNumber: toInputValue(data.contactNumber),
-            alternateContactNumber: toInputValue(data.alternateContactNumber),
-            emailId: data.emailId || "",
-            panNumber: data.panNumber || "",
-            gstNumber: data.gstNumber || "",
-            aadhaarNumber: data.aadhaarNumber || "",
-            contactPerson: data.contactPerson || "",
-          });
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(
-            err.response?.data?.message ||
-            (isEdit
-              ? "Failed to load client."
-              : "Failed to load client types."),
-          );
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [id, isEdit]);
-
-  const updateField = (field) => (e) => {
-    setForm((f) => ({ ...f, [field]: e.target.value }));
-  };
-
-  const updateNumericField = (field, maxLength) => (e) => {
-    setForm((f) => ({
-      ...f,
-      [field]: digitsOnly(e.target.value, maxLength),
-    }));
-  };
-
-  const updateUppercaseField = (field) => (e) => {
-    setForm((f) => ({
-      ...f,
-      [field]: uppercaseValue(e.target.value),
-    }));
-  };
-
-  const updateGstField = (e) => {
-    const val = String(e.target.value ?? "").replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 15);
-    setForm((f) => ({
-      ...f,
-      gstNumber: val,
-    }));
-  };
-
-  const handleClientTypeChange = (e) => {
-    const clientTypeId = e.target.value;
-    const type = clientTypes.find((t) => String(t.id) === clientTypeId);
-    const individual = isIndividualType(type?.name);
-
-    setForm((f) => ({
-      ...f,
-      clientTypeId,
-      gstNumber: individual ? "" : f.gstNumber,
-      aadhaarNumber: individual ? f.aadhaarNumber : "",
-    }));
-  };
-
-  const handleCancel = () => {
-    navigate("/client");
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.name.trim()) {
-      setError("Client name is required.");
-      return;
-    }
-    if (!form.clientTypeId) {
-      setError("Client type is required.");
-      return;
-    }
-    if (!form.address.trim()) {
-      setError("Address is required.");
-      return;
-    }
-    if (!form.city.trim()) {
-      setError("City is required.");
-      return;
-    }
-    if (!form.state.trim()) {
-      setError("State is required.");
-      return;
-    }
-    if (!form.Pincode || form.Pincode.length !== 6) {
-      setError("Pincode must be exactly 6 digits.");
-      return;
-    }
-    if (!form.contactNumber || form.contactNumber.length !== 10) {
-      setError("Contact number must be exactly 10 digits.");
-      return;
-    }
-    if (!form.alternateContactNumber || form.alternateContactNumber.length !== 10) {
-      setError("Alternate contact number must be exactly 10 digits.");
-      return;
-    }
-    if (!form.emailId.trim()) {
-      setError("Email is required.");
-      return;
-    }
-    if (!form.contactPerson.trim()) {
-      setError("Contact person name is required.");
-      return;
-    }
-    if (form.contactPerson.length > 50) {
-      setError("Contact person name must not exceed 50 characters.");
-      return;
-    }
-    const panRegex = /^[A-Za-z]{5}\d{4}[A-Za-z]{1}$/;
-    if (!form.panNumber || !panRegex.test(form.panNumber)) {
-      setError("PAN number must be 5 alphabets, 4 digits, and 1 alphabet (e.g. ABCDE1234F).");
-      return;
-    }
-    if (showAadhaar) {
-      if (!form.aadhaarNumber || form.aadhaarNumber.length !== 12) {
-        setError("Aadhaar number must be exactly 12 digits.");
-        return;
-      }
-    } else {
-      const gstRegex = /^[A-Za-z0-9]{15}$/;
-      if (!form.gstNumber || !gstRegex.test(form.gstNumber)) {
-        setError("GST number must be exactly 15 alphanumeric characters.");
-        return;
-      }
-    }
+  const handleSave = async (formValues) => {
+    const selectedType = clientTypes.find((t) => String(t.id) === String(formValues.clientTypeId));
+    const showAadhaar = isIndividualType(selectedType?.name);
 
     const payload = {
-      name: form.name.trim(),
-      clientTypeId: Number(form.clientTypeId),
-      address: form.address,
-      city: form.city,
-      state: form.state,
-      Pincode: form.Pincode,
-      contactNumber: form.contactNumber,
-      alternateContactNumber: form.alternateContactNumber,
-      emailId: form.emailId,
-      panNumber: uppercaseValue(form.panNumber),
-      gstNumber: showAadhaar ? "" : uppercaseValue(form.gstNumber),
-      aadhaarNumber: showAadhaar ? form.aadhaarNumber : "",
-      contactPerson: form.contactPerson.trim(),
+      name: formValues.name.trim(),
+      clientTypeId: Number(formValues.clientTypeId),
+      address: formValues.address.trim(),
+      city: formValues.city.trim(),
+      state: formValues.state.trim(),
+      Pincode: formValues.Pincode,
+      contactNumber: formValues.contactNumber,
+      alternateContactNumber: formValues.alternateContactNumber,
+      emailId: formValues.emailId.trim(),
+      panNumber: formValues.panNumber,
+      gstNumber: showAadhaar ? "" : formValues.gstNumber,
+      aadhaarNumber: showAadhaar ? formValues.aadhaarNumber : "",
+      contactPerson: formValues.contactPerson.trim(),
     };
 
     setSaving(true);
@@ -248,6 +78,84 @@ function ClientForm() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const {
+    values,
+    errors,
+    setValues,
+    isSubmitting,
+    handleSubmit,
+    register,
+    setValue,
+  } = useForm({
+    initialValues: EMPTY_FORM,
+    schema: () => {
+      const selectedType = clientTypes.find((t) => String(t.id) === String(values.clientTypeId));
+      const showAadhaar = isIndividualType(selectedType?.name);
+      return getClientSchema(showAadhaar);
+    },
+    onSubmit: handleSave,
+  });
+
+  // Calculate dynamic states based on values.clientTypeId for UI toggles
+  const selectedClientType = useMemo(
+    () => clientTypes.find((t) => String(t.id) === String(values.clientTypeId)),
+    [clientTypes, values.clientTypeId],
+  );
+
+  const showAadhaar = isIndividualType(selectedClientType?.name);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      setError("");
+      try {
+        const typesRes = await api.get("/masters/client-types");
+        if (cancelled) return;
+        setClientTypes(typesRes.data);
+
+        if (isEdit) {
+          const { data } = await api.get(`/clients/${id}`);
+          if (cancelled) return;
+          setValues({
+            name: data.name || "",
+            clientTypeId: data.clientTypeId != null ? String(data.clientTypeId) : "",
+            address: data.address || "",
+            city: data.city || "",
+            state: data.state || "",
+            Pincode: String(data.Pincode ?? ""),
+            contactNumber: String(data.contactNumber ?? ""),
+            alternateContactNumber: String(data.alternateContactNumber ?? ""),
+            emailId: data.emailId || "",
+            panNumber: data.panNumber || "",
+            gstNumber: data.gstNumber || "",
+            aadhaarNumber: data.aadhaarNumber || "",
+            contactPerson: data.contactPerson || "",
+          });
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err.response?.data?.message ||
+            (isEdit ? "Failed to load client." : "Failed to load client types."),
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, isEdit, setValues]);
+
+  const handleCancel = () => {
+    navigate("/client");
   };
 
   if (loading) {
@@ -276,168 +184,219 @@ function ClientForm() {
       <form className="advocate-form" onSubmit={handleSubmit}>
         <div className="advocate-form-row">
           <label htmlFor="client-name">Client Name</label>
-          <input
-            id="client-name"
-            type="text"
-            value={form.name}
-            onChange={updateField("name")}
-            required
-            autoFocus
-          />
+          <div className="form-input-wrapper">
+            <input
+              id="client-name"
+              type="text"
+              className={errors.name ? "input-has-error" : ""}
+              {...register("name", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
+              required
+              autoFocus
+            />
+            {errors.name && <span className="field-error">{errors.name}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row">
           <label htmlFor="client-type">Client Type</label>
-          <select
-            id="client-type"
-            value={form.clientTypeId}
-            onChange={handleClientTypeChange}
-            required
-          >
-            <option value="">Select client type</option>
-            {clientTypes.map((type) => (
-              <option key={type.id} value={type.id}>
-                {type.name}
-              </option>
-            ))}
-          </select>
+          <div className="form-input-wrapper">
+            <select
+              id="client-type"
+              className={errors.clientTypeId ? "input-has-error" : ""}
+              {...register("clientTypeId")}
+              onChange={(e) => {
+                const val = e.target.value;
+                const type = clientTypes.find((t) => String(t.id) === val);
+                const individual = isIndividualType(type?.name);
+                setValue("clientTypeId", val);
+                setValue("gstNumber", individual ? "" : values.gstNumber);
+                setValue("aadhaarNumber", individual ? values.aadhaarNumber : "");
+              }}
+              required
+            >
+              <option value="">Select client type</option>
+              {clientTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
+            </select>
+            {errors.clientTypeId && <span className="field-error">{errors.clientTypeId}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row advocate-form-row-wide">
           <label htmlFor="client-address">Address</label>
-          <textarea
-            id="client-address"
-            value={form.address}
-            onChange={updateField("address")}
-            required
-          />
+          <div className="form-input-wrapper">
+            <textarea
+              id="client-address"
+              className={errors.address ? "input-has-error" : ""}
+              maxLength={200}
+              {...register("address", { transform: (v) => v.slice(0, 200) })}
+              required
+            />
+            {errors.address && <span className="field-error">{errors.address}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row advocate-form-row-pair">
           <label htmlFor="client-city">City</label>
-          <input
-            id="client-city"
-            type="text"
-            value={form.city}
-            onChange={updateField("city")}
-            required
-          />
+          <div className="form-input-wrapper">
+            <input
+              id="client-city"
+              type="text"
+              className={errors.city ? "input-has-error" : ""}
+              {...register("city", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
+              required
+            />
+            {errors.city && <span className="field-error">{errors.city}</span>}
+          </div>
           <label htmlFor="client-state">State</label>
-          <input
-            id="client-state"
-            type="text"
-            value={form.state}
-            onChange={updateField("state")}
-            required
-          />
+          <div className="form-input-wrapper">
+            <input
+              id="client-state"
+              type="text"
+              className={errors.state ? "input-has-error" : ""}
+              {...register("state", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
+              required
+            />
+            {errors.state && <span className="field-error">{errors.state}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row advocate-form-row-pair">
           <label htmlFor="client-Pincode">Pincode</label>
-          <input
-            id="client-Pincode"
-            type="text"
-            inputMode="numeric"
-            maxLength={6}
-            value={form.Pincode}
-            onChange={updateNumericField("Pincode", 6)}
-            required
-          />
+          <div className="form-input-wrapper">
+            <input
+              id="client-Pincode"
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              className={errors.Pincode ? "input-has-error" : ""}
+              {...register("Pincode", { transform: (v) => digitsOnly(v, 6) })}
+              required
+            />
+            {errors.Pincode && <span className="field-error">{errors.Pincode}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row advocate-form-row-wide">
           <label htmlFor="client-contact-person">Contact Person Name</label>
-          <input
-            id="client-contact-person"
-            type="text"
-            maxLength={50}
-            value={form.contactPerson}
-            onChange={updateField("contactPerson")}
-            required
-          />
+          <div className="form-input-wrapper">
+            <input
+              id="client-contact-person"
+              type="text"
+              className={errors.contactPerson ? "input-has-error" : ""}
+              {...register("contactPerson", { transform: (v) => v.slice(0, 50) })}
+              required
+            />
+            {errors.contactPerson && <span className="field-error">{errors.contactPerson}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row advocate-form-row-pair">
           <label htmlFor="client-contact">Contact No</label>
-          <input
-            id="client-contact"
-            type="text"
-            inputMode="tel"
-            maxLength={10}
-            value={form.contactNumber}
-            onChange={updateNumericField("contactNumber", 10)}
-            required
-          />
+          <div className="form-input-wrapper">
+            <input
+              id="client-contact"
+              type="text"
+              inputMode="tel"
+              maxLength={10}
+              className={errors.contactNumber ? "input-has-error" : ""}
+              {...register("contactNumber", { transform: (v) => digitsOnly(v, 10) })}
+              required
+            />
+            {errors.contactNumber && <span className="field-error">{errors.contactNumber}</span>}
+          </div>
           <label htmlFor="client-alt-contact">Alternate Contact No :</label>
-          <input
-            id="client-alt-contact"
-            type="text"
-            inputMode="tel"
-            maxLength={10}
-            value={form.alternateContactNumber}
-            onChange={updateNumericField("alternateContactNumber", 10)}
-            required
-          />
+          <div className="form-input-wrapper">
+            <input
+              id="client-alt-contact"
+              type="text"
+              inputMode="tel"
+              maxLength={10}
+              className={errors.alternateContactNumber ? "input-has-error" : ""}
+              {...register("alternateContactNumber", { transform: (v) => digitsOnly(v, 10) })}
+              required
+            />
+            {errors.alternateContactNumber && <span className="field-error">{errors.alternateContactNumber}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row advocate-form-row-wide">
           <label htmlFor="client-email">Email Id</label>
-          <input
-            id="client-email"
-            type="email"
-            value={form.emailId}
-            onChange={updateField("emailId")}
-            required
-          />
+          <div className="form-input-wrapper">
+            <input
+              id="client-email"
+              type="email"
+              className={errors.emailId ? "input-has-error" : ""}
+              {...register("emailId")}
+              required
+            />
+            {errors.emailId && <span className="field-error">{errors.emailId}</span>}
+          </div>
         </div>
 
         <div className="advocate-form-row advocate-form-row-pair">
           <label htmlFor="client-pan">PAN No</label>
-          <input
-            id="client-pan"
-            type="text"
-            maxLength={10}
-            value={form.panNumber}
-            onChange={updateUppercaseField("panNumber")}
-            required
-          />
+          <div className="form-input-wrapper">
+            <input
+              id="client-pan"
+              type="text"
+              maxLength={10}
+              className={errors.panNumber ? "input-has-error" : ""}
+              {...register("panNumber", { transform: (v) => uppercaseAlphaNum(v, 10) })}
+              required
+            />
+            {errors.panNumber && <span className="field-error">{errors.panNumber}</span>}
+          </div>
           {showAadhaar ? (
             <>
               <label htmlFor="client-aadhaar">Aadhar No</label>
-              <input
-                id="client-aadhaar"
-                type="text"
-                inputMode="numeric"
-                maxLength={12}
-                value={form.aadhaarNumber}
-                onChange={updateNumericField("aadhaarNumber", 12)}
-                required
-              />
+              <div className="form-input-wrapper">
+                <input
+                  id="client-aadhaar"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={12}
+                  className={errors.aadhaarNumber ? "input-has-error" : ""}
+                  {...register("aadhaarNumber", { transform: (v) => digitsOnly(v, 12) })}
+                  required
+                />
+                {errors.aadhaarNumber && <span className="field-error">{errors.aadhaarNumber}</span>}
+              </div>
             </>
           ) : (
             <>
               <label htmlFor="client-gst">GST No</label>
-              <input
-                id="client-gst"
-                type="text"
-                maxLength={15}
-                value={form.gstNumber}
-                onChange={updateGstField}
-                required
-              />
+              <div className="form-input-wrapper">
+                <input
+                  id="client-gst"
+                  type="text"
+                  maxLength={15}
+                  className={errors.gstNumber ? "input-has-error" : ""}
+                  {...register("gstNumber", { transform: (v) => uppercaseAlphaNum(v, 15) })}
+                  required
+                />
+                {errors.gstNumber && <span className="field-error">{errors.gstNumber}</span>}
+              </div>
             </>
           )}
         </div>
 
         <div className="advocate-form-actions">
-          <button type="submit" className={`master-btn ${isEdit ? "btn-update" : "btn-create"}`} disabled={saving}>
-            {saving ? "Saving…" : isEdit ? "Update" : "Submit"}
+          <button
+            type="submit"
+            className={`master-btn ${isEdit ? "btn-update" : "btn-create"}`}
+            disabled={saving || isSubmitting}
+          >
+            {saving || isSubmitting ? "Saving…" : isEdit ? "Update" : "Submit"}
           </button>
           <button
             type="button"
             className="master-btn master-btn-outline"
             onClick={handleCancel}
-            disabled={saving}
+            disabled={saving || isSubmitting}
           >
             Cancel
           </button>
