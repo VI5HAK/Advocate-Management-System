@@ -150,6 +150,7 @@
   padding: 1.5rem 2rem 2rem;
   overflow-y: auto;
   position: relative;
+  background-color: #f8fafc;
 }
 
 .dashboard-page h1,
