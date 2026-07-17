@@ -29,6 +29,8 @@ async function seedMaster(connection, resourceKey, names) {
 }
 
 async function run() {
+  const dbName = process.env.DB_NAME || "ams";
+
   const connection = await mysql.createConnection({
     host: process.env.DB_HOST || "localhost",
     port: Number(process.env.DB_PORT) || 3306,
@@ -37,11 +39,17 @@ async function run() {
     multipleStatements: true,
   });
 
+  // Create database dynamically
+  await connection.query(
+    `CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+  );
+
+  // Switch to the target database before running schema
+  await connection.changeUser({ database: dbName });
+
   const schemaPath = path.join(__dirname, "schema.sql");
   const schema = fs.readFileSync(schemaPath, "utf8");
   await connection.query(schema);
-
-  await connection.changeUser({ database: process.env.DB_NAME || "ams" });
 
   const passwordHash = await bcrypt.hash("test123", 10);
   await connection.query(
