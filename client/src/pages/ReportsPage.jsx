@@ -75,7 +75,7 @@ function CustomDatePicker({ id, value, onChange, required }) {
         placeholder="DD/MM/YYYY"
         onChange={handleInputChange}
         onBlur={handleBlur}
-        style={{ width: "100%", height: "3rem", padding: "0 2.5rem 0 1rem", border: "1px solid #9ca3af", borderRadius: "6px", boxSizing: "border-box", background: "#fff", fontSize: "1.05rem", fontFamily: "inherit", color: "#111827" }}
+        style={{ width: "100%", height: "3.25rem", minHeight: "3.25rem", padding: "0 2.5rem 0 1rem", border: "1px solid #9ca3af", borderRadius: "6px", boxSizing: "border-box", background: "#fff", fontSize: "1.05rem", fontFamily: "inherit", color: "#111827" }}
       />
       <button
         type="button"
@@ -265,23 +265,23 @@ function ReportsPage() {
               <table className="reports-table">
                 <thead>
                   <tr>
-                    <th>Client Name</th>
-                    <th>Case Number</th>
                     <th>Advocate Name</th>
-                    <th>Date</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
+                    <th>Case Number</th>
+                    <th>Appointment Date</th>
+                    <th className="col-desktop-only">Client Name</th>
+                    <th className="col-desktop-only">Start Time</th>
+                    <th className="col-desktop-only">End Time</th>
                   </tr>
                 </thead>
                 <tbody>
                   {appointments.map((appoint) => (
                     <tr key={appoint.id}>
-                      <td>{appoint.clientName}</td>
-                      <td>{appoint.caseNumber}</td>
                       <td>{appoint.advocateName || "—"}</td>
+                      <td>{appoint.caseNumber}</td>
                       <td>{formatDateDMY(appoint.date)}</td>
-                      <td>{appoint.startTime ? formatTime12Hour(appoint.startTime) : "—"}</td>
-                      <td>{appoint.endTime ? formatTime12Hour(appoint.endTime) : "—"}</td>
+                      <td className="col-desktop-only">{appoint.clientName}</td>
+                      <td className="col-desktop-only">{appoint.startTime ? formatTime12Hour(appoint.startTime) : "—"}</td>
+                      <td className="col-desktop-only">{appoint.endTime ? formatTime12Hour(appoint.endTime) : "—"}</td>
                     </tr>
                   ))}
                 </tbody>

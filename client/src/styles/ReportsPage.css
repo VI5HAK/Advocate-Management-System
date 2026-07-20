@@ -49,9 +49,11 @@
 }
 
 .form-row input[type="date"],
-.form-row select {
-  flex: 1;
-  height: 3rem;
+.form-row select,
+.reports-input-text {
+  width: 100%;
+  height: 3.25rem;
+  min-height: 3.25rem;
   padding: 0 1rem;
   border: 1px solid #9ca3af;
   border-radius: 6px;
@@ -64,8 +66,13 @@
   transition: all 0.15s ease;
 }
 
+.form-row select {
+  cursor: pointer;
+}
+
 .form-row input[type="date"]:focus,
-.form-row select:focus {
+.form-row select:focus,
+.reports-input-text:focus {
   border-color: #374151;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
@@ -206,4 +213,81 @@
   padding: 2rem;
   font-size: 1.1rem;
   color: #6b7280;
+}
+
+/* Mobile Responsiveness for Reports Pages */
+@media (max-width: 768px) {
+  .reports-page {
+    padding: 0 0.5rem;
+  }
+
+  .reports-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .reports-form {
+    padding: 1.5rem 1.25rem;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .form-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    width: 100%;
+  }
+
+  .form-row label {
+    width: 100%;
+    text-align: left;
+    font-size: 0.95rem;
+  }
+
+  .reports-form-actions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .reports-form {
+    padding: 1.25rem 1rem;
+  }
+
+  .reports-form-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .reports-submit-btn,
+  .reports-reset-btn {
+    width: 100%;
+    padding: 0;
+  }
+
+  .reports-table-wrap {
+    overflow-x: auto;
+  }
+
+  .reports-table {
+    min-width: 100%;
+  }
+
+  .reports-table th,
+  .reports-table td {
+    padding: 0.875rem 0.65rem;
+    font-size: 0.9rem;
+  }
+
+  .col-desktop-only {
+    display: none !important;
+  }
 }
