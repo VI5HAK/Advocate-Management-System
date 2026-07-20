@@ -202,3 +202,38 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
+
+@media (max-width: 600px) {
+  .entity-table {
+    min-width: 100%;
+  }
+
+  .remarks-modal-overlay {
+    padding: 0.5rem;
+  }
+
+  .remarks-modal-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .remarks-modal-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .remarks-modal-content {
+    padding: 1.25rem 1rem;
+    gap: 1.25rem;
+  }
+
+  .remarks-modal-content h3 {
+    font-size: 1.15rem;
+  }
+
+  .remark-item {
+    padding: 0.875rem 1rem;
+  }
+
+  .remark-text {
+    font-size: 1rem;
+  }
+}

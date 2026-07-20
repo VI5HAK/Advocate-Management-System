@@ -277,3 +277,54 @@
     transform: translateY(0);
   }
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .advocate-form-page {
+    padding: 0 0.5rem;
+  }
+
+  .advocate-form-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .advocate-form {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .advocate-form-row,
+  .advocate-form-row-wide,
+  .advocate-form-row-pair {
+    grid-template-columns: 1fr;
+    gap: 0.375rem 0;
+    margin-bottom: 1.25rem;
+  }
+
+  .advocate-form-row label {
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .advocate-form-actions {
+    margin-top: 1.25rem;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 600px) {
+  .advocate-form {
+    padding: 1.25rem 1rem;
+  }
+
+  .advocate-form-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .advocate-form-actions .master-btn {
+    width: 100%;
+    min-width: unset;
+  }
+}
