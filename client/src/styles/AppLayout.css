@@ -228,9 +228,11 @@
   background: #eff6ff;
   border-color: #3b82f6;
 }
+
 .card-advocates .dashboard-stat-value {
   color: #1d4ed8;
 }
+
 .card-advocates .dashboard-stat-label {
   color: #1e40af;
 }
@@ -239,9 +241,11 @@
   background: #ecfdf5;
   border-color: #10b981;
 }
+
 .card-clients .dashboard-stat-value {
   color: #047857;
 }
+
 .card-clients .dashboard-stat-label {
   color: #065f46;
 }
@@ -250,9 +254,11 @@
   background: #f5f3ff;
   border-color: #8b5cf6;
 }
+
 .card-cases .dashboard-stat-value {
   color: #6d28d9;
 }
+
 .card-cases .dashboard-stat-label {
   color: #5b21b6;
 }
@@ -261,9 +267,11 @@
   background: #fffbeb;
   border-color: #f59e0b;
 }
+
 .card-appointments .dashboard-stat-value {
   color: #b45309;
 }
+
 .card-appointments .dashboard-stat-label {
   color: #92400e;
 }
@@ -273,9 +281,11 @@
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
+
   .dashboard-stat-card {
     padding: 2rem 1.5rem;
   }
+
   .dashboard-stat-value {
     font-size: 3.5rem;
   }
@@ -344,9 +354,12 @@
   }
 
   .app-header-title {
-    font-size: 0.9rem;
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    font-size: clamp(0.68rem, 3.1vw, 0.85rem);
     font-weight: 700;
-    letter-spacing: 0.02em;
+    letter-spacing: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

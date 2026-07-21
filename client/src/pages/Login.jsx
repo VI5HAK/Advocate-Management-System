@@ -108,9 +108,10 @@ function Login() {
           <hr className="login-divider" />
 
           <p className="login-forgot">
-            Forgot Password?
-            <a href="#forgot-password">Contact Administrator</a>
+            Forgot Password? Contact Administrator to reset.
+            {/*  <a href="#forgot-password">Contact Administrator</a> */}
           </p>
+
         </div>
       </section>
 

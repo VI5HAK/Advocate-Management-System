@@ -164,12 +164,10 @@
 .login-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(8, 20, 40, 0.92) 0%,
-    rgba(8, 20, 40, 0.45) 35%,
-    transparent 65%
-  );
+  background: linear-gradient(to top,
+      rgba(8, 20, 40, 0.92) 0%,
+      rgba(8, 20, 40, 0.45) 35%,
+      transparent 65%);
   pointer-events: none;
 }
 
@@ -259,4 +257,3 @@
 .password-toggle-btn:hover {
   color: #111827;
 }
-
