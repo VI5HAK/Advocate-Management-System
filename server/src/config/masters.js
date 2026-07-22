@@ -37,13 +37,6 @@ export const MASTER_CONFIG = {
     descriptionColumn: "Court_Description",
     deleteFlagColumn: "Court_Delete_Flag",
   },
-  districts: {
-    table: "District_Master",
-    idColumn: "District_ID",
-    nameColumn: "District_Name",
-    descriptionColumn: "District_Description",
-    deleteFlagColumn: "District_Delete_Flag",
-  },
 };
 
 export function getMasterConfig(resource) {

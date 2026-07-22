@@ -14,7 +14,6 @@ const SEED_DATA = {
   roles: ["Junior Lawyer", "Senior Lawyer", "ParaLegal"],
   "client-types": ["Individual", "Corporate", "Government"],
   "case-types": ["Civil", "Criminal", "Family"],
-  districts: ["Pune", "Solapur", "Kolhapur", "Mumbai"],
 };
 
 async function seedMaster(connection, resourceKey, names) {

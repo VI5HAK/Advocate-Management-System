@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
+import { CascadingLocationDropdown } from "../../components/CascadingLocationDropdown";
 import "../../styles/MasterPage.css";
 import "../../styles/AdvocateForm.css";
 import { useForm } from "../../hooks/useForm";
@@ -31,9 +32,10 @@ function CaseForm() {
   const [clients, setClients] = useState([]);
   const [caseTypes, setCaseTypes] = useState([]);
   const [courts, setCourts] = useState([]);
-  const [districts, setDistricts] = useState([]);
   const [advocates, setAdvocates] = useState([]);
-  const [selectedDistrictId, setSelectedDistrictId] = useState("");
+  const [selectedStateCode, setSelectedStateCode] = useState("");
+  const [selectedDistrictCode, setSelectedDistrictCode] = useState("");
+  const [selectedTalukCode, setSelectedTalukCode] = useState("");
   const [selectedCourtType, setSelectedCourtType] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -100,13 +102,12 @@ function CaseForm() {
       setLoading(true);
       setError("");
       try {
-        const [clientsRes, caseTypesRes, courtsRes, advocatesRes, districtsRes] =
+        const [clientsRes, caseTypesRes, courtsRes, advocatesRes] =
           await Promise.all([
             api.get("/clients"),
             api.get("/masters/case-types"),
             api.get("/masters/courts"),
             api.get("/advocates"),
-            api.get("/masters/districts"),
           ]);
 
         if (cancelled) return;
@@ -114,7 +115,6 @@ function CaseForm() {
         setCaseTypes(caseTypesRes.data);
         setCourts(courtsRes.data);
         setAdvocates(advocatesRes.data);
-        setDistricts(districtsRes.data);
 
         if (isEdit) {
           const { data } = await api.get(`/cases/${id}`);
@@ -131,13 +131,19 @@ function CaseForm() {
             advocateIds: data.advocateIds || [],
           });
 
-          // Pre-populate District and Court Type filters based on the case's assigned court ID
+          // Pre-populate State, District and Taluk filters based on the case's assigned court ID
           const matchedCourt = courtsRes.data.find(
             (c) => String(c.id) === String(data.courtId),
           );
           if (matchedCourt) {
-            setSelectedDistrictId(
-              matchedCourt.districtId != null ? String(matchedCourt.districtId) : "",
+            setSelectedStateCode(
+              matchedCourt.stateCode != null ? String(matchedCourt.stateCode) : "",
+            );
+            setSelectedDistrictCode(
+              matchedCourt.districtCode != null ? String(matchedCourt.districtCode) : "",
+            );
+            setSelectedTalukCode(
+              matchedCourt.talukCode != null ? String(matchedCourt.talukCode) : "",
             );
             setSelectedCourtType(matchedCourt.courtType || "");
           }
@@ -160,13 +166,13 @@ function CaseForm() {
     };
   }, [id, isEdit, setValues]);
 
-  const getAvailableTypesForDistrict = (districtId) => {
-    if (!districtId) {
+  const getAvailableTypesForTaluk = (talukCode) => {
+    if (!talukCode) {
       return ["Supreme Court", "High Court", "District Court", "Family Court", "Municipal Court", "Sessions Court"];
     }
     const types = new Set();
     courts.forEach((c) => {
-      if (String(c.districtId) === String(districtId)) {
+      if (String(c.talukCode) === String(talukCode)) {
         if (c.courtType) {
           types.add(c.courtType);
         }
@@ -175,11 +181,12 @@ function CaseForm() {
     return Array.from(types);
   };
 
-  const handleDistrictChange = (e) => {
-    const value = e.target.value;
-    setSelectedDistrictId(value);
+  const handleLocationChange = (loc) => {
+    setSelectedStateCode(loc.stateCode ? String(loc.stateCode) : "");
+    setSelectedDistrictCode(loc.districtCode ? String(loc.districtCode) : "");
+    setSelectedTalukCode(loc.talukCode ? String(loc.talukCode) : "");
 
-    const nextAvailableTypes = getAvailableTypesForDistrict(value);
+    const nextAvailableTypes = getAvailableTypesForTaluk(loc.talukCode);
     if (selectedCourtType && !nextAvailableTypes.includes(selectedCourtType)) {
       setSelectedCourtType("");
     }
@@ -206,10 +213,14 @@ function CaseForm() {
   };
 
   const filteredCourts = courts.filter((c) => {
+    const matchState =
+      !selectedStateCode || String(c.stateCode) === String(selectedStateCode);
     const matchDistrict =
-      !selectedDistrictId || String(c.districtId) === String(selectedDistrictId);
+      !selectedDistrictCode || String(c.districtCode) === String(selectedDistrictCode);
+    const matchTaluk =
+      !selectedTalukCode || String(c.talukCode) === String(selectedTalukCode);
     const matchType = !selectedCourtType || c.courtType === selectedCourtType;
-    return matchDistrict && matchType;
+    return matchState && matchDistrict && matchTaluk && matchType;
   });
 
   if (loading) {
@@ -327,38 +338,31 @@ function CaseForm() {
           </div>
         </div>
 
-        <div className="advocate-form-row">
-          <label htmlFor="case-district">District</label>
-          <select
-            id="case-district"
-            value={selectedDistrictId}
-            onChange={handleDistrictChange}
-            required
-          >
-            <option value="">Select district</option>
-            {districts.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <CascadingLocationDropdown
+          stateCode={selectedStateCode}
+          districtCode={selectedDistrictCode}
+          talukCode={selectedTalukCode}
+          onChange={handleLocationChange}
+          required
+        />
 
         <div className="advocate-form-row">
           <label htmlFor="case-court-type">Court Type</label>
-          <select
-            id="case-court-type"
-            value={selectedCourtType}
-            onChange={handleCourtTypeChange}
-            required
-          >
-            <option value="">Select court type</option>
-            {getAvailableTypesForDistrict(selectedDistrictId).map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+          <div className="form-input-wrapper">
+            <select
+              id="case-court-type"
+              value={selectedCourtType}
+              onChange={handleCourtTypeChange}
+              required
+            >
+              <option value="">Select court type</option>
+              {getAvailableTypesForTaluk(selectedTalukCode).map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="advocate-form-row">

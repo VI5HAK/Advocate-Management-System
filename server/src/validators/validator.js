@@ -36,10 +36,14 @@ export const alternateContactNumberSchema = z
   .regex(/^\d{10}$/, "Alternate contact number must be exactly 10 digits.");
 
 export const emailSchema = z
-  .string({ required_error: "Email is required." })
+  .string()
   .trim()
   .min(1, "Email is required.")
-  .email("Invalid email format.");
+  .pipe(
+    z.email({
+      error: "Invalid email format.",
+    })
+  );
 
 export const panSchema = z
   .string({ required_error: "PAN number is required." })

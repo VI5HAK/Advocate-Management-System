@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../../api/client";
+import { CascadingLocationDropdown } from "../../components/CascadingLocationDropdown";
 import "../../styles/MasterPage.css";
 
 function CourtMaster() {
   const [view, setView] = useState("list");
   const [items, setItems] = useState([]);
-  const [districts, setDistricts] = useState([]);
   const [searchInput, setSearchInput] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -14,7 +14,9 @@ function CourtMaster() {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    districtId: "",
+    stateCode: "",
+    districtCode: "",
+    talukCode: "",
     courtType: "",
   });
   const [saving, setSaving] = useState(false);
@@ -33,18 +35,7 @@ function CourtMaster() {
     }
   }, []);
 
-  const fetchDistricts = useCallback(async () => {
-    try {
-      const { data } = await api.get("/masters/districts");
-      setDistricts(data);
-    } catch (err) {
-      console.error("Failed to load districts", err);
-    }
-  }, []);
 
-  useEffect(() => {
-    fetchDistricts();
-  }, [fetchDistricts]);
 
   useEffect(() => {
     if (view === "list") {
@@ -57,7 +48,9 @@ function CourtMaster() {
     setForm({
       name: "",
       description: "",
-      districtId: "",
+      stateCode: "",
+      districtCode: "",
+      talukCode: "",
       courtType: "",
     });
     setError("");
@@ -69,7 +62,9 @@ function CourtMaster() {
     setForm({
       name: item.name || "",
       description: item.description || "",
-      districtId: item.districtId || "",
+      stateCode: item.stateCode || "",
+      districtCode: item.districtCode || "",
+      talukCode: item.talukCode || "",
       courtType: item.courtType || "",
     });
     setError("");
@@ -79,7 +74,7 @@ function CourtMaster() {
   const backToList = () => {
     setView("list");
     setEditingItem(null);
-    setForm({ name: "", description: "", districtId: "", courtType: "" });
+    setForm({ name: "", description: "", stateCode: "", districtCode: "", talukCode: "", courtType: "" });
     setError("");
   };
 
@@ -96,8 +91,16 @@ function CourtMaster() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) return;
-    if (!form.districtId) {
+    if (!form.stateCode) {
+      setError("Please select a State.");
+      return;
+    }
+    if (!form.districtCode) {
       setError("Please select a District.");
+      return;
+    }
+    if (!form.talukCode) {
+      setError("Please select a Taluk.");
       return;
     }
     if (!form.courtType) {
@@ -111,7 +114,9 @@ function CourtMaster() {
       const payload = {
         name: form.name.trim(),
         description: form.description.trim(),
-        districtId: parseInt(form.districtId, 10),
+        stateCode: parseInt(form.stateCode, 10),
+        districtCode: parseInt(form.districtCode, 10),
+        talukCode: parseInt(form.talukCode, 10),
         courtType: form.courtType,
       };
 
@@ -156,24 +161,22 @@ function CourtMaster() {
         )}
 
         <form className="master-form" onSubmit={handleSave}>
-          <div className="master-field">
-            <label htmlFor="court-district">District</label>
-            <select
-              id="court-district"
-              value={form.districtId}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, districtId: e.target.value }))
-              }
-              required
-            >
-              <option value="" disabled>Select District</option>
-              {districts.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CascadingLocationDropdown
+            stateCode={form.stateCode}
+            districtCode={form.districtCode}
+            talukCode={form.talukCode}
+            onChange={(loc) => {
+              setForm((f) => ({
+                ...f,
+                stateCode: loc.stateCode,
+                districtCode: loc.districtCode,
+                talukCode: loc.talukCode,
+              }));
+            }}
+            rowClassName="master-field"
+            inputWrapperClassName=""
+            required
+          />
 
           <div className="master-field">
             <label htmlFor="court-type">Court Type</label>
@@ -320,13 +323,13 @@ function CourtMaster() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="master-empty">
+                <td colSpan={7} className="master-empty">
                   Loading…
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="master-empty">
+                <td colSpan={7} className="master-empty">
                   No courts found.
                 </td>
               </tr>

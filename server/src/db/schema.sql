@@ -8,6 +8,33 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS STATES (
+    STATE_CODE INT PRIMARY KEY,
+    STATE_NAME VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS DISTRICTS (
+    DISTRICT_CODE INT PRIMARY KEY,
+    STATE_CODE INT NOT NULL,
+    DISTRICT_NAME VARCHAR(100) NOT NULL,
+
+    UNIQUE(STATE_CODE, DISTRICT_CODE),
+
+    FOREIGN KEY (STATE_CODE)
+        REFERENCES STATES(STATE_CODE)
+);
+
+CREATE TABLE IF NOT EXISTS TALUKS (
+    TALUK_CODE INT PRIMARY KEY,
+    DISTRICT_CODE INT NOT NULL,
+    TALUK_NAME VARCHAR(100) NOT NULL,
+
+    UNIQUE(DISTRICT_CODE, TALUK_CODE),
+
+    FOREIGN KEY (DISTRICT_CODE)
+        REFERENCES DISTRICTS(DISTRICT_CODE)
+);
+
 CREATE TABLE IF NOT EXISTS Role_Master (
     Role_ID INT AUTO_INCREMENT PRIMARY KEY,
     Role_Name VARCHAR(100) NOT NULL,
@@ -52,20 +79,11 @@ CREATE TABLE IF NOT EXISTS Status_Master (
     Status_Modified_By INT
 );
 
-CREATE TABLE IF NOT EXISTS District_Master (
-    District_ID INT AUTO_INCREMENT PRIMARY KEY,
-    District_Name VARCHAR(100) NOT NULL,
-    District_Description VARCHAR(500),
-    District_Delete_Flag BOOLEAN DEFAULT FALSE,
-    District_Created_By INT,
-    District_Created_Date DATE,
-    District_Modified_Date DATE,
-    District_Modified_By INT
-);
-
 CREATE TABLE IF NOT EXISTS Court_Master (
     Court_ID INT AUTO_INCREMENT PRIMARY KEY,
-    Court_District_ID INT,
+    state_code INT,
+    district_code INT,
+    taluk_code INT,
     Court_Type ENUM('Supreme Court', 'High Court', 'District Court', 'Family Court', 'Municipal Court', 'Sessions Court'),
     Court_Name VARCHAR(150) NOT NULL,
     Court_Description VARCHAR(500),
@@ -74,10 +92,17 @@ CREATE TABLE IF NOT EXISTS Court_Master (
     Court_Created_Date DATE,
     Court_Modified_Date DATE,
     Court_Modified_By INT,
+    CONSTRAINT FK_Court_State
+        FOREIGN KEY (state_code)
+        REFERENCES STATES(STATE_CODE),
     CONSTRAINT FK_Court_District
-        FOREIGN KEY (Court_District_ID)
-        REFERENCES District_Master(District_ID)
+        FOREIGN KEY (district_code)
+        REFERENCES DISTRICTS(DISTRICT_CODE),
+    CONSTRAINT FK_Court_Taluk
+        FOREIGN KEY (taluk_code)
+        REFERENCES TALUKS(TALUK_CODE)
 );
+
 
 CREATE TABLE IF NOT EXISTS Advocate_Master (
     Advocate_ID INT AUTO_INCREMENT PRIMARY KEY,

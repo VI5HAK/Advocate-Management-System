@@ -1,8 +1,4 @@
-import { MASTER_PAGE_CONFIG } from "../../config/masterPages";
-import MasterPage from "./MasterPage";
-
-function DistrictMaster() {
-  return <MasterPage config={MASTER_PAGE_CONFIG.district} />;
+// This file has been deprecated and its functionality removed.
+export default function DistrictMaster() {
+  return null;
 }
-
-export default DistrictMaster;

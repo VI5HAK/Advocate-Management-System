@@ -8,8 +8,6 @@ export const ADMIN_MENU_ITEMS = [
       { id: "role", label: "Role", path: "/masters/role" },
       { id: "client-type", label: "Client Type", path: "/masters/client-type" },
       { id: "case-type", label: "Case Type", path: "/masters/case-type" },
-      //  { id: "status", label: "Status", path: "/masters/status" },
-      { id: "district", label: "District", path: "/masters/district" },
       { id: "court", label: "Court", path: "/masters/court" },
     ],
   },
