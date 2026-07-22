@@ -1,119 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import api from "../api/client";
+import { CustomDatePicker } from "../components/CustomDatePicker";
 import "../styles/ReportsPage.css";
-
-function CustomDatePicker({ id, value, onChange, required }) {
-  const dateInputRef = useRef(null);
-  const [inputValue, setInputValue] = useState("");
-
-  useEffect(() => {
-    if (value) {
-      const display = value.split("-").reverse().join("/");
-      setInputValue(display);
-    } else {
-      setInputValue("");
-    }
-  }, [value]);
-
-  const handleClick = () => {
-    if (dateInputRef.current) {
-      try {
-        dateInputRef.current.showPicker();
-      } catch (err) {
-        dateInputRef.current.focus();
-      }
-    }
-  };
-
-  const handleInputChange = (e) => {
-    let val = e.target.value;
-    
-    // Automatically insert slashes as user types
-    if (val.length > inputValue.length) {
-      if (val.length === 2 || val.length === 5) {
-        val += "/";
-      }
-    }
-    
-    if (val.length <= 10) {
-      setInputValue(val);
-    }
-
-    const dmyPattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    const match = val.match(dmyPattern);
-    if (match) {
-      const dd = match[1];
-      const mm = match[2];
-      const yyyy = match[3];
-      const isoDate = `${yyyy}-${mm}-${dd}`;
-      const d = new Date(isoDate);
-      if (!isNaN(d.getTime())) {
-        onChange(isoDate);
-      }
-    } else if (val === "") {
-      onChange("");
-    }
-  };
-
-  const handleBlur = () => {
-    const dmyPattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    if (inputValue && !inputValue.match(dmyPattern)) {
-      if (value) {
-        setInputValue(value.split("-").reverse().join("/"));
-      } else {
-        setInputValue("");
-      }
-    }
-  };
-
-  return (
-    <div style={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
-      <input
-        type="text"
-        className="reports-input-text"
-        value={inputValue}
-        placeholder="DD/MM/YYYY"
-        onChange={handleInputChange}
-        onBlur={handleBlur}
-        style={{ width: "100%", height: "3.25rem", minHeight: "3.25rem", padding: "0 2.5rem 0 1rem", border: "1px solid #9ca3af", borderRadius: "6px", boxSizing: "border-box", background: "#fff", fontSize: "1.05rem", fontFamily: "inherit", color: "#111827" }}
-      />
-      <button
-        type="button"
-        onClick={handleClick}
-        style={{
-          position: "absolute",
-          right: "0.75rem",
-          background: "transparent",
-          border: "none",
-          cursor: "pointer",
-          fontSize: "1.1rem",
-          display: "flex",
-          alignItems: "center",
-          color: "#6b7280"
-        }}
-      >
-        📅
-      </button>
-      <input
-        id={id}
-        ref={dateInputRef}
-        type="date"
-        value={value || ""}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          width: 0,
-          height: 0,
-          opacity: 0,
-          pointerEvents: "none"
-        }}
-      />
-    </div>
-  );
-}
 
 function formatTime12Hour(timeString) {
   if (!timeString || timeString === "—") return "—";
@@ -207,7 +95,7 @@ function ReportsPage() {
             <CustomDatePicker
               id="start-date"
               value={startDate}
-              onChange={setStartDate}
+              onChange={(e) => setStartDate(e.target.value)}
               required
             />
           </div>
@@ -217,7 +105,7 @@ function ReportsPage() {
             <CustomDatePicker
               id="end-date"
               value={endDate}
-              onChange={setEndDate}
+              onChange={(e) => setEndDate(e.target.value)}
               required
             />
           </div>
