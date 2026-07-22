@@ -1,123 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
+import { CustomDatePicker } from "../../components/CustomDatePicker";
+import dayjs from "../../utils/datePicker";
 import "../../styles/MasterPage.css";
 import "../../styles/AdvocateForm.css";
-
-function CustomDatePicker({ id, value, onChange, min, required }) {
-  const dateInputRef = useRef(null);
-  const [inputValue, setInputValue] = useState("");
-
-  useEffect(() => {
-    if (value) {
-      const display = value.split("-").reverse().join("/");
-      setInputValue(display);
-    } else {
-      setInputValue("");
-    }
-  }, [value]);
-
-  const handleClick = () => {
-    if (dateInputRef.current) {
-      try {
-        dateInputRef.current.showPicker();
-      } catch (err) {
-        dateInputRef.current.focus();
-      }
-    }
-  };
-
-  const handleInputChange = (e) => {
-    let val = e.target.value;
-    
-    // Automatically insert slashes as user types
-    if (val.length > inputValue.length) {
-      if (val.length === 2 || val.length === 5) {
-        val += "/";
-      }
-    }
-    
-    // Limit to 10 characters (DD/MM/YYYY)
-    if (val.length <= 10) {
-      setInputValue(val);
-    }
-
-    const dmyPattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    const match = val.match(dmyPattern);
-    if (match) {
-      const dd = match[1];
-      const mm = match[2];
-      const yyyy = match[3];
-      const isoDate = `${yyyy}-${mm}-${dd}`;
-      const d = new Date(isoDate);
-      if (!isNaN(d.getTime())) {
-        onChange({ target: { value: isoDate } });
-      }
-    } else if (val === "") {
-      onChange({ target: { value: "" } });
-    }
-  };
-
-  const handleBlur = () => {
-    const dmyPattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    if (inputValue && !inputValue.match(dmyPattern)) {
-      if (value) {
-        setInputValue(value.split("-").reverse().join("/"));
-      } else {
-        setInputValue("");
-      }
-    }
-  };
-
-  return (
-    <div style={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
-      <input
-        type="text"
-        className="master-input-text"
-        value={inputValue}
-        placeholder="DD/MM/YYYY"
-        onChange={handleInputChange}
-        onBlur={handleBlur}
-        style={{ width: "100%", height: "3rem", padding: "0 2.5rem 0 0.75rem", border: "1px solid #9ca3af", borderRadius: "6px", boxSizing: "border-box", background: "#fff", fontSize: "1.05rem" }}
-      />
-      <button
-        type="button"
-        onClick={handleClick}
-        style={{
-          position: "absolute",
-          right: "0.75rem",
-          background: "transparent",
-          border: "none",
-          cursor: "pointer",
-          fontSize: "1.2rem",
-          display: "flex",
-          alignItems: "center",
-          color: "#6b7280"
-        }}
-      >
-        📅
-      </button>
-      <input
-        id={id}
-        ref={dateInputRef}
-        type="date"
-        min={min}
-        value={value || ""}
-        onChange={onChange}
-        required={required}
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          width: 0,
-          height: 0,
-          opacity: 0,
-          pointerEvents: "none"
-        }}
-      />
-    </div>
-  );
-}
 
 const EMPTY_FORM = {
   clientId: "",
@@ -133,11 +20,7 @@ function toInputValue(value) {
 }
 
 function getTodayDateString() {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
+  return dayjs().format("YYYY-MM-DD");
 }
 
 function getAmPm(timeString) {
