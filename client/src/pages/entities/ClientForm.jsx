@@ -323,7 +323,6 @@ function ClientForm() {
               type="email"
               className={errors.emailId ? "input-has-error" : ""}
               {...register("emailId")}
-              required
             />
             {errors.emailId && <span className="field-error">{errors.emailId}</span>}
           </div>
@@ -338,7 +337,6 @@ function ClientForm() {
               maxLength={10}
               className={errors.panNumber ? "input-has-error" : ""}
               {...register("panNumber", { transform: (v) => uppercaseAlphaNum(v, 10) })}
-              required
             />
             {errors.panNumber && <span className="field-error">{errors.panNumber}</span>}
           </div>
@@ -353,7 +351,6 @@ function ClientForm() {
                   maxLength={12}
                   className={errors.aadhaarNumber ? "input-has-error" : ""}
                   {...register("aadhaarNumber", { transform: (v) => digitsOnly(v, 12) })}
-                  required
                 />
                 {errors.aadhaarNumber && <span className="field-error">{errors.aadhaarNumber}</span>}
               </div>
@@ -368,7 +365,6 @@ function ClientForm() {
                   maxLength={15}
                   className={errors.gstNumber ? "input-has-error" : ""}
                   {...register("gstNumber", { transform: (v) => uppercaseAlphaNum(v, 15) })}
-                  required
                 />
                 {errors.gstNumber && <span className="field-error">{errors.gstNumber}</span>}
               </div>
