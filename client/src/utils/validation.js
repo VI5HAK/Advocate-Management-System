@@ -34,6 +34,14 @@ export const requiredText = (field, max = 50) =>
     .min(1, `${field} is required.`)
     .max(max, `${field} must be less than ${max + 1} characters.`);
 
+export const descriptionValidation = (field = "Description", max = 100) =>
+  z.string()
+    .trim()
+    .max(max, `${field} must be less than ${max + 1} characters.`)
+    .optional()
+    .or(z.literal(""));
+
+
 export const alphaField = (field, max = 49) =>
   requiredText(field, max).regex(
     alphaSpaceRegex,
@@ -63,9 +71,10 @@ export const panField =
 
 // Common fields objects
 export const addressFields = {
+  stateCode: z.union([z.string(), z.number()]).refine((val) => val !== "" && val !== 0 && val !== null && val !== undefined, "State is required."),
+  districtCode: z.union([z.string(), z.number()]).refine((val) => val !== "" && val !== 0 && val !== null && val !== undefined, "District is required."),
+  talukCode: z.union([z.string(), z.number()]).refine((val) => val !== "" && val !== 0 && val !== null && val !== undefined, "Taluk is required."),
   address: requiredText("Address", 200),
-  city: alphaField("City"),
-  state: alphaField("State"),
   Pincode: pincodeField,
 };
 
@@ -115,7 +124,8 @@ export const clientSchema = z.object({
   ...addressFields,
   contactPerson: requiredText("Contact person name", 50),
   ...contactFields,
-  panNumber: panField,
+  emailId: z.string().trim().email("Invalid email format.").optional().or(z.literal("")),
+  panNumber: z.string().trim().regex(panRegex, "PAN must be 5 alphabets, 4 digits, and 1 alphabet (e.g. ABCDE1234F).").optional().or(z.literal("")),
   aadhaarNumber: z.string().optional().or(z.literal("")),
   gstNumber: z.string().optional().or(z.literal("")),
 });
@@ -123,21 +133,25 @@ export const clientSchema = z.object({
 export const getClientSchema = (showAadhaar) => {
   return clientSchema.superRefine((data, ctx) => {
     if (showAadhaar) {
-      if (!data.aadhaarNumber || data.aadhaarNumber.length !== 12) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Aadhaar number must be exactly 12 digits.",
-          path: ["aadhaarNumber"],
-        });
+      if (data.aadhaarNumber && data.aadhaarNumber.trim() !== "") {
+        if (data.aadhaarNumber.length !== 12) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Aadhaar number must be exactly 12 digits.",
+            path: ["aadhaarNumber"],
+          });
+        }
       }
     } else {
-      const gstRegex = /^[A-Z0-9]{15}$/;
-      if (!data.gstNumber || !gstRegex.test(data.gstNumber)) {
-        ctx.addIssue({
-          code: "custom",
-          message: "GST number must be exactly 15 alphanumeric characters.",
-          path: ["gstNumber"],
-        });
+      if (data.gstNumber && data.gstNumber.trim() !== "") {
+        const gstRegex = /^[A-Z0-9]{15}$/;
+        if (!gstRegex.test(data.gstNumber.trim().toUpperCase())) {
+          ctx.addIssue({
+            code: "custom",
+            message: "GST number must be exactly 15 alphanumeric characters.",
+            path: ["gstNumber"],
+          });
+        }
       }
     }
   });

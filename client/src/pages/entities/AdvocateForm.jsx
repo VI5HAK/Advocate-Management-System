@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
+import { CascadingLocationDropdown } from "../../components/CascadingLocationDropdown";
 import "../../styles/MasterPage.css";
 import "../../styles/AdvocateForm.css";
 import { useForm } from "../../hooks/useForm";
@@ -15,9 +16,10 @@ import {
 const EMPTY_FORM = {
   name: "",
   roleId: "",
+  stateCode: "",
+  districtCode: "",
+  talukCode: "",
   address: "",
-  city: "",
-  state: "",
   Pincode: "",
   contactNumber: "",
   alternateContactNumber: "",
@@ -46,9 +48,10 @@ function AdvocateForm() {
     const payload = {
       name: formValues.name.trim(),
       roleId: Number(formValues.roleId),
+      stateCode: Number(formValues.stateCode),
+      districtCode: Number(formValues.districtCode),
+      talukCode: Number(formValues.talukCode),
       address: formValues.address.trim(),
-      city: formValues.city.trim(),
-      state: formValues.state.trim(),
       Pincode: formValues.Pincode,
       contactNumber: formValues.contactNumber,
       alternateContactNumber: formValues.alternateContactNumber,
@@ -88,6 +91,7 @@ function AdvocateForm() {
     isSubmitting,
     handleSubmit,
     register,
+    setValue,
   } = useForm({
     initialValues: EMPTY_FORM,
     schema,
@@ -111,9 +115,10 @@ function AdvocateForm() {
           setValues({
             name: data.name || "",
             roleId: data.roleId != null ? String(data.roleId) : "",
+            stateCode: data.stateCode != null ? String(data.stateCode) : "",
+            districtCode: data.districtCode != null ? String(data.districtCode) : "",
+            talukCode: data.talukCode != null ? String(data.talukCode) : "",
             address: data.address || "",
-            city: data.city || "",
-            state: data.state || "",
             Pincode: String(data.Pincode ?? ""),
             contactNumber: String(data.contactNumber ?? ""),
             alternateContactNumber: String(data.alternateContactNumber ?? ""),
@@ -205,6 +210,19 @@ function AdvocateForm() {
           </div>
         </div>
 
+        <CascadingLocationDropdown
+          stateCode={values.stateCode}
+          districtCode={values.districtCode}
+          talukCode={values.talukCode}
+          onChange={(loc) => {
+            setValue("stateCode", loc.stateCode ? String(loc.stateCode) : "");
+            setValue("districtCode", loc.districtCode ? String(loc.districtCode) : "");
+            setValue("talukCode", loc.talukCode ? String(loc.talukCode) : "");
+          }}
+          errors={errors}
+          required
+        />
+
         <div className="advocate-form-row advocate-form-row-wide">
           <label htmlFor="advocate-address">Address</label>
           <div className="form-input-wrapper">
@@ -219,32 +237,7 @@ function AdvocateForm() {
           </div>
         </div>
 
-        <div className="advocate-form-row advocate-form-row-pair">
-          <label htmlFor="advocate-city">City</label>
-          <div className="form-input-wrapper">
-            <input
-              id="advocate-city"
-              type="text"
-              className={errors.city ? "input-has-error" : ""}
-              {...register("city", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
-              required
-            />
-            {errors.city && <span className="field-error">{errors.city}</span>}
-          </div>
-          <label htmlFor="advocate-state">State</label>
-          <div className="form-input-wrapper">
-            <input
-              id="advocate-state"
-              type="text"
-              className={errors.state ? "input-has-error" : ""}
-              {...register("state", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
-              required
-            />
-            {errors.state && <span className="field-error">{errors.state}</span>}
-          </div>
-        </div>
-
-        <div className="advocate-form-row advocate-form-row-pair">
+        <div className="advocate-form-row">
           <label htmlFor="advocate-Pincode">Pincode</label>
           <div className="form-input-wrapper">
             <input

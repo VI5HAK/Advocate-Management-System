@@ -2,8 +2,9 @@ import { z } from "zod";
 import {
   nameSchema,
   addressSchema,
-  citySchema,
-  stateSchema,
+  stateCodeSchema,
+  districtCodeSchema,
+  talukCodeSchema,
   pincodeSchema,
   contactNumberSchema,
   alternateContactNumberSchema,
@@ -19,15 +20,16 @@ const baseClientSchema = z.object({
     .refine((val) => !isNaN(val) && val > 0, { message: "Client type is required." }),
   name: nameSchema,
   address: addressSchema,
-  city: citySchema,
-  state: stateSchema,
+  stateCode: stateCodeSchema,
+  districtCode: districtCodeSchema,
+  talukCode: talukCodeSchema,
   Pincode: pincodeSchema,
   contactNumber: contactNumberSchema,
   alternateContactNumber: alternateContactNumberSchema,
-  emailId: emailSchema,
-  panNumber: panSchema,
-  gstNumber: gstSchema.optional().or(z.literal("")),
-  aadhaarNumber: aadhaarSchema.optional().or(z.literal("")),
+  emailId: emailSchema.optional().or(z.literal("")),
+  panNumber: panSchema.optional().or(z.literal("")),
+  gstNumber: z.string().optional().or(z.literal("")),
+  aadhaarNumber: z.string().optional().or(z.literal("")),
   contactPerson: z
     .string({ required_error: "Contact person name is required." })
     .trim()
@@ -52,21 +54,23 @@ export function validateClient(body, clientTypeName) {
   const data = baseResult.data;
 
   if (isIndividual) {
-    if (!data.aadhaarNumber) {
-      return { error: "Aadhaar number must be exactly 12 digits." };
-    }
-    const aadhaarCheck = aadhaarSchema.safeParse(data.aadhaarNumber);
-    if (!aadhaarCheck.success) {
-      return { error: "Aadhaar number must be exactly 12 digits." };
+    if (data.aadhaarNumber && data.aadhaarNumber.trim() !== "") {
+      const aadhaarCheck = aadhaarSchema.safeParse(data.aadhaarNumber);
+      if (!aadhaarCheck.success) {
+        return { error: "Aadhaar number must be exactly 12 digits." };
+      }
+    } else {
+      data.aadhaarNumber = null;
     }
     data.gstNumber = null;
   } else {
-    if (!data.gstNumber) {
-      return { error: "GST number must be exactly 15 alphanumeric characters." };
-    }
-    const gstCheck = gstSchema.safeParse(data.gstNumber);
-    if (!gstCheck.success) {
-      return { error: "GST number must be exactly 15 alphanumeric characters." };
+    if (data.gstNumber && data.gstNumber.trim() !== "") {
+      const gstCheck = gstSchema.safeParse(data.gstNumber);
+      if (!gstCheck.success) {
+        return { error: "GST number must be exactly 15 alphanumeric characters." };
+      }
+    } else {
+      data.gstNumber = null;
     }
     data.aadhaarNumber = null;
   }
@@ -76,8 +80,9 @@ export function validateClient(body, clientTypeName) {
       clientTypeId: data.clientTypeId,
       name: data.name,
       address: data.address,
-      city: data.city,
-      state: data.state,
+      stateCode: data.stateCode,
+      districtCode: data.districtCode,
+      talukCode: data.talukCode,
       pinCode: Number(data.Pincode),
       contactNumber: Number(data.contactNumber),
       alternateContactNumber: Number(data.alternateContactNumber),
