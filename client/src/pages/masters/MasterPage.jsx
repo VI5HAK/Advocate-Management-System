@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../../api/client";
 import "../../styles/MasterPage.css";
+import { uppercaseAlphaAndSpaces, descriptionValidation } from "../../utils/validation";
 
 function MasterPage({ config }) {
   const {
@@ -91,8 +92,14 @@ function MasterPage({ config }) {
     e.preventDefault();
     if (!form.name.trim()) return;
 
-    setSaving(true);
     setError("");
+    const descResult = descriptionValidation(descriptionLabel || "Description", 100).safeParse(form.description ?? "");
+    if (!descResult.success) {
+      setError(descResult.error.issues[0].message);
+      return;
+    }
+
+    setSaving(true);
     try {
       if (editingItem) {
         await api.put(`/masters/${resource}/${editingItem.id}`, form);
@@ -142,7 +149,7 @@ function MasterPage({ config }) {
               type="text"
               value={form.name}
               onChange={(e) =>
-                setForm((f) => ({ ...f, name: e.target.value }))
+                setForm((f) => ({ ...f, name: uppercaseAlphaAndSpaces(e.target.value, 99) }))
               }
               required
               autoFocus
@@ -156,7 +163,8 @@ function MasterPage({ config }) {
             <textarea
               id={`${idPrefix}-description`}
               rows={6}
-              value={form.description}
+              maxLength={100}
+              value={form.description ?? ""}
               onChange={(e) =>
                 setForm((f) => ({ ...f, description: e.target.value }))
               }

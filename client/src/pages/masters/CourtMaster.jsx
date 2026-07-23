@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import api from "../../api/client";
 import { CascadingLocationDropdown } from "../../components/CascadingLocationDropdown";
 import "../../styles/MasterPage.css";
+import { uppercaseAlphaAndSpaces, descriptionValidation } from "../../utils/validation";
 
 function CourtMaster() {
   const [view, setView] = useState("list");
@@ -108,6 +109,12 @@ function CourtMaster() {
       return;
     }
 
+    const descResult = descriptionValidation("Court Description", 100).safeParse(form.description ?? "");
+    if (!descResult.success) {
+      setError(descResult.error.issues[0].message);
+      return;
+    }
+
     setSaving(true);
     setError("");
     try {
@@ -205,7 +212,7 @@ function CourtMaster() {
               type="text"
               value={form.name}
               onChange={(e) =>
-                setForm((f) => ({ ...f, name: e.target.value }))
+                setForm((f) => ({ ...f, name: uppercaseAlphaAndSpaces(e.target.value, 149) }))
               }
               required
             />
@@ -216,7 +223,8 @@ function CourtMaster() {
             <textarea
               id="court-description"
               rows={6}
-              value={form.description}
+              maxLength={100}
+              value={form.description ?? ""}
               onChange={(e) =>
                 setForm((f) => ({ ...f, description: e.target.value }))
               }
