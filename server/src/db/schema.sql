@@ -111,8 +111,9 @@ CREATE TABLE IF NOT EXISTS Advocate_Master (
 
     Advocate_Name VARCHAR(150) NOT NULL,
     Advocate_Address VARCHAR(500),
-    Advocate_City VARCHAR(100),
-    Advocate_State VARCHAR(100),
+    state_code INT,
+    district_code INT,
+    taluk_code INT,
     Advocate_Pin_Code INT,
 
     Advocate_Cnt_Num BIGINT,
@@ -135,7 +136,16 @@ CREATE TABLE IF NOT EXISTS Advocate_Master (
 
     CONSTRAINT FK_Advocate_Role
         FOREIGN KEY (Advocate_Role_ID)
-        REFERENCES Role_Master(Role_ID)
+        REFERENCES Role_Master(Role_ID),
+    CONSTRAINT FK_Advocate_State
+        FOREIGN KEY (state_code)
+        REFERENCES STATES(STATE_CODE),
+    CONSTRAINT FK_Advocate_District
+        FOREIGN KEY (district_code)
+        REFERENCES DISTRICTS(DISTRICT_CODE),
+    CONSTRAINT FK_Advocate_Taluk
+        FOREIGN KEY (taluk_code)
+        REFERENCES TALUKS(TALUK_CODE)
 );
 
 CREATE TABLE IF NOT EXISTS Client_Master (
@@ -145,8 +155,9 @@ CREATE TABLE IF NOT EXISTS Client_Master (
 
     Client_Name VARCHAR(150) NOT NULL,
     Client_Address VARCHAR(500),
-    Client_City VARCHAR(100),
-    Client_State VARCHAR(100),
+    state_code INT,
+    district_code INT,
+    taluk_code INT,
 
     Client_Pin_Code INT,
 
@@ -170,7 +181,16 @@ CREATE TABLE IF NOT EXISTS Client_Master (
 
     CONSTRAINT FK_Client_Type
         FOREIGN KEY (Client_Clnt_Type_ID)
-        REFERENCES Client_Type_Master(Client_Type_ID)
+        REFERENCES Client_Type_Master(Client_Type_ID),
+    CONSTRAINT FK_Client_State
+        FOREIGN KEY (state_code)
+        REFERENCES STATES(STATE_CODE),
+    CONSTRAINT FK_Client_District
+        FOREIGN KEY (district_code)
+        REFERENCES DISTRICTS(DISTRICT_CODE),
+    CONSTRAINT FK_Client_Taluk
+        FOREIGN KEY (taluk_code)
+        REFERENCES TALUKS(TALUK_CODE)
 );
 
 CREATE TABLE IF NOT EXISTS Case_Master (
@@ -213,7 +233,7 @@ CREATE TABLE IF NOT EXISTS Appointment (
     Appoint_ID INT AUTO_INCREMENT PRIMARY KEY,
 
     Appoint_Client_ID INT NOT NULL,
-    Appoint_Case_ID INT NOT NULL,
+    Appoint_Case_ID INT NULL,
     Appoint_Advocate_ID INT NOT NULL,
 
     Appoint_Date DATE NOT NULL,

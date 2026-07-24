@@ -148,11 +148,11 @@ export async function checkAssignedCases(id) {
       WHERE Case_Advocate_ID = ?
         AND (Case_Delete_Flag = FALSE OR Case_Delete_Flag = 0)
       UNION ALL
-      SELECT a.Appoint_Case_ID FROM Appointment a
-      INNER JOIN Case_Master c ON a.Appoint_Case_ID = c.Case_ID
+      SELECT a.Appoint_ID FROM Appointment a
+      LEFT JOIN Case_Master c ON a.Appoint_Case_ID = c.Case_ID
       WHERE a.Appoint_Advocate_ID = ?
         AND (a.Appoint_Delete_Flag = FALSE OR a.Appoint_Delete_Flag = 0)
-        AND (c.Case_Delete_Flag = FALSE OR c.Case_Delete_Flag = 0)
+        AND (c.Case_ID IS NULL OR c.Case_Delete_Flag = FALSE OR c.Case_Delete_Flag = 0)
     ) AS assigned_cases
     LIMIT 1`,
     [id, id]

@@ -141,10 +141,10 @@ export async function list(search) {
 export async function checkAssignedCases(id) {
   const [rows] = await pool.query(
     `SELECT 1 FROM Appointment a
-     INNER JOIN Case_Master c ON a.Appoint_Case_ID = c.Case_ID
+     LEFT JOIN Case_Master c ON a.Appoint_Case_ID = c.Case_ID
      WHERE a.Appoint_Client_ID = ?
        AND (a.Appoint_Delete_Flag = FALSE OR a.Appoint_Delete_Flag = 0)
-       AND (c.Case_Delete_Flag = FALSE OR c.Case_Delete_Flag = 0)
+       AND (c.Case_ID IS NULL OR c.Case_Delete_Flag = FALSE OR c.Case_Delete_Flag = 0)
      LIMIT 1`,
     [id]
   );
