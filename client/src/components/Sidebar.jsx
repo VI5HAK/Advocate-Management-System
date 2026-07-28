@@ -38,7 +38,7 @@ function Sidebar({ isOpen, onClose }) {
         const isActive = item.children.some(
           (child) => child.path && location.pathname.startsWith(child.path),
         );
-        initial[item.id] = isActive || item.id === "home" || item.id === "masters";
+        initial[item.id] = isActive;
       }
     });
     return initial;
