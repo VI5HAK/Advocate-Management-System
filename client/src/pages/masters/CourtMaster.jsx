@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../../api/client";
 import { CascadingLocationDropdown } from "../../components/CascadingLocationDropdown";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import "../../styles/MasterPage.css";
 import { uppercaseAlphaAndSpaces, descriptionValidation } from "../../utils/validation";
 
@@ -21,6 +22,7 @@ function CourtMaster() {
     courtType: "",
   });
   const [saving, setSaving] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   const fetchItems = useCallback(async (search) => {
     setLoading(true);
@@ -140,14 +142,19 @@ function CourtMaster() {
     }
   };
 
-  const handleDelete = async (item) => {
-    if (!window.confirm(`Delete court "${item.name}"?`)) return;
+  const handleDelete = (item) => {
+    setItemToDelete(item);
+  };
 
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
     setError("");
     try {
-      await api.delete(`/masters/courts/${item.id}`);
+      await api.delete(`/masters/courts/${itemToDelete.id}`);
+      setItemToDelete(null);
       await fetchItems(activeSearch);
     } catch (err) {
+      setItemToDelete(null);
       setError(err.response?.data?.message || "Failed to delete court.");
     }
   };
@@ -382,6 +389,13 @@ function CourtMaster() {
           </tbody>
         </table>
       </div>
+      <ConfirmDialog
+        isOpen={!!itemToDelete}
+        title="Confirm Delete"
+        message={itemToDelete ? `Delete court "${itemToDelete.name}"?` : ""}
+        onConfirm={confirmDelete}
+        onCancel={() => setItemToDelete(null)}
+      />
     </div>
   );
 }

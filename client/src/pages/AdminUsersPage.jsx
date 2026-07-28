@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/client";
+import ConfirmDialog from "../components/ConfirmDialog";
 import "../styles/MasterPage.css";
 import "../styles/AdvocateForm.css";
 
@@ -19,6 +20,7 @@ function AdminUsersPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [adminToDelete, setAdminToDelete] = useState(null);
 
   const fetchAdmins = useCallback(async () => {
     setLoading(true);
@@ -75,14 +77,19 @@ function AdminUsersPage() {
     }
   };
 
-  const handleDelete = async (admin) => {
-    if (!window.confirm(`Delete admin "${admin.email}"?`)) return;
+  const handleDelete = (admin) => {
+    setAdminToDelete(admin);
+  };
 
+  const confirmDelete = async () => {
+    if (!adminToDelete) return;
     setError("");
     try {
-      await api.delete(`/admins/${admin.id}`);
+      await api.delete(`/admins/${adminToDelete.id}`);
+      setAdminToDelete(null);
       await fetchAdmins();
     } catch (err) {
+      setAdminToDelete(null);
       setError(err.response?.data?.message || "Failed to delete admin.");
     }
   };
@@ -255,6 +262,13 @@ function AdminUsersPage() {
           </tbody>
         </table>
       </div>
+      <ConfirmDialog
+        isOpen={!!adminToDelete}
+        title="Confirm Delete"
+        message={adminToDelete ? `Delete admin "${adminToDelete.email}"?` : ""}
+        onConfirm={confirmDelete}
+        onCancel={() => setAdminToDelete(null)}
+      />
     </div>
   );
 }

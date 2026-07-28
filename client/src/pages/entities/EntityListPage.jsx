@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import "../../styles/MasterPage.css";
 import "../../styles/EntityListPage.css";
 
@@ -82,6 +83,7 @@ function EntityListPage({ config, readOnly = false }) {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [selectedRemarksAppt, setSelectedRemarksAppt] = useState(null);
+  const [rowToDelete, setRowToDelete] = useState(null);
 
   const fetchItems = useCallback(
     async (search) => {
@@ -132,15 +134,20 @@ function EntityListPage({ config, readOnly = false }) {
     setTimeout(() => setInfo(""), 3000);
   };
 
-  const handleDelete = async (row) => {
-    if (!window.confirm(deleteConfirm(row))) return;
+  const handleDelete = (row) => {
+    setRowToDelete(row);
+  };
 
+  const confirmDelete = async () => {
+    if (!rowToDelete) return;
     setError("");
     setInfo("");
     try {
-      await api.delete(`${apiPath}/${row.id}`);
+      await api.delete(`${apiPath}/${rowToDelete.id}`);
+      setRowToDelete(null);
       await fetchItems(activeSearch);
     } catch (err) {
+      setRowToDelete(null);
       setError(err.response?.data?.message || deleteErrorMessage);
     }
   };
@@ -351,6 +358,14 @@ function EntityListPage({ config, readOnly = false }) {
           onClose={() => setSelectedRemarksAppt(null)}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={!!rowToDelete}
+        title="Confirm Delete"
+        message={rowToDelete ? deleteConfirm(rowToDelete) : ""}
+        onConfirm={confirmDelete}
+        onCancel={() => setRowToDelete(null)}
+      />
     </div>
   );
 }

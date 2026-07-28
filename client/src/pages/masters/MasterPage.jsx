@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../../api/client";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import "../../styles/MasterPage.css";
 import { uppercaseAlphaAndSpaces, descriptionValidation } from "../../utils/validation";
 
@@ -30,6 +31,7 @@ function MasterPage({ config }) {
   const [editingItem, setEditingItem] = useState(null);
   const [form, setForm] = useState({ name: "", description: "" });
   const [saving, setSaving] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   const fetchItems = useCallback(
     async (search) => {
@@ -114,14 +116,19 @@ function MasterPage({ config }) {
     }
   };
 
-  const handleDelete = async (item) => {
-    if (!window.confirm(deleteConfirm(item.name))) return;
+  const handleDelete = (item) => {
+    setItemToDelete(item);
+  };
 
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
     setError("");
     try {
-      await api.delete(`/masters/${resource}/${item.id}`);
+      await api.delete(`/masters/${resource}/${itemToDelete.id}`);
+      setItemToDelete(null);
       await fetchItems(activeSearch);
     } catch (err) {
+      setItemToDelete(null);
       setError(err.response?.data?.message || deleteErrorMessage);
     }
   };
@@ -314,6 +321,13 @@ function MasterPage({ config }) {
           </tbody>
         </table>
       </div>
+      <ConfirmDialog
+        isOpen={!!itemToDelete}
+        title="Confirm Delete"
+        message={itemToDelete ? deleteConfirm(itemToDelete.name) : ""}
+        onConfirm={confirmDelete}
+        onCancel={() => setItemToDelete(null)}
+      />
     </div>
   );
 }
