@@ -13,7 +13,7 @@ export const MASTER_PAGE_CONFIG = {
     loadErrorMessage: "Failed to load roles.",
     saveErrorMessage: "Failed to save role.",
     deleteErrorMessage: "Failed to delete role.",
-    deleteConfirm: (name) => `Delete role "${name}"?`,
+    deleteConfirm: (name) => `Do you want to delete role "${name}"?`,
   },
   clientType: {
     resource: "client-types",
@@ -29,7 +29,7 @@ export const MASTER_PAGE_CONFIG = {
     loadErrorMessage: "Failed to load client types.",
     saveErrorMessage: "Failed to save client type.",
     deleteErrorMessage: "Failed to delete client type.",
-    deleteConfirm: (name) => `Delete client type "${name}"?`,
+    deleteConfirm: (name) => `Do you want to delete client type "${name}"?`,
   },
   caseType: {
     resource: "case-types",
@@ -45,7 +45,7 @@ export const MASTER_PAGE_CONFIG = {
     loadErrorMessage: "Failed to load case types.",
     saveErrorMessage: "Failed to save case type.",
     deleteErrorMessage: "Failed to delete case type.",
-    deleteConfirm: (name) => `Delete case type "${name}"?`,
+    deleteConfirm: (name) => `Do you want to delete case type "${name}"?`,
   },
   status: {
     resource: "statuses",
@@ -61,7 +61,7 @@ export const MASTER_PAGE_CONFIG = {
     loadErrorMessage: "Failed to load statuses.",
     saveErrorMessage: "Failed to save status.",
     deleteErrorMessage: "Failed to delete status.",
-    deleteConfirm: (name) => `Delete status "${name}"?`,
+    deleteConfirm: (name) => `Do you want to delete status "${name}"?`,
   },
   court: {
     resource: "courts",
@@ -77,6 +77,6 @@ export const MASTER_PAGE_CONFIG = {
     loadErrorMessage: "Failed to load courts.",
     saveErrorMessage: "Failed to save court.",
     deleteErrorMessage: "Failed to delete court.",
-    deleteConfirm: (name) => `Delete court "${name}"?`,
+    deleteConfirm: (name) => `Do you want to delete court "${name}"?`,
   },
 };

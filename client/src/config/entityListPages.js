@@ -10,7 +10,7 @@ export const ENTITY_LIST_CONFIG = {
     emptyMessage: "No advocates found.",
     loadErrorMessage: "Failed to load advocates.",
     deleteErrorMessage: "Failed to delete advocate.",
-    deleteConfirm: (row) => `Delete advocate "${row.advocateName}"?`,
+    deleteConfirm: (row) => `Do you want to delete advocate "${row.advocateName}"?`,
     columns: [
       { key: "advocateName", label: "Advocate Name" },
       { key: "roleName", label: "Role" },
@@ -29,7 +29,7 @@ export const ENTITY_LIST_CONFIG = {
     emptyMessage: "No clients found.",
     loadErrorMessage: "Failed to load clients.",
     deleteErrorMessage: "Failed to delete client.",
-    deleteConfirm: (row) => `Delete client "${row.clientName}"?`,
+    deleteConfirm: (row) => `Do you want to delete client "${row.clientName}"?`,
     columns: [
       { key: "clientName", label: "Client Name" },
       { key: "clientType", label: "Client Type" },
@@ -48,7 +48,7 @@ export const ENTITY_LIST_CONFIG = {
     emptyMessage: "No cases found.",
     loadErrorMessage: "Failed to load cases.",
     deleteErrorMessage: "Failed to delete case.",
-    deleteConfirm: (row) => `Delete case "${row.caseNumber}"?`,
+    deleteConfirm: (row) => `Do you want to delete case "${row.caseNumber}"?`,
     columns: [
       { key: "clientName", label: "Client Name" },
       { key: "caseNumber", label: "Case Number" },
@@ -67,7 +67,7 @@ export const ENTITY_LIST_CONFIG = {
     loadErrorMessage: "Failed to load appointments.",
     deleteErrorMessage: "Failed to delete appointment.",
     deleteConfirm: (row) =>
-      `Delete appointment for "${row.clientName}" on ${row.date || "—"}?`,
+      `Do you want to delete appointment for "${row.clientName}" on ${row.date || "—"}?`,
     columns: [
       { key: "clientName", label: "Client Name" },
       { key: "caseNumber", label: "Case Number" },
