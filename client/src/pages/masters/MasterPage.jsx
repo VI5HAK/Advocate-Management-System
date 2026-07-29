@@ -4,6 +4,16 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import "../../styles/MasterPage.css";
 import { uppercaseAlphaAndSpaces, descriptionValidation } from "../../utils/validation";
 
+const helpPdfs = import.meta.glob("../../assets/*_Help.pdf", { eager: true, import: "default" });
+
+const RESOURCE_TO_PDF = {
+  "roles": "Role_Help.pdf",
+  "client-types": "ClientType_Help.pdf",
+  "case-types": "CaseType_Help.pdf",
+  "statuses": "Status_Help.pdf",
+  "courts": "Court_Help.pdf",
+};
+
 function MasterPage({ config }) {
   const {
     resource,
@@ -32,6 +42,23 @@ function MasterPage({ config }) {
   const [form, setForm] = useState({ name: "", description: "" });
   const [saving, setSaving] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+
+  const pdfName = RESOURCE_TO_PDF[resource];
+  const pdfUrl = pdfName ? helpPdfs[`../../assets/${pdfName}`] : null;
+
+  const handleHelpClick = () => {
+    if (!pdfUrl) {
+      alert(`Help document for "${title}" is not available yet.`);
+      return;
+    }
+    const link = document.createElement("a");
+    link.href = pdfUrl;
+    link.setAttribute("download", pdfName);
+    link.setAttribute("target", "_blank");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const fetchItems = useCallback(
     async (search) => {
@@ -203,7 +230,32 @@ function MasterPage({ config }) {
   return (
     <div className="master-page">
       <header className="master-header">
-        <h1 className="master-title">{title}</h1>
+        <h1 className="master-title">
+          {title}
+          <button
+            type="button"
+            className="master-help-btn"
+            onClick={handleHelpClick}
+            title={`${title} Help`}
+            aria-label={`${title} Help`}
+          >
+            <svg
+              className="master-help-icon"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </button>
+        </h1>
         <button type="button" className="master-btn btn-create" onClick={openCreateForm}>
           <span className="btn-text">{createButtonLabel}</span>
           <svg className="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

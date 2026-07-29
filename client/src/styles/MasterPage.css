@@ -20,6 +20,42 @@
   font-weight: 700;
   text-align: left;
   color: #111827;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.master-help-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+.master-help-btn:hover {
+  color: #111827;
+  background-color: #f3f4f6;
+}
+
+.master-help-btn:focus-visible {
+  outline: 2px solid #6b7280;
+  outline-offset: 2px;
+}
+
+.master-help-btn .master-help-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke-width: 2.5;
 }
 
 .master-search {
