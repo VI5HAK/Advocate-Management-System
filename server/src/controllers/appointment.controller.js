@@ -611,7 +611,7 @@ export async function addAppointmentRemark(req, res, next) {
 
     // Verify appointment exists
     const [apptRows] = await pool.query(
-      `SELECT Appoint_ID, Appoint_Date
+      `SELECT Appoint_ID, Appoint_Date, Appoint_Case_ID
        FROM Appointment
        WHERE Appoint_ID = ? AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
       [appointmentId]
@@ -626,6 +626,10 @@ export async function addAppointmentRemark(req, res, next) {
     }
 
     const appt = apptRows[0];
+    if (appt.Appoint_Case_ID === null) {
+      return res.status(400).json({ message: "Remarks cannot be added for a NO CASE appointment." });
+    }
+
     const apptDateStr = formatDate(appt.Appoint_Date);
     const todayStr = formatDate(new Date());
 

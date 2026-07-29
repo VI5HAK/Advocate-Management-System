@@ -205,13 +205,17 @@ function ClientReportPage() {
                       </td>
                       <td className="col-desktop-only">{appoint.advocateName || "—"}</td>
                       <td className="col-desktop-only">
-                        <button
-                          type="button"
-                          className="master-btn master-btn-sm btn-update"
-                          onClick={() => setSelectedRemarksAppt(appoint)}
-                        >
-                          Remarks
-                        </button>
+                        {appoint.caseNumber === "NO CASE" ? (
+                          "—"
+                        ) : (
+                          <button
+                            type="button"
+                            className="master-btn master-btn-sm btn-update"
+                            onClick={() => setSelectedRemarksAppt(appoint)}
+                          >
+                            Remarks
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
