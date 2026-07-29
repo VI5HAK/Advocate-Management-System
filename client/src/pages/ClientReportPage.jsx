@@ -241,12 +241,21 @@ function ReadOnlyRemarksModal({ appointment, onClose }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const formatApptDate = (dateStr) => {
+    if (!dateStr || !dateStr.includes("-")) return dateStr || "—";
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateStr;
+  };
+
   const fetchRemarks = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const { data } = await api.get(`/appointments/${appointment.id}/remarks`);
-      setRemarks(data);
+      setRemarks(data.remarks || []);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load remarks.");
     } finally {
@@ -275,7 +284,7 @@ function ReadOnlyRemarksModal({ appointment, onClose }) {
           {loading ? (
             <p className="remarks-loading">Loading remarks history...</p>
           ) : remarks.length === 0 ? (
-            <p className="remarks-empty">No remarks found for this case yet.</p>
+            <p className="remarks-empty">No remarks entered (Appt Date: {formatApptDate(appointment.date)})</p>
           ) : (
             <div className="remarks-list">
               {remarks.map((r) => (

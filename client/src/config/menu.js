@@ -31,6 +31,7 @@ export const ADMIN_MENU_ITEMS = [
 export const ADVOCATE_MENU_ITEMS = [
   { id: "home", label: "Home", path: "/" },
   { id: "appointments", label: "Appointments", path: "/appointments" },
+  { id: "completed-appointments", label: "Completed Appointments", path: "/completed-appointments" },
 ];
 
 export function getMenuItemsForRole(role) {

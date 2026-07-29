@@ -4,6 +4,7 @@ import {
   deleteAppointment,
   getAppointment,
   listAppointments,
+  listCompletedAppointments,
   updateAppointment,
   getAppointmentRemarks,
   addAppointmentRemark,
@@ -23,6 +24,7 @@ router.get("/client-report", requireAdmin, getClientReport);
 router.get("/case-report", requireAdmin, getCaseReport);
 router.get("/", listAppointments);
 router.post("/", requireAdmin, createAppointment);
+router.get("/completed", listCompletedAppointments);
 router.get("/:id", getAppointment);
 router.put("/:id", requireAdmin, updateAppointment);
 router.delete("/:id", requireAdmin, deleteAppointment);

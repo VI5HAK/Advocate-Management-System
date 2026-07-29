@@ -25,6 +25,7 @@ import CaseList from "./pages/entities/CaseList";
 import CaseForm from "./pages/entities/CaseForm";
 import AppointmentList from "./pages/entities/AppointmentList";
 import AppointmentForm from "./pages/entities/AppointmentForm";
+import CompletedAppointmentsPage from "./pages/CompletedAppointmentsPage";
 
 // Reports
 import ReportsPage from "./pages/ReportsPage";
@@ -77,6 +78,7 @@ function AppRoutes() {
         <Route path="/appointments" element={<AppointmentList />} />
         <Route path="/appointments/create" element={<AppointmentForm />} />
         <Route path="/appointments/:id/edit" element={<AppointmentForm />} />
+        <Route path="/completed-appointments" element={<CompletedAppointmentsPage />} />
       </Route>
       
       <Route path="*" element={<Navigate to="/" replace />} />
