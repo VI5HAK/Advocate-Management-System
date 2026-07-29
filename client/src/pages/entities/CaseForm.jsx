@@ -258,6 +258,7 @@ function CaseForm() {
                 setValue("clientIds", newIds);
               }}
               placeholder="Select clients"
+              autoFocus
             />
             {errors.clientIds && <span className="field-error">{errors.clientIds}</span>}
           </div>
@@ -272,7 +273,6 @@ function CaseForm() {
               className={errors.caseNumber ? "input-has-error" : ""}
               {...register("caseNumber")}
               required
-              autoFocus
             />
             {errors.caseNumber && <span className="field-error">{errors.caseNumber}</span>}
           </div>

@@ -46,6 +46,7 @@ function AppointmentForm() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
     const handleOutsideClick = (e) => {
@@ -83,18 +84,36 @@ function AppointmentForm() {
           if (cancelled) return;
           setCases(casesRes.data);
 
-          const caseDetailRes = await api.get(`/cases/${data.caseId}`);
-          if (cancelled) return;
-          setCaseAdvocateIds(caseDetailRes.data.advocateIds || []);
+          if (data.caseId) {
+            const caseDetailRes = await api.get(`/cases/${data.caseId}`);
+            if (cancelled) return;
+            setCaseAdvocateIds(caseDetailRes.data.advocateIds || []);
+          } else {
+            setCaseAdvocateIds(advocatesRes.data.map((a) => a.id));
+          }
 
           setForm({
             clientId: data.clientId != null ? String(data.clientId) : "",
-            caseId: data.caseId != null ? String(data.caseId) : "",
+            caseId: data.caseId != null ? String(data.caseId) : "NO_CASE",
             filingDate: data.filingDate ? data.filingDate.slice(0, 10) : "",
             startTime: toInputValue(data.startTime),
             endTime: toInputValue(data.endTime),
           });
           setSelectedAdvocateIds(data.advocateIds || []);
+
+          if (data.status === "completed" || data.status === "deleted") {
+            setIsExpired(true);
+            setError("This appointment cannot be modified as the modification window (15 minutes after start time) has expired.");
+          } else {
+            const startStr = `${data.filingDate.slice(0, 10)}T${toInputValue(data.startTime)}`;
+            const appointmentStart = new Date(startStr).getTime();
+            const current = Date.now();
+            const diffMinutes = (current - appointmentStart) / (1000 * 60);
+            if (diffMinutes > 15) {
+              setIsExpired(true);
+              setError("This appointment cannot be modified as the modification window (15 minutes after start time) has expired.");
+            }
+          }
         }
       } catch (err) {
         if (!cancelled) {
@@ -163,7 +182,9 @@ function AppointmentForm() {
     setForm((f) => ({ ...f, caseId: val }));
     setCaseAdvocateIds([]);
     setSelectedAdvocateIds([]);
-    if (val) {
+    if (val === "NO_CASE") {
+      setCaseAdvocateIds(advocates.map((a) => a.id));
+    } else if (val) {
       try {
         const caseDetailRes = await api.get(`/cases/${val}`);
         setCaseAdvocateIds(caseDetailRes.data.advocateIds || []);
@@ -198,7 +219,7 @@ function AppointmentForm() {
 
     const payload = {
       clientId: Number(form.clientId),
-      caseId: Number(form.caseId),
+      caseId: form.caseId === "NO_CASE" ? null : Number(form.caseId),
       advocateIds: selectedAdvocateIds,
       filingDate: form.filingDate,
       startTime: form.startTime,
@@ -257,6 +278,7 @@ function AppointmentForm() {
             value={form.clientId}
             onChange={handleClientChange}
             required
+            disabled={isExpired}
           >
             <option value="">Select client</option>
             {clients.map((c) => (
@@ -274,8 +296,10 @@ function AppointmentForm() {
             value={form.caseId}
             onChange={handleCaseChange}
             required
+            disabled={isExpired}
           >
             <option value="">Select case</option>
+            <option value="NO_CASE">NO CASE</option>
             {cases.map((cs) => (
               <option key={cs.id} value={cs.id}>
                 {cs.caseNumber}
@@ -292,7 +316,7 @@ function AppointmentForm() {
               type="button"
               className="dropdown-trigger-btn"
               onClick={() => setAdvocateDropdownOpen(!advocateDropdownOpen)}
-              disabled={!form.caseId}
+              disabled={!form.caseId || isExpired}
             >
               {selectedAdvocateIds.length > 0
                 ? advocates
@@ -338,6 +362,7 @@ function AppointmentForm() {
             value={form.filingDate}
             onChange={updateField("filingDate")}
             required
+            disabled={isExpired}
           />
         </div>
 
@@ -350,6 +375,7 @@ function AppointmentForm() {
               value={form.startTime}
               onChange={handleStartTimeChange}
               required
+              disabled={isExpired}
             />
             {form.startTime && (
               <span className="time-am-pm-label">{getAmPm(form.startTime)}</span>
@@ -363,6 +389,7 @@ function AppointmentForm() {
               value={form.endTime}
               onChange={handleEndTimeChange}
               required
+              disabled={isExpired}
               min={getAmPm(form.startTime) === "PM" ? "12:00" : undefined}
             />
             {form.endTime && (
@@ -372,7 +399,7 @@ function AppointmentForm() {
         </div>
 
         <div className="advocate-form-actions">
-          <button type="submit" className={`master-btn ${isEdit ? "btn-update" : "btn-create"}`} disabled={saving}>
+          <button type="submit" className={`master-btn ${isEdit ? "btn-update" : "btn-create"}`} disabled={saving || isExpired}>
             {saving ? "Saving…" : isEdit ? "Update" : "Submit"}
           </button>
           <button

@@ -23,6 +23,7 @@ export const ADMIN_MENU_ITEMS = [
     children: [
       { id: "appointment-report", label: "Appointment Report", path: "/reports/appointment" },
       { id: "client-report", label: "Client Report", path: "/reports/client" },
+      { id: "case-report", label: "Case Report", path: "/reports/case" },
     ],
   },
 ];

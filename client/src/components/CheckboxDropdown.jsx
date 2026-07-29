@@ -16,6 +16,7 @@ export function CheckboxDropdown({
   selectedIds = [],
   onChange,
   placeholder = "Select options",
+  autoFocus = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -52,6 +53,7 @@ export function CheckboxDropdown({
         type="button"
         className="dropdown-trigger-btn"
         onClick={() => setIsOpen(!isOpen)}
+        autoFocus={autoFocus}
       >
         <span style={{
           overflow: "hidden",

@@ -18,6 +18,33 @@ function formatDate(value) {
   return String(value).slice(0, 10);
 }
 
+function isModificationAllowed(appointDate, appointStartTime) {
+  if (!appointDate || !appointStartTime) return true;
+  const dateStr = formatDate(appointDate);
+  const timeStr = formatTime(appointStartTime);
+  const startStr = `${dateStr}T${timeStr}`;
+  const appointmentStart = new Date(startStr).getTime();
+  const current = Date.now();
+  const diffMinutes = (current - appointmentStart) / (1000 * 60);
+  return diffMinutes <= 15;
+}
+
+function getAppointmentStatus(row) {
+  if (row.Appoint_Delete_Flag || row.Appoint_Delete_Flag === 1 || row.deleteFlag || row.Appoint_Delete_Flag === '1') {
+    return "deleted";
+  }
+  const dateStr = formatDate(row.Appoint_Date || row.date);
+  const timeStr = formatTime(row.Appoint_Start_Time || row.startTime);
+  if (!dateStr || !timeStr) return "scheduled";
+  
+  const appointmentStart = new Date(`${dateStr}T${timeStr}`).getTime();
+  const current = Date.now();
+  if (current > appointmentStart + 15 * 60 * 1000) {
+    return "completed";
+  }
+  return "scheduled";
+}
+
 function parseOptionalDate(value) {
   const s = value?.trim();
   return s || null;
@@ -214,6 +241,7 @@ export async function getAppointment(req, res, next) {
       startTime: formatTime(row.startTime),
       endTime: formatTime(row.endTime),
       advocateIds: advRows.map(r => r.advocateId),
+      status: getAppointmentStatus({ ...row, date: row.filingDate, startTime: row.startTime }),
     });
   } catch (err) {
     next(err);
@@ -267,13 +295,20 @@ export async function updateAppointment(req, res, next) {
     }
 
     const [existingRows] = await pool.query(
-      `SELECT Appoint_ID
+      `SELECT Appoint_ID, Appoint_Date, Appoint_Start_Time
        FROM Appointment WHERE Appoint_ID = ?`,
       [req.params.id]
     );
 
     if (existingRows.length === 0) {
       return res.status(404).json({ message: "Appointment not found." });
+    }
+
+    const appt = existingRows[0];
+    if (!isModificationAllowed(appt.Appoint_Date, appt.Appoint_Start_Time)) {
+      return res.status(400).json({
+        message: "Appointment can only be modified till 15 minutes after the appointment start time."
+      });
     }
 
     // Find all old Appoint_ID records for this appointment
@@ -424,14 +459,21 @@ export async function listAppointments(req, res, next) {
     sql += " ORDER BY date DESC, startTime DESC";
 
     const [rows] = await pool.query(sql, params);
-    res.json(
-      rows.map((row) => ({
+    const mapped = rows.map((row) => {
+      const date = formatDate(row.date);
+      const startTime = formatTime(row.startTime);
+      const endTime = formatTime(row.endTime);
+      const status = getAppointmentStatus({ ...row, date, startTime });
+      return {
         ...row,
-        date: formatDate(row.date),
-        startTime: formatTime(row.startTime),
-        endTime: formatTime(row.endTime),
-      })),
-    );
+        date,
+        startTime,
+        endTime,
+        status,
+      };
+    });
+    const filtered = mapped.filter((item) => item.status === "scheduled");
+    res.json(filtered);
   } catch (err) {
     next(err);
   }
@@ -440,7 +482,7 @@ export async function listAppointments(req, res, next) {
 export async function deleteAppointment(req, res, next) {
   try {
     const [apptRows] = await pool.query(
-      `SELECT Appoint_ID
+      `SELECT Appoint_ID, Appoint_Date, Appoint_Start_Time
        FROM Appointment
        WHERE Appoint_ID = ?`,
       [req.params.id]
@@ -448,6 +490,13 @@ export async function deleteAppointment(req, res, next) {
 
     if (apptRows.length === 0) {
       return res.status(404).json({ message: "Appointment not found." });
+    }
+
+    const appt = apptRows[0];
+    if (!isModificationAllowed(appt.Appoint_Date, appt.Appoint_Start_Time)) {
+      return res.status(400).json({
+        message: "Appointment can only be modified or deleted till 15 minutes after the appointment start time."
+      });
     }
 
     await pool.query(
@@ -667,12 +716,19 @@ export async function getAppointmentReport(req, res, next) {
 
     const [rows] = await pool.query(sql, params);
     res.json(
-      rows.map((row) => ({
-        ...row,
-        date: formatDate(row.date),
-        startTime: formatTime(row.startTime),
-        endTime: formatTime(row.endTime),
-      })),
+      rows.map((row) => {
+        const date = formatDate(row.date);
+        const startTime = formatTime(row.startTime);
+        const endTime = formatTime(row.endTime);
+        const status = getAppointmentStatus({ ...row, date, startTime });
+        return {
+          ...row,
+          date,
+          startTime,
+          endTime,
+          status,
+        };
+      }),
     );
   } catch (err) {
     next(err);
@@ -715,17 +771,81 @@ export async function getClientReport(req, res, next) {
 
     const [rows] = await pool.query(sql, params);
     res.json(
-      rows.map((row) => ({
-        ...row,
-        date: formatDate(row.date),
-        startTime: formatTime(row.startTime),
-        endTime: formatTime(row.endTime),
-      })),
+      rows.map((row) => {
+        const date = formatDate(row.date);
+        const startTime = formatTime(row.startTime);
+        const endTime = formatTime(row.endTime);
+        const status = getAppointmentStatus({ ...row, date, startTime });
+        return {
+          ...row,
+          date,
+          startTime,
+          endTime,
+          status,
+        };
+      }),
     );
   } catch (err) {
     next(err);
   }
 }
 
+export async function getCaseReport(req, res, next) {
+  try {
+    const { startDate, endDate, caseId } = req.query;
 
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: "Start date and End date are required." });
+    }
 
+    let sql = `
+      SELECT
+        ap.Appoint_ID AS id,
+        cl.Client_Name AS clientName,
+        COALESCE(cs.Case_Num, 'NO CASE') AS caseNumber,
+        cs.Case_ID AS caseId,
+        adv.Advocate_Name AS advocateName,
+        ap.Appoint_Date AS date,
+        ap.Appoint_Start_Time AS startTime,
+        ap.Appoint_End_Time AS endTime,
+        ap.Appoint_Delete_Flag AS deleteFlag
+      FROM Appointment ap
+      INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
+      LEFT JOIN Case_Master cs ON ap.Appoint_Case_ID = cs.Case_ID
+      LEFT JOIN Advocate_Master adv ON ap.Appoint_Advocate_ID = adv.Advocate_ID
+      WHERE (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
+        AND ap.Appoint_Date BETWEEN ? AND ?
+    `;
+    const params = [startDate, endDate];
+
+    if (caseId && caseId !== "all") {
+      if (caseId === "NO_CASE") {
+        sql += " AND ap.Appoint_Case_ID IS NULL";
+      } else {
+        sql += " AND ap.Appoint_Case_ID = ?";
+        params.push(Number(caseId));
+      }
+    }
+
+    sql += " ORDER BY caseNumber ASC, ap.Appoint_Date ASC, ap.Appoint_Start_Time ASC";
+
+    const [rows] = await pool.query(sql, params);
+    res.json(
+      rows.map((row) => {
+        const date = formatDate(row.date);
+        const startTime = formatTime(row.startTime);
+        const endTime = formatTime(row.endTime);
+        const status = getAppointmentStatus({ ...row, date, startTime, Appoint_Delete_Flag: row.deleteFlag });
+        return {
+          ...row,
+          date,
+          startTime,
+          endTime,
+          status,
+        };
+      }),
+    );
+  } catch (err) {
+    next(err);
+  }
+}

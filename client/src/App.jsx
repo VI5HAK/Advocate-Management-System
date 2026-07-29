@@ -29,6 +29,7 @@ import AppointmentForm from "./pages/entities/AppointmentForm";
 // Reports
 import ReportsPage from "./pages/ReportsPage";
 import ClientReportPage from "./pages/ClientReportPage";
+import CaseReportPage from "./pages/CaseReportPage";
 
 function AppRoutes() {
   return (
@@ -69,6 +70,7 @@ function AppRoutes() {
           
           <Route path="/reports/appointment" element={<ReportsPage />} />
           <Route path="/reports/client" element={<ClientReportPage />} />
+          <Route path="/reports/case" element={<CaseReportPage />} />
         </Route>
         
         {/* Routes accessible to both Admin and Advocate */}
