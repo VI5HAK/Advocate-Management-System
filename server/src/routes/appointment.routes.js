@@ -9,6 +9,7 @@ import {
   addAppointmentRemark,
   getAppointmentReport,
   getClientReport,
+  getCaseReport,
 } from "../controllers/appointment.controller.js";
 import { authenticate } from "../middleware/auth.middleware.js";
 import { requireAdmin } from "../middleware/role.middleware.js";
@@ -19,6 +20,7 @@ router.use(authenticate);
 
 router.get("/report", requireAdmin, getAppointmentReport);
 router.get("/client-report", requireAdmin, getClientReport);
+router.get("/case-report", requireAdmin, getCaseReport);
 router.get("/", listAppointments);
 router.post("/", requireAdmin, createAppointment);
 router.get("/:id", getAppointment);
