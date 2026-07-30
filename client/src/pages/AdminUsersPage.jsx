@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { CreateButton, SubmitButton, CancelButton, DeleteButton } from "../components/ActionButtons";
 import "../styles/MasterPage.css";
 import "../styles/AdvocateForm.css";
 
@@ -188,17 +189,8 @@ function AdminUsersPage() {
           </div>
 
           <div className="advocate-form-actions">
-            <button type="submit" className="master-btn btn-create" disabled={saving}>
-              {saving ? "Saving…" : "Submit"}
-            </button>
-            <button
-              type="button"
-              className="master-btn master-btn-outline"
-              onClick={backToList}
-              disabled={saving}
-            >
-              Cancel
-            </button>
+            <SubmitButton isEdit={false} saving={saving} />
+            <CancelButton onClick={backToList} disabled={saving} />
           </div>
         </form>
       </div>
@@ -209,9 +201,7 @@ function AdminUsersPage() {
     <div className="master-page">
       <header className="master-header">
         <h1 className="master-title">Admin Users</h1>
-        <button type="button" className="master-btn btn-create" onClick={openCreateForm}>
-          Create Admin
-        </button>
+        <CreateButton onClick={openCreateForm} label="Create Admin" />
       </header>
 
       {error && (
@@ -248,13 +238,7 @@ function AdminUsersPage() {
                   <td>{admin.email}</td>
                   <td>{admin.fullName}</td>
                   <td className="master-actions">
-                    <button
-                      type="button"
-                      className="master-btn master-btn-sm btn-delete"
-                      onClick={() => handleDelete(admin)}
-                    >
-                      Delete
-                    </button>
+                    <DeleteButton onClick={() => handleDelete(admin)} />
                   </td>
                 </tr>
               ))

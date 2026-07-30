@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { SubmitButton, CancelButton } from "../components/ActionButtons";
 import "../styles/MasterPage.css";
 import "../styles/AdvocateForm.css";
 import "../styles/EntityListPage.css";
@@ -172,17 +173,8 @@ function ChangePassword() {
         </div>
 
         <div className="advocate-form-actions">
-          <button type="submit" className="master-btn btn-update" disabled={saving}>
-            {saving ? "Saving…" : "Update Password"}
-          </button>
-          <button
-            type="button"
-            className="master-btn master-btn-outline"
-            onClick={handleCancel}
-            disabled={saving}
-          >
-            Cancel
-          </button>
+          <SubmitButton isEdit={true} saving={saving} label="Update Password" />
+          <CancelButton onClick={handleCancel} disabled={saving} />
         </div>
       </form>
     </div>

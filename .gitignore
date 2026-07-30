@@ -10,5 +10,8 @@ client/dist/
 client/build/
 server/dist/
 
+# Resorces
+/resources
+
 # Logs
 *.log

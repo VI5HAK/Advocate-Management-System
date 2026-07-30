@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
 import { CustomDatePicker } from "../../components/CustomDatePicker";
+import { SubmitButton, CancelButton } from "../../components/ActionButtons";
 import dayjs from "../../utils/datePicker";
 import "../../styles/MasterPage.css";
 import "../../styles/AdvocateForm.css";
@@ -399,17 +400,8 @@ function AppointmentForm() {
         </div>
 
         <div className="advocate-form-actions">
-          <button type="submit" className={`master-btn ${isEdit ? "btn-update" : "btn-create"}`} disabled={saving || isExpired}>
-            {saving ? "Saving…" : isEdit ? "Update" : "Submit"}
-          </button>
-          <button
-            type="button"
-            className="master-btn master-btn-outline"
-            onClick={handleCancel}
-            disabled={saving}
-          >
-            Cancel
-          </button>
+          <SubmitButton isEdit={isEdit} saving={saving} disabled={saving || isExpired} />
+          <CancelButton onClick={handleCancel} disabled={saving} />
         </div>
         <div className="form-mandatory-hint">
           ALL FIELDS ARE MANDATORY<sup>*</sup>

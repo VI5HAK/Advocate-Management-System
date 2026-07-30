@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
 import { CascadingLocationDropdown } from "../../components/CascadingLocationDropdown";
+import { SubmitButton, CancelButton } from "../../components/ActionButtons";
 import "../../styles/MasterPage.css";
 import "../../styles/AdvocateForm.css";
 import { useForm } from "../../hooks/useForm";
@@ -373,21 +374,8 @@ function ClientForm() {
         </div>
 
         <div className="advocate-form-actions">
-          <button
-            type="submit"
-            className={`master-btn ${isEdit ? "btn-update" : "btn-create"}`}
-            disabled={saving || isSubmitting}
-          >
-            {saving || isSubmitting ? "Saving…" : isEdit ? "Update" : "Submit"}
-          </button>
-          <button
-            type="button"
-            className="master-btn master-btn-outline"
-            onClick={handleCancel}
-            disabled={saving || isSubmitting}
-          >
-            Cancel
-          </button>
+          <SubmitButton isEdit={isEdit} saving={saving || isSubmitting} />
+          <CancelButton onClick={handleCancel} disabled={saving || isSubmitting} />
         </div>
         <div className="form-mandatory-hint">
           ALL FIELDS ARE MANDATORY<sup>*</sup>
