@@ -15,6 +15,8 @@ import ClientTypeMaster from "./pages/masters/ClientTypeMaster";
 import CaseTypeMaster from "./pages/masters/CaseTypeMaster";
 import StatusMaster from "./pages/masters/StatusMaster";
 import CourtMaster from "./pages/masters/CourtMaster";
+import LocationMaster from "./pages/masters/LocationMaster";
+
 
 // Entities
 import ClientList from "./pages/entities/ClientList";
@@ -56,6 +58,7 @@ function AppRoutes() {
           <Route path="/masters/case-type" element={<CaseTypeMaster />} />
           <Route path="/masters/status" element={<StatusMaster />} />
           <Route path="/masters/court" element={<CourtMaster />} />
+          <Route path="/masters/location" element={<LocationMaster />} />
           
           <Route path="/advocate" element={<AdvocateList />} />
           <Route path="/advocate/create" element={<AdvocateForm />} />

@@ -9,6 +9,7 @@ export const ADMIN_MENU_ITEMS = [
       { id: "client-type", label: "Client Type", path: "/masters/client-type" },
       { id: "case-type", label: "Case Type", path: "/masters/case-type" },
       { id: "court", label: "Court", path: "/masters/court" },
+      { id: "location", label: "Location", path: "/masters/location" },
     ],
   },
   //Remove comment to add admins page
