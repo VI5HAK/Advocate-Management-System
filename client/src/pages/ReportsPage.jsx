@@ -1,32 +1,8 @@
 import { useState, useEffect } from "react";
 import api from "../api/client";
 import { CustomDatePicker } from "../components/CustomDatePicker";
+import { formatTime12Hour, formatDateDMY } from "../utils/formatters";
 import "../styles/ReportsPage.css";
-
-function formatTime12Hour(timeString) {
-  if (!timeString || timeString === "—") return "—";
-  const parts = timeString.split(":");
-  if (parts.length < 2) return timeString;
-  let hours = parseInt(parts[0], 10);
-  const minutes = parts[1];
-  if (isNaN(hours)) return timeString;
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12;
-  hours = hours ? hours : 12;
-  const paddedHours = String(hours).padStart(2, "0");
-  return `${paddedHours}:${minutes} ${ampm}`;
-}
-
-function formatDateDMY(dateString) {
-  if (!dateString || dateString === "—") return "—";
-  if (dateString.includes("-")) {
-    const parts = dateString.split("-");
-    if (parts.length === 3) {
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-  }
-  return dateString;
-}
 
 function ReportsPage() {
   const [advocates, setAdvocates] = useState([]);

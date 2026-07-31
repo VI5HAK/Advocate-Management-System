@@ -50,7 +50,26 @@ export const ENTITY_LIST_CONFIG = {
     deleteErrorMessage: "Failed to delete case.",
     deleteConfirm: (row) => `Do you want to delete case "${row.caseNumber}"?`,
     columns: [
-      { key: "clientName", label: "Client Name" },
+      {
+        key: "clientName",
+        label: "Client Name",
+        render: (value) => {
+          const clientNames = value.split(",").map((n) => n.trim()).filter(Boolean);
+          if (clientNames.length > 1) {
+            return (
+              <div className="client-names-list">
+                {clientNames.map((name, idx) => (
+                  <div key={idx} className="client-name-item">
+                    <span className="multiple-clients-dot" title="Multiple clients"></span>
+                    <span>{name}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          }
+          return value;
+        },
+      },
       { key: "caseNumber", label: "Case Number" },
       { key: "petitioner", label: "Petitioner" },
       { key: "respondent", label: "Respondent" },
@@ -71,7 +90,26 @@ export const ENTITY_LIST_CONFIG = {
     columns: [
       { key: "clientName", label: "Client Name" },
       { key: "caseNumber", label: "Case Number" },
-      { key: "advocateName", label: "Advocate Name" },
+      {
+        key: "advocateName",
+        label: "Advocate Name",
+        render: (value) => {
+          const advocateNames = value.split(",").map((n) => n.trim()).filter(Boolean);
+          if (advocateNames.length > 1) {
+            return (
+              <div className="client-names-list">
+                {advocateNames.map((name, idx) => (
+                  <div key={idx} className="client-name-item">
+                    <span className="multiple-clients-dot" title="Multiple advocates"></span>
+                    <span>{name}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          }
+          return value;
+        },
+      },
       { key: "date", label: "Date" },
       { key: "startTime", label: "Start Time" },
       { key: "endTime", label: "End Time" },

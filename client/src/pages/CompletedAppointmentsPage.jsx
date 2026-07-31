@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../api/client";
-import { RemarksModal } from "./entities/EntityListPage";
+import RemarksModal from "../components/RemarksModal";
+import { formatTime12Hour, formatDateDMY } from "../utils/formatters";
 import "../styles/CompletedAppointmentsPage.css";
 
 function CompletedAppointmentsPage() {
@@ -42,29 +43,6 @@ function CompletedAppointmentsPage() {
       ...prev,
       [caseId]: !prev[caseId],
     }));
-  };
-
-  // Format time to 12-hour AM/PM
-  const formatTime12h = (timeStr) => {
-    if (!timeStr) return "—";
-    const parts = timeStr.split(":");
-    if (parts.length < 2) return timeStr;
-    let hours = parseInt(parts[0], 10);
-    const minutes = parts[1];
-    const ampm = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12;
-    hours = hours ? hours : 12; // 0 should be 12
-    return `${hours}:${minutes} ${ampm}`;
-  };
-
-  // Format date to DD/MM/YYYY
-  const formatDateDMY = (dateStr) => {
-    if (!dateStr || !dateStr.includes("-")) return dateStr || "—";
-    const parts = dateStr.split("-");
-    if (parts.length === 3) {
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-    return dateStr;
   };
 
   // Group appointments by Case ID
@@ -210,7 +188,7 @@ function CompletedAppointmentsPage() {
                             <tr key={appt.id}>
                               <td className="appt-date">{formatDateDMY(appt.date)}</td>
                               <td className="appt-time">
-                                {formatTime12h(appt.startTime)} - {formatTime12h(appt.endTime)}
+                                {formatTime12Hour(appt.startTime)} - {formatTime12Hour(appt.endTime)}
                               </td>
                               <td className="appt-client">{appt.clientName || "—"}</td>
                               <td className="actions-column">
