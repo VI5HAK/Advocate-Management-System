@@ -93,6 +93,35 @@ async function parseCaseBody(body) {
   });
   if (!okCourt) return { error: "Invalid court selected." };
 
+  const petitionerAdvocate = body.petitionerAdvocate?.trim();
+  const respondentAdvocate = body.respondentAdvocate?.trim();
+  const filingNum = body.filingNum?.trim();
+  const regNum = body.regNum?.trim();
+  const cnrNum = body.cnrNum?.trim();
+  const efilingNum = body.efilingNum?.trim();
+
+  const alphaSpaceRegex = /^[A-Z ]+$/;
+  const alphaNumRegex = /^[A-Z0-9]+$/;
+
+  if (!petitionerAdvocate || !alphaSpaceRegex.test(petitionerAdvocate)) {
+    return { error: "Petitioner advocate is required and must contain only uppercase alphabets and spaces." };
+  }
+  if (!respondentAdvocate || !alphaSpaceRegex.test(respondentAdvocate)) {
+    return { error: "Respondent advocate is required and must contain only uppercase alphabets and spaces." };
+  }
+  if (!filingNum || !alphaSpaceRegex.test(filingNum)) {
+    return { error: "Filing number is required and must contain only uppercase alphabets and spaces." };
+  }
+  if (!regNum || !alphaSpaceRegex.test(regNum)) {
+    return { error: "Registration number is required and must contain only uppercase alphabets and spaces." };
+  }
+  if (!cnrNum || !alphaNumRegex.test(cnrNum)) {
+    return { error: "CNR number is required and must contain only uppercase alphabets and numbers." };
+  }
+  if (!efilingNum || !alphaSpaceRegex.test(efilingNum)) {
+    return { error: "E-filing number is required and must contain only uppercase alphabets and spaces." };
+  }
+
   return {
     clientIds,
     advocateIds,
@@ -102,8 +131,14 @@ async function parseCaseBody(body) {
       courtId,
       advocateIds[0],
       trimOrNull(body.petitioner),
+      trimOrNull(body.petitionerAdvocate),
       trimOrNull(body.respondent),
+      trimOrNull(body.respondentAdvocate),
       parseOptionalDate(body.filingDate),
+      trimOrNull(body.filingNum),
+      trimOrNull(body.regNum),
+      trimOrNull(body.cnrNum),
+      trimOrNull(body.efilingNum),
       trimOrNull(body.courtName),
     ],
   };
@@ -117,8 +152,14 @@ const CASE_SELECT = `
     cs.Case_Court_ID AS courtId,
     cs.Case_Advocate_ID AS advocateId,
     cs.Case_Petitioner AS petitioner,
+    cs.Case_Petitioner_Advocate AS petitionerAdvocate,
     cs.Case_Respodent AS respondent,
+    cs.Case_Respondent_Advocate AS respondentAdvocate,
     DATE_FORMAT(cs.Case_Filing_Date, '%Y-%m-%d') AS filingDate,
+    cs.Case_Filing_Num AS filingNum,
+    cs.Case_Reg_Num AS regNum,
+    cs.Case_CNR_Num AS cnrNum,
+    cs.Case_Efiling_Num AS efilingNum,
     cs.Case_Court_Name AS courtName,
     (
       SELECT ap.Appoint_Client_ID
@@ -142,8 +183,14 @@ const CASE_SELECT_LEGACY_FALLBACK = `
     cs.Case_Court_ID AS courtId,
     cs.Case_Advocate_ID AS advocateId,
     cs.Case_Petitioner AS petitioner,
+    cs.Case_Petitioner_Advocate AS petitionerAdvocate,
     cs.Case_Respodent AS respondent,
+    cs.Case_Respondent_Advocate AS respondentAdvocate,
     DATE_FORMAT(cs.Case_Filing_Date, '%Y-%m-%d') AS filingDate,
+    cs.Case_Filing_Num AS filingNum,
+    cs.Case_Reg_Num AS regNum,
+    cs.Case_CNR_Num AS cnrNum,
+    cs.Case_Efiling_Num AS efilingNum,
     cs.Case_Court_Name AS courtName,
     (
       SELECT ap.Appoint_Client_ID
@@ -223,11 +270,17 @@ export async function createCase(req, res, next) {
         Case_Court_ID,
         Case_Advocate_ID,
         Case_Petitioner,
+        Case_Petitioner_Advocate,
         Case_Respodent,
+        Case_Respondent_Advocate,
         Case_Filing_Date,
+        Case_Filing_Num,
+        Case_Reg_Num,
+        Case_CNR_Num,
+        Case_Efiling_Num,
         Case_Court_Name,
         Case_Created_Date
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
       parsed.caseValues,
     );
 
@@ -270,8 +323,14 @@ export async function updateCase(req, res, next) {
         Case_Court_ID = ?,
         Case_Advocate_ID = ?,
         Case_Petitioner = ?,
+        Case_Petitioner_Advocate = ?,
         Case_Respodent = ?,
+        Case_Respondent_Advocate = ?,
         Case_Filing_Date = ?,
+        Case_Filing_Num = ?,
+        Case_Reg_Num = ?,
+        Case_CNR_Num = ?,
+        Case_Efiling_Num = ?,
         Case_Court_Name = ?,
         Case_Modified_Date = CURDATE()
       WHERE Case_ID = ?

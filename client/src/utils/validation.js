@@ -164,7 +164,9 @@ export const caseSchema = z.object({
   caseTypeId: z.string().min(1, "Case type is required."),
   courtId: z.string().min(1, "Court name is required."),
   petitioner: alphaField("Petitioner"),
+  petitionerAdvocate: alphaField("Petitioner advocate"),
   respondent: alphaField("Respondent"),
+  respondentAdvocate: alphaField("Respondent advocate"),
   filingDate: z.string()
     .min(1, "Filing date is required.")
     .refine((val) => {
@@ -177,6 +179,10 @@ export const caseSchema = z.object({
     }, {
       message: "Filing date cannot be in the future.",
     }),
+  filingNum: alphaField("Filing number"),
+  regNum: alphaField("Registration number"),
+  cnrNum: requiredText("CNR number").regex(/^[A-Z0-9]+$/, "CNR number must contain only alphabets and numbers (uppercase)."),
+  efilingNum: alphaField("E-filing number"),
   courtName: z.string().min(1, "Court name is required."),
   advocateIds: z.array(z.number()).min(1, "At least one advocate must be selected."),
 });

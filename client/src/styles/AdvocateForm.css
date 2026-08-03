@@ -55,6 +55,16 @@
   background: #fff;
 }
 
+.advocate-form-row input:disabled,
+.advocate-form-row select:disabled,
+.advocate-form-row textarea:disabled,
+.dropdown-trigger-btn:disabled {
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  border-color: #d1d5db !important;
+}
+
 .advocate-form-row input,
 .advocate-form-row select {
   height: 3rem;

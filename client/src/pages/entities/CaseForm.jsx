@@ -19,8 +19,14 @@ const EMPTY_FORM = {
   caseTypeId: "",
   courtId: "",
   petitioner: "",
+  petitionerAdvocate: "",
   respondent: "",
+  respondentAdvocate: "",
   filingDate: "",
+  filingNum: "",
+  regNum: "",
+  cnrNum: "",
+  efilingNum: "",
   courtName: "",
   advocateIds: [],
 };
@@ -49,8 +55,14 @@ function CaseForm() {
       caseTypeId: Number(formValues.caseTypeId),
       courtId: Number(formValues.courtId),
       petitioner: formValues.petitioner,
+      petitionerAdvocate: formValues.petitionerAdvocate,
       respondent: formValues.respondent,
+      respondentAdvocate: formValues.respondentAdvocate,
       filingDate: formValues.filingDate,
+      filingNum: formValues.filingNum,
+      regNum: formValues.regNum,
+      cnrNum: formValues.cnrNum,
+      efilingNum: formValues.efilingNum,
       courtName: formValues.courtName,
       advocateIds: formValues.advocateIds,
     };
@@ -126,8 +138,14 @@ function CaseForm() {
             caseTypeId: data.caseTypeId != null ? String(data.caseTypeId) : "",
             courtId: data.courtId != null ? String(data.courtId) : "",
             petitioner: data.petitioner || "",
+            petitionerAdvocate: data.petitionerAdvocate || "",
             respondent: data.respondent || "",
+            respondentAdvocate: data.respondentAdvocate || "",
             filingDate: data.filingDate ? data.filingDate.slice(0, 10) : "",
+            filingNum: data.filingNum || "",
+            regNum: data.regNum || "",
+            cnrNum: data.cnrNum || "",
+            efilingNum: data.efilingNum || "",
             courtName: data.courtName || "",
             advocateIds: data.advocateIds || [],
           });
@@ -187,12 +205,17 @@ function CaseForm() {
     setSelectedDistrictCode(loc.districtCode ? String(loc.districtCode) : "");
     setSelectedTalukCode(loc.talukCode ? String(loc.talukCode) : "");
 
-    const nextAvailableTypes = getAvailableTypesForTaluk(loc.talukCode);
-    if (selectedCourtType && !nextAvailableTypes.includes(selectedCourtType)) {
+    if (!loc.stateCode || !loc.districtCode || !loc.talukCode) {
       setSelectedCourtType("");
+    } else {
+      const nextAvailableTypes = getAvailableTypesForTaluk(loc.talukCode);
+      if (selectedCourtType && !nextAvailableTypes.includes(selectedCourtType)) {
+        setSelectedCourtType("");
+      }
     }
     setValue("courtId", "");
     setValue("courtName", "");
+    setValue("advocateIds", []);
   };
 
   const handleCourtTypeChange = (e) => {
@@ -200,6 +223,7 @@ function CaseForm() {
     setSelectedCourtType(value);
     setValue("courtId", "");
     setValue("courtName", "");
+    setValue("advocateIds", []);
   };
 
   const handleCourtChange = (e) => {
@@ -207,6 +231,9 @@ function CaseForm() {
     const matched = courts.find((c) => String(c.id) === courtIdStr);
     setValue("courtId", courtIdStr);
     setValue("courtName", matched ? matched.name : "");
+    if (!courtIdStr) {
+      setValue("advocateIds", []);
+    }
   };
 
   const handleCancel = () => {
@@ -312,6 +339,20 @@ function CaseForm() {
             {errors.petitioner && <span className="field-error">{errors.petitioner}</span>}
           </div>
 
+          <label htmlFor="case-petitioner-advocate">Petitioner Advocate</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-petitioner-advocate"
+              type="text"
+              className={errors.petitionerAdvocate ? "input-has-error" : ""}
+              {...register("petitionerAdvocate", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
+              required
+            />
+            {errors.petitionerAdvocate && <span className="field-error">{errors.petitionerAdvocate}</span>}
+          </div>
+        </div>
+
+        <div className="advocate-form-row advocate-form-row-pair">
           <label htmlFor="case-respondent">Respondent</label>
           <div className="form-input-wrapper">
             <input
@@ -322,6 +363,18 @@ function CaseForm() {
               required
             />
             {errors.respondent && <span className="field-error">{errors.respondent}</span>}
+          </div>
+
+          <label htmlFor="case-respondent-advocate">Respondent Advocate</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-respondent-advocate"
+              type="text"
+              className={errors.respondentAdvocate ? "input-has-error" : ""}
+              {...register("respondentAdvocate", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
+              required
+            />
+            {errors.respondentAdvocate && <span className="field-error">{errors.respondentAdvocate}</span>}
           </div>
         </div>
 
@@ -336,6 +389,60 @@ function CaseForm() {
               required
             />
             {errors.filingDate && <span className="field-error">{errors.filingDate}</span>}
+          </div>
+        </div>
+
+        <div className="advocate-form-row advocate-form-row-pair">
+          <label htmlFor="case-filing-num">Filing Number</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-filing-num"
+              type="text"
+              className={errors.filingNum ? "input-has-error" : ""}
+              {...register("filingNum", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
+              required
+            />
+            {errors.filingNum && <span className="field-error">{errors.filingNum}</span>}
+          </div>
+
+          <label htmlFor="case-reg-num">Registration Number</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-reg-num"
+              type="text"
+              className={errors.regNum ? "input-has-error" : ""}
+              {...register("regNum", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
+              required
+            />
+            {errors.regNum && <span className="field-error">{errors.regNum}</span>}
+          </div>
+        </div>
+
+        <div className="advocate-form-row">
+          <label htmlFor="case-cnr-num">CNR Number</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-cnr-num"
+              type="text"
+              className={errors.cnrNum ? "input-has-error" : ""}
+              {...register("cnrNum", { transform: (v) => uppercaseAlphaNum(v, 100) })}
+              required
+            />
+            {errors.cnrNum && <span className="field-error">{errors.cnrNum}</span>}
+          </div>
+        </div>
+
+        <div className="advocate-form-row">
+          <label htmlFor="case-efiling-num">E-Filing Number</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-efiling-num"
+              type="text"
+              className={errors.efilingNum ? "input-has-error" : ""}
+              {...register("efilingNum", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
+              required
+            />
+            {errors.efilingNum && <span className="field-error">{errors.efilingNum}</span>}
           </div>
         </div>
 
@@ -354,6 +461,7 @@ function CaseForm() {
               id="case-court-type"
               value={selectedCourtType}
               onChange={handleCourtTypeChange}
+              disabled={!selectedStateCode || !selectedDistrictCode || !selectedTalukCode}
               required
             >
               <option value="">Select court type</option>
@@ -374,6 +482,7 @@ function CaseForm() {
               className={errors.courtId ? "input-has-error" : ""}
               value={values.courtId}
               onChange={handleCourtChange}
+              disabled={!selectedStateCode || !selectedDistrictCode || !selectedTalukCode || !selectedCourtType}
               required
             >
               <option value="">Select court</option>
@@ -398,6 +507,7 @@ function CaseForm() {
                 setValue("advocateIds", newIds);
               }}
               placeholder="Select advocates"
+              disabled={!selectedStateCode || !selectedDistrictCode || !selectedTalukCode || !selectedCourtType || !values.courtId}
             />
             {errors.advocateIds && <span className="field-error">{errors.advocateIds}</span>}
           </div>
