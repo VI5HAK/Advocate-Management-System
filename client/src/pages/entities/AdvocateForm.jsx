@@ -211,19 +211,6 @@ function AdvocateForm() {
           </div>
         </div>
 
-        <CascadingLocationDropdown
-          State_ID={values.State_ID}
-          District_ID={values.District_ID}
-          Taluk_ID={values.Taluk_ID}
-          onChange={(loc) => {
-            setValue("State_ID", loc.State_ID ? String(loc.State_ID) : "");
-            setValue("District_ID", loc.District_ID ? String(loc.District_ID) : "");
-            setValue("Taluk_ID", loc.Taluk_ID ? String(loc.Taluk_ID) : "");
-          }}
-          errors={errors}
-          required
-        />
-
         <div className="advocate-form-row advocate-form-row-wide">
           <label htmlFor="advocate-address">Address</label>
           <div className="form-input-wrapper">
@@ -237,6 +224,19 @@ function AdvocateForm() {
             {errors.address && <span className="field-error">{errors.address}</span>}
           </div>
         </div>
+
+        <CascadingLocationDropdown
+          State_ID={values.State_ID}
+          District_ID={values.District_ID}
+          Taluk_ID={values.Taluk_ID}
+          onChange={(loc) => {
+            setValue("State_ID", loc.State_ID ? String(loc.State_ID) : "");
+            setValue("District_ID", loc.District_ID ? String(loc.District_ID) : "");
+            setValue("Taluk_ID", loc.Taluk_ID ? String(loc.Taluk_ID) : "");
+          }}
+          errors={errors}
+          required
+        />
 
         <div className="advocate-form-row">
           <label htmlFor="advocate-Pincode">Pincode</label>
