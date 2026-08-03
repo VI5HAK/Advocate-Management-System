@@ -339,6 +339,7 @@ const MASTER_REFERENCES = {
       message: "This court is assigned to one or more cases.",
     },
   ],
+  judges: [],
   statuses: [],
 };
 

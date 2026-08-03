@@ -9,6 +9,13 @@ export const MASTER_CONFIG = {
     descriptionColumn: "Role_Description",
     deleteFlagColumn: "Role_Delete_Flag",
   },
+  judges: {
+    table: "JUDGE_MASTER",
+    idColumn: "Judge_ID",
+    nameColumn: "Judge_Name",
+    descriptionColumn: "Judge_Description",
+    deleteFlagColumn: "Judge_Delete_Flag",
+  },
   "client-types": {
     table: "Client_Type_Master",
     idColumn: "Client_Type_ID",
