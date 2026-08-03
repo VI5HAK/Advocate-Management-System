@@ -5,17 +5,17 @@ import api from "../api/client";
  * CascadingLocationDropdown Component
  * Renders three dropdown inputs (State, District, Taluk) that are linked.
  *
- * @param {string|number} stateCode - Currently selected State Code.
- * @param {string|number} districtCode - Currently selected District Code.
- * @param {string|number} talukCode - Currently selected Taluk Code.
- * @param {Function} onChange - Callback triggered when selections change: ({ stateCode, stateName, districtCode, districtName, talukCode, talukName }) => void
+ * @param {string|number} State_ID - Currently selected State Code.
+ * @param {string|number} District_ID - Currently selected District Code.
+ * @param {string|number} Taluk_ID - Currently selected Taluk Code.
+ * @param {Function} onChange - Callback triggered when selections change: ({ State_ID, State_Name, District_ID, District_Name, Taluk_ID, Taluk_Name }) => void
  * @param {boolean} required - Whether selecting these options is required in the form.
- * @param {Object} errors - Validation errors object { stateCode, districtCode, talukCode }.
+ * @param {Object} errors - Validation errors object { State_ID, District_ID, Taluk_ID }.
  */
 export function CascadingLocationDropdown({
-  stateCode = "",
-  districtCode = "",
-  talukCode = "",
+  State_ID = "",
+  District_ID = "",
+  Taluk_ID = "",
   onChange,
   required = false,
   errors = {},
@@ -50,9 +50,9 @@ export function CascadingLocationDropdown({
     };
   }, []);
 
-  // Fetch districts when stateCode changes
+  // Fetch districts when State_ID changes
   useEffect(() => {
-    if (!stateCode) {
+    if (!State_ID) {
       setDistricts([]);
       return;
     }
@@ -61,7 +61,7 @@ export function CascadingLocationDropdown({
       setLoadingDistricts(true);
       try {
         const res = await api.get("/locations/districts", {
-          params: { stateCode },
+          params: { State_ID },
         });
         if (active) setDistricts(res.data);
       } catch (err) {
@@ -74,11 +74,11 @@ export function CascadingLocationDropdown({
     return () => {
       active = false;
     };
-  }, [stateCode]);
+  }, [State_ID]);
 
-  // Fetch taluks when districtCode changes
+  // Fetch taluks when District_ID changes
   useEffect(() => {
-    if (!districtCode) {
+    if (!District_ID) {
       setTaluks([]);
       return;
     }
@@ -87,7 +87,7 @@ export function CascadingLocationDropdown({
       setLoadingTaluks(true);
       try {
         const res = await api.get("/locations/taluks", {
-          params: { districtCode },
+          params: { District_ID },
         });
         if (active) setTaluks(res.data);
       } catch (err) {
@@ -100,47 +100,47 @@ export function CascadingLocationDropdown({
     return () => {
       active = false;
     };
-  }, [districtCode]);
+  }, [District_ID]);
 
   const handleStateChange = (e) => {
     const val = e.target.value;
-    const selectedState = states.find((s) => String(s.stateCode) === String(val));
+    const selectedState = states.find((s) => String(s.State_ID) === String(val));
     onChange({
-      stateCode: val ? Number(val) : "",
-      stateName: selectedState ? selectedState.stateName : "",
-      districtCode: "",
-      districtName: "",
-      talukCode: "",
-      talukName: "",
+      State_ID: val ? Number(val) : "",
+      State_Name: selectedState ? selectedState.State_Name : "",
+      District_ID: "",
+      District_Name: "",
+      Taluk_ID: "",
+      Taluk_Name: "",
     });
   };
 
   const handleDistrictChange = (e) => {
     const val = e.target.value;
-    const selectedState = states.find((s) => String(s.stateCode) === String(stateCode));
-    const selectedDistrict = districts.find((d) => String(d.districtCode) === String(val));
+    const selectedState = states.find((s) => String(s.State_ID) === String(State_ID));
+    const selectedDistrict = districts.find((d) => String(d.District_ID) === String(val));
     onChange({
-      stateCode: stateCode ? Number(stateCode) : "",
-      stateName: selectedState ? selectedState.stateName : "",
-      districtCode: val ? Number(val) : "",
-      districtName: selectedDistrict ? selectedDistrict.districtName : "",
-      talukCode: "",
-      talukName: "",
+      State_ID: State_ID ? Number(State_ID) : "",
+      State_Name: selectedState ? selectedState.State_Name : "",
+      District_ID: val ? Number(val) : "",
+      District_Name: selectedDistrict ? selectedDistrict.District_Name : "",
+      Taluk_ID: "",
+      Taluk_Name: "",
     });
   };
 
   const handleTalukChange = (e) => {
     const val = e.target.value;
-    const selectedState = states.find((s) => String(s.stateCode) === String(stateCode));
-    const selectedDistrict = districts.find((d) => String(d.districtCode) === String(districtCode));
-    const selectedTaluk = taluks.find((t) => String(t.talukCode) === String(val));
+    const selectedState = states.find((s) => String(s.State_ID) === String(State_ID));
+    const selectedDistrict = districts.find((d) => String(d.District_ID) === String(District_ID));
+    const selectedTaluk = taluks.find((t) => String(t.Taluk_ID) === String(val));
     onChange({
-      stateCode: stateCode ? Number(stateCode) : "",
-      stateName: selectedState ? selectedState.stateName : "",
-      districtCode: districtCode ? Number(districtCode) : "",
-      districtName: selectedDistrict ? selectedDistrict.districtName : "",
-      talukCode: val ? Number(val) : "",
-      talukName: selectedTaluk ? selectedTaluk.talukName : "",
+      State_ID: State_ID ? Number(State_ID) : "",
+      State_Name: selectedState ? selectedState.State_Name : "",
+      District_ID: District_ID ? Number(District_ID) : "",
+      District_Name: selectedDistrict ? selectedDistrict.District_Name : "",
+      Taluk_ID: val ? Number(val) : "",
+      Taluk_Name: selectedTaluk ? selectedTaluk.Taluk_Name : "",
     });
   };
 
@@ -151,22 +151,22 @@ export function CascadingLocationDropdown({
         <div className={inputWrapperClassName || undefined}>
           <select
             id="location-state"
-            value={stateCode || ""}
+            value={State_ID || ""}
             onChange={handleStateChange}
             required={required}
-            className={`${errors.stateCode ? "input-has-error" : ""} ${selectClassName}`}
+            className={`${errors.State_ID ? "input-has-error" : ""} ${selectClassName}`}
             disabled={loadingStates}
           >
             <option value="">
               {loadingStates ? "Loading states..." : "Select state"}
             </option>
             {states.map((s) => (
-              <option key={s.stateCode} value={s.stateCode}>
-                {s.stateName}
+              <option key={s.State_ID} value={s.State_ID}>
+                {s.State_Name}
               </option>
             ))}
           </select>
-          {errors.stateCode && <span className="field-error">{errors.stateCode}</span>}
+          {errors.State_ID && <span className="field-error">{errors.State_ID}</span>}
         </div>
       </div>
 
@@ -175,22 +175,22 @@ export function CascadingLocationDropdown({
         <div className={inputWrapperClassName || undefined}>
           <select
             id="location-district"
-            value={districtCode || ""}
+            value={District_ID || ""}
             onChange={handleDistrictChange}
             required={required}
-            disabled={!stateCode || loadingDistricts}
-            className={`${errors.districtCode ? "input-has-error" : ""} ${selectClassName}`}
+            disabled={!State_ID || loadingDistricts}
+            className={`${errors.District_ID ? "input-has-error" : ""} ${selectClassName}`}
           >
             <option value="">
               {loadingDistricts ? "Loading districts..." : "Select district"}
             </option>
             {districts.map((d) => (
-              <option key={d.districtCode} value={d.districtCode}>
-                {d.districtName}
+              <option key={d.District_ID} value={d.District_ID}>
+                {d.District_Name}
               </option>
             ))}
           </select>
-          {errors.districtCode && <span className="field-error">{errors.districtCode}</span>}
+          {errors.District_ID && <span className="field-error">{errors.District_ID}</span>}
         </div>
       </div>
 
@@ -199,22 +199,22 @@ export function CascadingLocationDropdown({
         <div className={inputWrapperClassName || undefined}>
           <select
             id="location-taluk"
-            value={talukCode || ""}
+            value={Taluk_ID || ""}
             onChange={handleTalukChange}
             required={required}
-            disabled={!districtCode || loadingTaluks}
-            className={`${errors.talukCode ? "input-has-error" : ""} ${selectClassName}`}
+            disabled={!District_ID || loadingTaluks}
+            className={`${errors.Taluk_ID ? "input-has-error" : ""} ${selectClassName}`}
           >
             <option value="">
               {loadingTaluks ? "Loading taluks..." : "Select taluk"}
             </option>
             {taluks.map((t) => (
-              <option key={t.talukCode} value={t.talukCode}>
-                {t.talukName}
+              <option key={t.Taluk_ID} value={t.Taluk_ID}>
+                {t.Taluk_Name}
               </option>
             ))}
           </select>
-          {errors.talukCode && <span className="field-error">{errors.talukCode}</span>}
+          {errors.Taluk_ID && <span className="field-error">{errors.Taluk_ID}</span>}
         </div>
       </div>
     </>

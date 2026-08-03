@@ -31,9 +31,9 @@ function CourtMaster() {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    stateCode: "",
-    districtCode: "",
-    talukCode: "",
+    State_ID: "",
+    District_ID: "",
+    Taluk_ID: "",
     courtType: "",
   });
   const [saving, setSaving] = useState(false);
@@ -81,9 +81,9 @@ function CourtMaster() {
     setForm({
       name: "",
       description: "",
-      stateCode: "",
-      districtCode: "",
-      talukCode: "",
+      State_ID: "",
+      District_ID: "",
+      Taluk_ID: "",
       courtType: "",
     });
     setError("");
@@ -95,9 +95,9 @@ function CourtMaster() {
     setForm({
       name: item.name || "",
       description: item.description || "",
-      stateCode: item.stateCode || "",
-      districtCode: item.districtCode || "",
-      talukCode: item.talukCode || "",
+      State_ID: item.State_ID || "",
+      District_ID: item.District_ID || "",
+      Taluk_ID: item.Taluk_ID || "",
       courtType: item.courtType || "",
     });
     setError("");
@@ -110,9 +110,9 @@ function CourtMaster() {
     setForm({
       name: "",
       description: "",
-      stateCode: "",
-      districtCode: "",
-      talukCode: "",
+      State_ID: "",
+      District_ID: "",
+      Taluk_ID: "",
       courtType: "",
     });
     setError("");
@@ -131,15 +131,15 @@ function CourtMaster() {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) return;
-    if (!form.stateCode) {
+    if (!form.State_ID) {
       setError("Please select a State.");
       return;
     }
-    if (!form.districtCode) {
+    if (!form.District_ID) {
       setError("Please select a District.");
       return;
     }
-    if (!form.talukCode) {
+    if (!form.Taluk_ID) {
       setError("Please select a Taluk.");
       return;
     }
@@ -163,9 +163,9 @@ function CourtMaster() {
       const payload = {
         name: form.name.trim(),
         description: form.description.trim(),
-        stateCode: parseInt(form.stateCode, 10),
-        districtCode: parseInt(form.districtCode, 10),
-        talukCode: parseInt(form.talukCode, 10),
+        State_ID: parseInt(form.State_ID, 10),
+        District_ID: parseInt(form.District_ID, 10),
+        Taluk_ID: parseInt(form.Taluk_ID, 10),
         courtType: form.courtType,
       };
 
@@ -216,15 +216,15 @@ function CourtMaster() {
 
         <form className="master-form" onSubmit={handleSave}>
           <CascadingLocationDropdown
-            stateCode={form.stateCode}
-            districtCode={form.districtCode}
-            talukCode={form.talukCode}
+            State_ID={form.State_ID}
+            District_ID={form.District_ID}
+            Taluk_ID={form.Taluk_ID}
             onChange={(loc) => {
               setForm((f) => ({
                 ...f,
-                stateCode: loc.stateCode,
-                districtCode: loc.districtCode,
-                talukCode: loc.talukCode,
+                State_ID: loc.State_ID,
+                District_ID: loc.District_ID,
+                Taluk_ID: loc.Taluk_ID,
               }));
             }}
             rowClassName="master-field"

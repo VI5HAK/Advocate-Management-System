@@ -62,14 +62,14 @@ export const gstSchema = z
   .toUpperCase()
   .regex(/^[A-Z0-9]{15}$/, "GST number must be exactly 15 alphanumeric characters.");
 
-export const stateCodeSchema = z.coerce
+export const State_IDSchema = z.coerce
   .number({ invalid_type_error: "State is required." })
   .refine((val) => !isNaN(val) && val > 0, { message: "State is required." });
 
-export const districtCodeSchema = z.coerce
+export const District_IDSchema = z.coerce
   .number({ invalid_type_error: "District is required." })
   .refine((val) => !isNaN(val) && val > 0, { message: "District is required." });
 
-export const talukCodeSchema = z.coerce
+export const Taluk_IDSchema = z.coerce
   .number({ invalid_type_error: "Taluk is required." })
   .refine((val) => !isNaN(val) && val > 0, { message: "Taluk is required." });

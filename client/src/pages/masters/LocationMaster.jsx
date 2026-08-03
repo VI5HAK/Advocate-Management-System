@@ -29,8 +29,8 @@ function LocationMaster() {
 
   const [form, setForm] = useState({
     type: "state", // state | district | taluk
-    stateCode: "",
-    districtCode: "",
+    State_ID: "",
+    District_ID: "",
     name: "",
   });
 
@@ -51,31 +51,31 @@ function LocationMaster() {
     }
   }, []);
 
-  const fetchDistricts = useCallback(async (stateCode) => {
-    setLoadingDistricts((prev) => ({ ...prev, [stateCode]: true }));
+  const fetchDistricts = useCallback(async (State_ID) => {
+    setLoadingDistricts((prev) => ({ ...prev, [State_ID]: true }));
     try {
       const { data } = await api.get("/locations/districts", {
-        params: { stateCode },
+        params: { State_ID },
       });
-      setDistrictsByState((prev) => ({ ...prev, [stateCode]: data }));
+      setDistrictsByState((prev) => ({ ...prev, [State_ID]: data }));
     } catch (err) {
       console.error("Failed to load districts:", err);
     } finally {
-      setLoadingDistricts((prev) => ({ ...prev, [stateCode]: false }));
+      setLoadingDistricts((prev) => ({ ...prev, [State_ID]: false }));
     }
   }, []);
 
-  const fetchTaluks = useCallback(async (districtCode) => {
-    setLoadingTaluks((prev) => ({ ...prev, [districtCode]: true }));
+  const fetchTaluks = useCallback(async (District_ID) => {
+    setLoadingTaluks((prev) => ({ ...prev, [District_ID]: true }));
     try {
       const { data } = await api.get("/locations/taluks", {
-        params: { districtCode },
+        params: { District_ID },
       });
-      setTaluksByDistrict((prev) => ({ ...prev, [districtCode]: data }));
+      setTaluksByDistrict((prev) => ({ ...prev, [District_ID]: data }));
     } catch (err) {
       console.error("Failed to load taluks:", err);
     } finally {
-      setLoadingTaluks((prev) => ({ ...prev, [districtCode]: false }));
+      setLoadingTaluks((prev) => ({ ...prev, [District_ID]: false }));
     }
   }, []);
 
@@ -87,7 +87,7 @@ function LocationMaster() {
 
   // Handle cascading districts in form
   useEffect(() => {
-    if (!form.stateCode) {
+    if (!form.State_ID) {
       setFormDistricts([]);
       return;
     }
@@ -96,7 +96,7 @@ function LocationMaster() {
       setLoadingFormDistricts(true);
       try {
         const { data } = await api.get("/locations/districts", {
-          params: { stateCode: form.stateCode },
+          params: { State_ID: form.State_ID },
         });
         if (active) setFormDistricts(data);
       } catch (err) {
@@ -109,27 +109,27 @@ function LocationMaster() {
     return () => {
       active = false;
     };
-  }, [form.stateCode]);
+  }, [form.State_ID]);
 
-  const toggleState = async (stateCode) => {
+  const toggleState = async (State_ID) => {
     setExpandedStates((prev) => ({
       ...prev,
-      [stateCode]: !prev[stateCode],
+      [State_ID]: !prev[State_ID],
     }));
 
-    if (!expandedStates[stateCode] && !districtsByState[stateCode]) {
-      await fetchDistricts(stateCode);
+    if (!expandedStates[State_ID] && !districtsByState[State_ID]) {
+      await fetchDistricts(State_ID);
     }
   };
 
-  const toggleDistrict = async (districtCode) => {
+  const toggleDistrict = async (District_ID) => {
     setExpandedDistricts((prev) => ({
       ...prev,
-      [districtCode]: !prev[districtCode],
+      [District_ID]: !prev[District_ID],
     }));
 
-    if (!expandedDistricts[districtCode] && !taluksByDistrict[districtCode]) {
-      await fetchTaluks(districtCode);
+    if (!expandedDistricts[District_ID] && !taluksByDistrict[District_ID]) {
+      await fetchTaluks(District_ID);
     }
   };
 
@@ -137,8 +137,8 @@ function LocationMaster() {
     setEditingItem(null);
     setForm({
       type: "state",
-      stateCode: "",
-      districtCode: "",
+      State_ID: "",
+      District_ID: "",
       name: "",
     });
     setError("");
@@ -148,14 +148,14 @@ function LocationMaster() {
   const handleEditState = (state) => {
     setEditingItem({
       type: "state",
-      code: state.stateCode,
-      name: state.stateName,
+      code: state.State_ID,
+      name: state.State_Name,
     });
     setForm({
       type: "state",
-      stateCode: "",
-      districtCode: "",
-      name: state.stateName,
+      State_ID: "",
+      District_ID: "",
+      name: state.State_Name,
     });
     setError("");
     setView("form");
@@ -164,33 +164,33 @@ function LocationMaster() {
   const handleEditDistrict = (district) => {
     setEditingItem({
       type: "district",
-      code: district.districtCode,
-      name: district.districtName,
-      parentStateCode: district.stateCode,
+      code: district.District_ID,
+      name: district.District_Name,
+      parentStateCode: district.State_ID,
     });
     setForm({
       type: "district",
-      stateCode: district.stateCode,
-      districtCode: "",
-      name: district.districtName,
+      State_ID: district.State_ID,
+      District_ID: "",
+      name: district.District_Name,
     });
     setError("");
     setView("form");
   };
 
-  const handleEditTaluk = (taluk, stateCode, districtCode) => {
+  const handleEditTaluk = (taluk, State_ID, District_ID) => {
     setEditingItem({
       type: "taluk",
-      code: taluk.talukCode,
-      name: taluk.talukName,
-      parentStateCode: stateCode,
-      parentDistrictCode: districtCode,
+      code: taluk.Taluk_ID,
+      name: taluk.Taluk_Name,
+      parentStateCode: State_ID,
+      parentDistrictCode: District_ID,
     });
     setForm({
       type: "taluk",
-      stateCode: stateCode,
-      districtCode: districtCode,
-      name: taluk.talukName,
+      State_ID: State_ID,
+      District_ID: District_ID,
+      name: taluk.Taluk_Name,
     });
     setError("");
     setView("form");
@@ -201,8 +201,8 @@ function LocationMaster() {
     setEditingItem(null);
     setForm({
       type: "state",
-      stateCode: "",
-      districtCode: "",
+      State_ID: "",
+      District_ID: "",
       name: "",
     });
     setError("");
@@ -221,60 +221,60 @@ function LocationMaster() {
       if (form.type === "state") {
         if (editingItem) {
           await api.put(`/locations/states/${editingItem.code}`, {
-            stateName: name,
+            State_Name: name,
           });
         } else {
-          await api.post("/locations/states", { stateName: name });
+          await api.post("/locations/states", { State_Name: name });
         }
         await fetchStates();
       } else if (form.type === "district") {
-        if (!form.stateCode) {
+        if (!form.State_ID) {
           setError("Please select a state.");
           setSaving(false);
           return;
         }
         if (editingItem) {
           await api.put(`/locations/districts/${editingItem.code}`, {
-            stateCode: Number(form.stateCode),
-            districtName: name,
+            State_ID: Number(form.State_ID),
+            District_Name: name,
           });
         } else {
           await api.post("/locations/districts", {
-            stateCode: Number(form.stateCode),
-            districtName: name,
+            State_ID: Number(form.State_ID),
+            District_Name: name,
           });
         }
         if (
           editingItem &&
-          Number(editingItem.parentStateCode) !== Number(form.stateCode)
+          Number(editingItem.parentStateCode) !== Number(form.State_ID)
         ) {
           await fetchDistricts(editingItem.parentStateCode);
         }
-        await fetchDistricts(form.stateCode);
+        await fetchDistricts(form.State_ID);
       } else if (form.type === "taluk") {
-        if (!form.districtCode) {
+        if (!form.District_ID) {
           setError("Please select a district.");
           setSaving(false);
           return;
         }
         if (editingItem) {
           await api.put(`/locations/taluks/${editingItem.code}`, {
-            districtCode: Number(form.districtCode),
-            talukName: name,
+            District_ID: Number(form.District_ID),
+            Taluk_Name: name,
           });
         } else {
           await api.post("/locations/taluks", {
-            districtCode: Number(form.districtCode),
-            talukName: name,
+            District_ID: Number(form.District_ID),
+            Taluk_Name: name,
           });
         }
         if (
           editingItem &&
-          Number(editingItem.parentDistrictCode) !== Number(form.districtCode)
+          Number(editingItem.parentDistrictCode) !== Number(form.District_ID)
         ) {
           await fetchTaluks(editingItem.parentDistrictCode);
         }
-        await fetchTaluks(form.districtCode);
+        await fetchTaluks(form.District_ID);
       }
 
       backToList();
@@ -348,8 +348,8 @@ function LocationMaster() {
                     setForm((f) => ({
                       ...f,
                       type: "state",
-                      stateCode: "",
-                      districtCode: "",
+                      State_ID: "",
+                      District_ID: "",
                     }))
                   }
                   disabled={!!editingItem}
@@ -366,8 +366,8 @@ function LocationMaster() {
                     setForm((f) => ({
                       ...f,
                       type: "district",
-                      stateCode: "",
-                      districtCode: "",
+                      State_ID: "",
+                      District_ID: "",
                     }))
                   }
                   disabled={!!editingItem}
@@ -384,8 +384,8 @@ function LocationMaster() {
                     setForm((f) => ({
                       ...f,
                       type: "taluk",
-                      stateCode: "",
-                      districtCode: "",
+                      State_ID: "",
+                      District_ID: "",
                     }))
                   }
                   disabled={!!editingItem}
@@ -400,12 +400,12 @@ function LocationMaster() {
               <label htmlFor="form-state">State</label>
               <select
                 id="form-state"
-                value={form.stateCode}
+                value={form.State_ID}
                 onChange={(e) =>
                   setForm((f) => ({
                     ...f,
-                    stateCode: e.target.value,
-                    districtCode: "",
+                    State_ID: e.target.value,
+                    District_ID: "",
                   }))
                 }
                 required
@@ -414,8 +414,8 @@ function LocationMaster() {
                   Select State
                 </option>
                 {states.map((s) => (
-                  <option key={s.stateCode} value={s.stateCode}>
-                    {s.stateName}
+                  <option key={s.State_ID} value={s.State_ID}>
+                    {s.State_Name}
                   </option>
                 ))}
               </select>
@@ -427,12 +427,12 @@ function LocationMaster() {
               <label htmlFor="form-district">District</label>
               <select
                 id="form-district"
-                value={form.districtCode}
+                value={form.District_ID}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, districtCode: e.target.value }))
+                  setForm((f) => ({ ...f, District_ID: e.target.value }))
                 }
                 required
-                disabled={!form.stateCode || loadingFormDistricts}
+                disabled={!form.State_ID || loadingFormDistricts}
               >
                 <option value="" disabled>
                   {loadingFormDistricts
@@ -440,8 +440,8 @@ function LocationMaster() {
                     : "Select District"}
                 </option>
                 {formDistricts.map((d) => (
-                  <option key={d.districtCode} value={d.districtCode}>
-                    {d.districtName}
+                  <option key={d.District_ID} value={d.District_ID}>
+                    {d.District_Name}
                   </option>
                 ))}
               </select>
@@ -502,18 +502,18 @@ function LocationMaster() {
           </div>
         ) : (
           states.map((state) => {
-            const isStateExpanded = !!expandedStates[state.stateCode];
-            const stateDistricts = districtsByState[state.stateCode] || [];
-            const isStateLoading = !!loadingDistricts[state.stateCode];
+            const isStateExpanded = !!expandedStates[state.State_ID];
+            const stateDistricts = districtsByState[state.State_ID] || [];
+            const isStateLoading = !!loadingDistricts[state.State_ID];
 
             return (
-              <div key={state.stateCode} className="tree-node">
+              <div key={state.State_ID} className="tree-node">
                 <div className="node-row state-row">
                   <div className="node-content">
                     <button
                       type="button"
                       className="expand-toggle"
-                      onClick={() => toggleState(state.stateCode)}
+                      onClick={() => toggleState(state.State_ID)}
                       aria-label={
                         isStateExpanded ? "Collapse state" : "Expand state"
                       }
@@ -542,7 +542,7 @@ function LocationMaster() {
                         </svg>
                       )}
                     </button>
-                    <span className="node-label">{state.stateName}</span>
+                    <span className="node-label">{state.State_Name}</span>
                   </div>
                   <div className="node-actions">
                     <EditButton onClick={() => handleEditState(state)} />
@@ -550,8 +550,8 @@ function LocationMaster() {
                       onClick={() =>
                         handleDeleteClick(
                           "state",
-                          state.stateCode,
-                          state.stateName,
+                          state.State_ID,
+                          state.State_Name,
                         )
                       }
                     />
@@ -571,15 +571,15 @@ function LocationMaster() {
                     ) : (
                       stateDistricts.map((district) => {
                         const isDistrictExpanded =
-                          !!expandedDistricts[district.districtCode];
+                          !!expandedDistricts[district.District_ID];
                         const districtTaluks =
-                          taluksByDistrict[district.districtCode] || [];
+                          taluksByDistrict[district.District_ID] || [];
                         const isDistrictLoading =
-                          !!loadingTaluks[district.districtCode];
+                          !!loadingTaluks[district.District_ID];
 
                         return (
                           <div
-                            key={district.districtCode}
+                            key={district.District_ID}
                             className="tree-node"
                           >
                             <div className="node-row district-row">
@@ -588,7 +588,7 @@ function LocationMaster() {
                                   type="button"
                                   className="expand-toggle"
                                   onClick={() =>
-                                    toggleDistrict(district.districtCode)
+                                    toggleDistrict(district.District_ID)
                                   }
                                   aria-label={
                                     isDistrictExpanded
@@ -621,7 +621,7 @@ function LocationMaster() {
                                   )}
                                 </button>
                                 <span className="node-label">
-                                  {district.districtName}
+                                  {district.District_Name}
                                 </span>
                               </div>
                               <div className="node-actions">
@@ -632,9 +632,9 @@ function LocationMaster() {
                                   onClick={() =>
                                     handleDeleteClick(
                                       "district",
-                                      district.districtCode,
-                                      district.districtName,
-                                      state.stateCode,
+                                      district.District_ID,
+                                      district.District_Name,
+                                      state.State_ID,
                                     )
                                   }
                                 />
@@ -654,13 +654,13 @@ function LocationMaster() {
                                 ) : (
                                   districtTaluks.map((taluk) => (
                                     <div
-                                      key={taluk.talukCode}
+                                      key={taluk.Taluk_ID}
                                       className="node-row taluk-row"
                                     >
                                       <div className="node-content">
                                         <div className="expand-toggle-spacer" />
                                         <span className="node-label">
-                                          {taluk.talukName}
+                                          {taluk.Taluk_Name}
                                         </span>
                                       </div>
                                       <div className="node-actions">
@@ -668,8 +668,8 @@ function LocationMaster() {
                                           onClick={() =>
                                             handleEditTaluk(
                                               taluk,
-                                              state.stateCode,
-                                              district.districtCode,
+                                              state.State_ID,
+                                              district.District_ID,
                                             )
                                           }
                                         />
@@ -677,10 +677,10 @@ function LocationMaster() {
                                           onClick={() =>
                                             handleDeleteClick(
                                               "taluk",
-                                              taluk.talukCode,
-                                              taluk.talukName,
-                                              state.stateCode,
-                                              district.districtCode,
+                                              taluk.Taluk_ID,
+                                              taluk.Taluk_Name,
+                                              state.State_ID,
+                                              district.District_ID,
                                             )
                                           }
                                         />

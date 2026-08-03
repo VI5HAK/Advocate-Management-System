@@ -36,22 +36,22 @@ export async function listMasters(req, res, next) {
           c.Court_Name AS name,
           c.Court_Description AS description,
           c.Court_Type AS courtType,
-          c.state_code AS stateCode,
-          s.STATE_NAME AS stateName,
-          c.district_code AS districtCode,
-          d.DISTRICT_NAME AS districtName,
-          c.taluk_code AS talukCode,
-          t.TALUK_NAME AS talukName,
+          c.State_ID AS State_ID,
+          s.State_Name AS State_Name,
+          c.District_ID AS District_ID,
+          d.District_Name AS District_Name,
+          c.Taluk_ID AS Taluk_ID,
+          t.Taluk_Name AS Taluk_Name,
           c.Court_Delete_Flag AS deleteFlag
         FROM Court_Master c
-        LEFT JOIN STATES s ON c.state_code = s.STATE_CODE
-        LEFT JOIN DISTRICTS d ON c.district_code = d.DISTRICT_CODE
-        LEFT JOIN TALUKS t ON c.taluk_code = t.TALUK_CODE
+        LEFT JOIN STATES s ON c.State_ID = s.State_ID
+        LEFT JOIN DISTRICTS d ON c.District_ID = d.District_ID
+        LEFT JOIN TALUKS t ON c.Taluk_ID = t.Taluk_ID
         WHERE (c.Court_Delete_Flag = FALSE OR c.Court_Delete_Flag = 0)
       `;
       const params = [];
       if (search) {
-        sql += ` AND (c.Court_Name LIKE ? OR COALESCE(c.Court_Description, '') LIKE ? OR COALESCE(s.STATE_NAME, '') LIKE ? OR COALESCE(d.DISTRICT_NAME, '') LIKE ? OR COALESCE(t.TALUK_NAME, '') LIKE ? OR COALESCE(c.Court_Type, '') LIKE ?)`;
+        sql += ` AND (c.Court_Name LIKE ? OR COALESCE(c.Court_Description, '') LIKE ? OR COALESCE(s.State_Name, '') LIKE ? OR COALESCE(d.District_Name, '') LIKE ? OR COALESCE(t.Taluk_Name, '') LIKE ? OR COALESCE(c.Court_Type, '') LIKE ?)`;
         params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
       }
       sql += ` ORDER BY c.Court_Name ASC`;
@@ -74,7 +74,7 @@ export async function createMaster(req, res, next) {
   try {
     const resource = req.params.resource;
     if (resource === "courts") {
-      const { name, description, stateCode, districtCode, talukCode, courtType } = req.body;
+      const { name, description, State_ID, District_ID, Taluk_ID, courtType } = req.body;
 
       if (!name?.trim()) {
         return res.status(400).json({ message: "Name is required." });
@@ -82,13 +82,13 @@ export async function createMaster(req, res, next) {
       if (!courtType) {
         return res.status(400).json({ message: "Court Type is required." });
       }
-      if (!stateCode) {
+      if (!State_ID) {
         return res.status(400).json({ message: "State is required." });
       }
-      if (!districtCode) {
+      if (!District_ID) {
         return res.status(400).json({ message: "District is required." });
       }
-      if (!talukCode) {
+      if (!Taluk_ID) {
         return res.status(400).json({ message: "Taluk is required." });
       }
 
@@ -105,9 +105,9 @@ export async function createMaster(req, res, next) {
       }
 
       const [result] = await pool.query(
-        `INSERT INTO Court_Master (Court_Name, Court_Description, Court_Type, state_code, district_code, taluk_code, Court_Delete_Flag)
+        `INSERT INTO Court_Master (Court_Name, Court_Description, Court_Type, State_ID, District_ID, Taluk_ID, Court_Delete_Flag)
          VALUES (?, ?, ?, ?, ?, ?, FALSE)`,
-        [name.trim().replace(/\s+/g, ' '), description?.trim() || null, courtType, stateCode, districtCode, talukCode],
+        [name.trim().replace(/\s+/g, ' '), description?.trim() || null, courtType, State_ID, District_ID, Taluk_ID],
       );
 
       const [rows] = await pool.query(
@@ -116,17 +116,17 @@ export async function createMaster(req, res, next) {
            c.Court_Name AS name,
            c.Court_Description AS description,
            c.Court_Type AS courtType,
-           c.state_code AS stateCode,
-           s.STATE_NAME AS stateName,
-           c.district_code AS districtCode,
-           d.DISTRICT_NAME AS districtName,
-           c.taluk_code AS talukCode,
-           t.TALUK_NAME AS talukName,
+           c.State_ID AS State_ID,
+           s.State_Name AS State_Name,
+           c.District_ID AS District_ID,
+           d.District_Name AS District_Name,
+           c.Taluk_ID AS Taluk_ID,
+           t.Taluk_Name AS Taluk_Name,
            c.Court_Delete_Flag AS deleteFlag
          FROM Court_Master c
-         LEFT JOIN STATES s ON c.state_code = s.STATE_CODE
-         LEFT JOIN DISTRICTS d ON c.district_code = d.DISTRICT_CODE
-         LEFT JOIN TALUKS t ON c.taluk_code = t.TALUK_CODE
+         LEFT JOIN STATES s ON c.State_ID = s.State_ID
+         LEFT JOIN DISTRICTS d ON c.District_ID = d.District_ID
+         LEFT JOIN TALUKS t ON c.Taluk_ID = t.Taluk_ID
          WHERE c.Court_ID = ?`,
         [result.insertId],
       );
@@ -187,7 +187,7 @@ export async function updateMaster(req, res, next) {
     const id = req.params.id;
 
     if (resource === "courts") {
-      const { name, description, stateCode, districtCode, talukCode, courtType } = req.body;
+      const { name, description, State_ID, District_ID, Taluk_ID, courtType } = req.body;
 
       if (!name?.trim()) {
         return res.status(400).json({ message: "Name is required." });
@@ -195,13 +195,13 @@ export async function updateMaster(req, res, next) {
       if (!courtType) {
         return res.status(400).json({ message: "Court Type is required." });
       }
-      if (!stateCode) {
+      if (!State_ID) {
         return res.status(400).json({ message: "State is required." });
       }
-      if (!districtCode) {
+      if (!District_ID) {
         return res.status(400).json({ message: "District is required." });
       }
-      if (!talukCode) {
+      if (!Taluk_ID) {
         return res.status(400).json({ message: "Taluk is required." });
       }
 
@@ -220,9 +220,9 @@ export async function updateMaster(req, res, next) {
 
       const [result] = await pool.query(
         `UPDATE Court_Master
-         SET Court_Name = ?, Court_Description = ?, Court_Type = ?, state_code = ?, district_code = ?, taluk_code = ?
+         SET Court_Name = ?, Court_Description = ?, Court_Type = ?, State_ID = ?, District_ID = ?, Taluk_ID = ?
          WHERE Court_ID = ? AND (Court_Delete_Flag = FALSE OR Court_Delete_Flag = 0)`,
-        [name.trim().replace(/\s+/g, ' '), description?.trim() || null, courtType, stateCode, districtCode, talukCode, id],
+        [name.trim().replace(/\s+/g, ' '), description?.trim() || null, courtType, State_ID, District_ID, Taluk_ID, id],
       );
 
       if (result.affectedRows === 0) {
@@ -235,17 +235,17 @@ export async function updateMaster(req, res, next) {
            c.Court_Name AS name,
            c.Court_Description AS description,
            c.Court_Type AS courtType,
-           c.state_code AS stateCode,
-           s.STATE_NAME AS stateName,
-           c.district_code AS districtCode,
-           d.DISTRICT_NAME AS districtName,
-           c.taluk_code AS talukCode,
-           t.TALUK_NAME AS talukName,
+           c.State_ID AS State_ID,
+           s.State_Name AS State_Name,
+           c.District_ID AS District_ID,
+           d.District_Name AS District_Name,
+           c.Taluk_ID AS Taluk_ID,
+           t.Taluk_Name AS Taluk_Name,
            c.Court_Delete_Flag AS deleteFlag
          FROM Court_Master c
-         LEFT JOIN STATES s ON c.state_code = s.STATE_CODE
-         LEFT JOIN DISTRICTS d ON c.district_code = d.DISTRICT_CODE
-         LEFT JOIN TALUKS t ON c.taluk_code = t.TALUK_CODE
+         LEFT JOIN STATES s ON c.State_ID = s.State_ID
+         LEFT JOIN DISTRICTS d ON c.District_ID = d.District_ID
+         LEFT JOIN TALUKS t ON c.Taluk_ID = t.Taluk_ID
          WHERE c.Court_ID = ?`,
          [id],
       );

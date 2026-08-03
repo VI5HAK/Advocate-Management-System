@@ -16,9 +16,9 @@ import {
 const EMPTY_FORM = {
   name: "",
   clientTypeId: "",
-  stateCode: "",
-  districtCode: "",
-  talukCode: "",
+  State_ID: "",
+  District_ID: "",
+  Taluk_ID: "",
   address: "",
   Pincode: "",
   contactNumber: "",
@@ -51,9 +51,9 @@ function ClientForm() {
     const payload = {
       name: formValues.name.trim(),
       clientTypeId: Number(formValues.clientTypeId),
-      stateCode: Number(formValues.stateCode),
-      districtCode: Number(formValues.districtCode),
-      talukCode: Number(formValues.talukCode),
+      State_ID: Number(formValues.State_ID),
+      District_ID: Number(formValues.District_ID),
+      Taluk_ID: Number(formValues.Taluk_ID),
       address: formValues.address.trim(),
       Pincode: formValues.Pincode,
       contactNumber: formValues.contactNumber,
@@ -127,9 +127,9 @@ function ClientForm() {
           setValues({
             name: data.name || "",
             clientTypeId: data.clientTypeId != null ? String(data.clientTypeId) : "",
-            stateCode: data.stateCode != null ? String(data.stateCode) : "",
-            districtCode: data.districtCode != null ? String(data.districtCode) : "",
-            talukCode: data.talukCode != null ? String(data.talukCode) : "",
+            State_ID: data.State_ID != null ? String(data.State_ID) : "",
+            District_ID: data.District_ID != null ? String(data.District_ID) : "",
+            Taluk_ID: data.Taluk_ID != null ? String(data.Taluk_ID) : "",
             address: data.address || "",
             Pincode: String(data.Pincode ?? ""),
             contactNumber: String(data.contactNumber ?? ""),
@@ -231,13 +231,13 @@ function ClientForm() {
         </div>
 
         <CascadingLocationDropdown
-          stateCode={values.stateCode}
-          districtCode={values.districtCode}
-          talukCode={values.talukCode}
+          State_ID={values.State_ID}
+          District_ID={values.District_ID}
+          Taluk_ID={values.Taluk_ID}
           onChange={(loc) => {
-            setValue("stateCode", loc.stateCode ? String(loc.stateCode) : "");
-            setValue("districtCode", loc.districtCode ? String(loc.districtCode) : "");
-            setValue("talukCode", loc.talukCode ? String(loc.talukCode) : "");
+            setValue("State_ID", loc.State_ID ? String(loc.State_ID) : "");
+            setValue("District_ID", loc.District_ID ? String(loc.District_ID) : "");
+            setValue("Taluk_ID", loc.Taluk_ID ? String(loc.Taluk_ID) : "");
           }}
           errors={errors}
           required

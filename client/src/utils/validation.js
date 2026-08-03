@@ -71,9 +71,9 @@ export const panField =
 
 // Common fields objects
 export const addressFields = {
-  stateCode: z.union([z.string(), z.number()]).refine((val) => val !== "" && val !== 0 && val !== null && val !== undefined, "State is required."),
-  districtCode: z.union([z.string(), z.number()]).refine((val) => val !== "" && val !== 0 && val !== null && val !== undefined, "District is required."),
-  talukCode: z.union([z.string(), z.number()]).refine((val) => val !== "" && val !== 0 && val !== null && val !== undefined, "Taluk is required."),
+  State_ID: z.union([z.string(), z.number()]).refine((val) => val !== "" && val !== 0 && val !== null && val !== undefined, "State is required."),
+  District_ID: z.union([z.string(), z.number()]).refine((val) => val !== "" && val !== 0 && val !== null && val !== undefined, "District is required."),
+  Taluk_ID: z.union([z.string(), z.number()]).refine((val) => val !== "" && val !== 0 && val !== null && val !== undefined, "Taluk is required."),
   address: requiredText("Address", 200),
   Pincode: pincodeField,
 };
