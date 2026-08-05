@@ -11,7 +11,7 @@ import {
 } from "../../components/ActionButtons";
 import "../../styles/MasterPage.css";
 import {
-  uppercaseAlphaAndSpaces,
+  uppercaseAlphaNumAndSpaces,
   descriptionValidation,
 } from "../../utils/validation";
 
@@ -263,7 +263,7 @@ function CourtMaster() {
               onChange={(e) =>
                 setForm((f) => ({
                   ...f,
-                  name: uppercaseAlphaAndSpaces(e.target.value, 149),
+                  name: uppercaseAlphaNumAndSpaces(e.target.value, 149),
                 }))
               }
               required
@@ -387,7 +387,6 @@ function CourtMaster() {
             <tr>
               <th>Court Name</th>
               <th>Court Type</th>
-              <th>District</th>
               <th>Description</th>
               <th className="master-actions-col">Actions</th>
             </tr>
@@ -395,13 +394,13 @@ function CourtMaster() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} className="master-empty">
+                <td colSpan={4} className="master-empty">
                   Loading…
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={7} className="master-empty">
+                <td colSpan={4} className="master-empty">
                   No courts found.
                 </td>
               </tr>
@@ -410,7 +409,6 @@ function CourtMaster() {
                 <tr key={item.id}>
                   <td>{item.name}</td>
                   <td>{item.courtType || "—"}</td>
-                  <td>{item.districtName || "—"}</td>
                   <td>{item.description || "—"}</td>
                   <td className="master-actions">
                     <EditButton onClick={() => openEditForm(item)} />
