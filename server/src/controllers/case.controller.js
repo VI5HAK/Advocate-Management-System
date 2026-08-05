@@ -102,6 +102,7 @@ async function parseCaseBody(body) {
 
   const alphaSpaceRegex = /^[A-Z ]+$/;
   const alphaNumRegex = /^[A-Z0-9]+$/;
+  const alphaNumSpaceRegex = /^[A-Z0-9 \/\\-]+$/;
 
   if (!petitionerAdvocate || !alphaSpaceRegex.test(petitionerAdvocate)) {
     return { error: "Petitioner advocate is required and must contain only uppercase alphabets and spaces." };
@@ -109,17 +110,17 @@ async function parseCaseBody(body) {
   if (!respondentAdvocate || !alphaSpaceRegex.test(respondentAdvocate)) {
     return { error: "Respondent advocate is required and must contain only uppercase alphabets and spaces." };
   }
-  if (!filingNum || !alphaSpaceRegex.test(filingNum)) {
-    return { error: "Filing number is required and must contain only uppercase alphabets and spaces." };
+  if (!filingNum || !alphaNumSpaceRegex.test(filingNum)) {
+    return { error: "Filing number is required and must contain only uppercase alphabets, numbers, spaces, and /, \\, - characters." };
   }
-  if (!regNum || !alphaSpaceRegex.test(regNum)) {
-    return { error: "Registration number is required and must contain only uppercase alphabets and spaces." };
+  if (!regNum || !alphaNumSpaceRegex.test(regNum)) {
+    return { error: "Registration number is required and must contain only uppercase alphabets, numbers, spaces, and /, \\, - characters." };
   }
   if (!cnrNum || !alphaNumRegex.test(cnrNum)) {
     return { error: "CNR number is required and must contain only uppercase alphabets and numbers." };
   }
-  if (!efilingNum || !alphaSpaceRegex.test(efilingNum)) {
-    return { error: "E-filing number is required and must contain only uppercase alphabets and spaces." };
+  if (!efilingNum || !alphaNumSpaceRegex.test(efilingNum)) {
+    return { error: "E-filing number is required and must contain only uppercase alphabets, numbers, spaces, and /, \\, - characters." };
   }
 
   return {

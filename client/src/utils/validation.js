@@ -27,6 +27,14 @@ export function uppercaseAlphaNum(value, maxLength) {
   return cleanVal.slice(0, maxLength);
 }
 
+export function uppercaseAlphaNumAndSpaces(value, maxLength) {
+  const cleanVal = String(value ?? "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9 \/\\-]/g, ""); // Allow only A-Z, 0-9, spaces, /, \, and -
+  if (!maxLength) return cleanVal;
+  return cleanVal.slice(0, maxLength);
+}
+
 // Reusable field-level validators
 export const requiredText = (field, max = 50) =>
   z.string()
@@ -46,6 +54,12 @@ export const alphaField = (field, max = 49) =>
   requiredText(field, max).regex(
     alphaSpaceRegex,
     `${field} must contain only alphabets and spaces (uppercase).`
+  );
+
+export const alphaNumSpaceField = (field, max = 49) =>
+  requiredText(field, max).regex(
+    /^[A-Z0-9 \/\\-]+$/,
+    `${field} must contain only alphabets, numbers, spaces, and /, \\, - characters (uppercase).`
   );
 
 export const phoneField = (field = "Contact number") =>
@@ -179,10 +193,10 @@ export const caseSchema = z.object({
     }, {
       message: "Filing date cannot be in the future.",
     }),
-  filingNum: alphaField("Filing number"),
-  regNum: alphaField("Registration number"),
-  cnrNum: requiredText("CNR number").regex(/^[A-Z0-9]+$/, "CNR number must contain only alphabets and numbers (uppercase)."),
-  efilingNum: alphaField("E-filing number"),
+  filingNum: alphaNumSpaceField("Filing number", 100),
+  regNum: alphaNumSpaceField("Registration number", 100),
+  cnrNum: alphaNumSpaceField("CNR number", 100),
+  efilingNum: alphaNumSpaceField("E-filing number", 100),
   courtName: z.string().min(1, "Court name is required."),
   advocateIds: z.array(z.number()).min(1, "At least one advocate must be selected."),
 });

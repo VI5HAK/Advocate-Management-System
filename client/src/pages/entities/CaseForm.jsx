@@ -11,6 +11,7 @@ import { CheckboxDropdown } from "../../components/CheckboxDropdown";
 import {
   caseSchema,
   uppercaseAlphaAndSpaces,
+  uppercaseAlphaNumAndSpaces,
 } from "../../utils/validation";
 
 const EMPTY_FORM = {
@@ -156,13 +157,13 @@ function CaseForm() {
           );
           if (matchedCourt) {
             setSelectedStateCode(
-              matchedCourt.stateCode != null ? String(matchedCourt.stateCode) : "",
+              matchedCourt.State_ID != null ? String(matchedCourt.State_ID) : "",
             );
             setSelectedDistrictCode(
-              matchedCourt.districtCode != null ? String(matchedCourt.districtCode) : "",
+              matchedCourt.District_ID != null ? String(matchedCourt.District_ID) : "",
             );
             setSelectedTalukCode(
-              matchedCourt.talukCode != null ? String(matchedCourt.talukCode) : "",
+              matchedCourt.Taluk_ID != null ? String(matchedCourt.Taluk_ID) : "",
             );
             setSelectedCourtType(matchedCourt.courtType || "");
           }
@@ -191,7 +192,7 @@ function CaseForm() {
     }
     const types = new Set();
     courts.forEach((c) => {
-      if (String(c.talukCode) === String(talukCode)) {
+      if (String(c.Taluk_ID) === String(talukCode)) {
         if (c.courtType) {
           types.add(c.courtType);
         }
@@ -201,14 +202,14 @@ function CaseForm() {
   };
 
   const handleLocationChange = (loc) => {
-    setSelectedStateCode(loc.stateCode ? String(loc.stateCode) : "");
-    setSelectedDistrictCode(loc.districtCode ? String(loc.districtCode) : "");
-    setSelectedTalukCode(loc.talukCode ? String(loc.talukCode) : "");
+    setSelectedStateCode(loc.State_ID ? String(loc.State_ID) : "");
+    setSelectedDistrictCode(loc.District_ID ? String(loc.District_ID) : "");
+    setSelectedTalukCode(loc.Taluk_ID ? String(loc.Taluk_ID) : "");
 
-    if (!loc.stateCode || !loc.districtCode || !loc.talukCode) {
+    if (!loc.State_ID || !loc.District_ID || !loc.Taluk_ID) {
       setSelectedCourtType("");
     } else {
-      const nextAvailableTypes = getAvailableTypesForTaluk(loc.talukCode);
+      const nextAvailableTypes = getAvailableTypesForTaluk(loc.Taluk_ID);
       if (selectedCourtType && !nextAvailableTypes.includes(selectedCourtType)) {
         setSelectedCourtType("");
       }
@@ -242,11 +243,11 @@ function CaseForm() {
 
   const filteredCourts = courts.filter((c) => {
     const matchState =
-      !selectedStateCode || String(c.stateCode) === String(selectedStateCode);
+      !selectedStateCode || String(c.State_ID) === String(selectedStateCode);
     const matchDistrict =
-      !selectedDistrictCode || String(c.districtCode) === String(selectedDistrictCode);
+      !selectedDistrictCode || String(c.District_ID) === String(selectedDistrictCode);
     const matchTaluk =
-      !selectedTalukCode || String(c.talukCode) === String(selectedTalukCode);
+      !selectedTalukCode || String(c.Taluk_ID) === String(selectedTalukCode);
     const matchType = !selectedCourtType || c.courtType === selectedCourtType;
     return matchState && matchDistrict && matchTaluk && matchType;
   });
@@ -399,7 +400,7 @@ function CaseForm() {
               id="case-filing-num"
               type="text"
               className={errors.filingNum ? "input-has-error" : ""}
-              {...register("filingNum", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
+              {...register("filingNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
               required
             />
             {errors.filingNum && <span className="field-error">{errors.filingNum}</span>}
@@ -411,7 +412,7 @@ function CaseForm() {
               id="case-reg-num"
               type="text"
               className={errors.regNum ? "input-has-error" : ""}
-              {...register("regNum", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
+              {...register("regNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
               required
             />
             {errors.regNum && <span className="field-error">{errors.regNum}</span>}
@@ -425,7 +426,7 @@ function CaseForm() {
               id="case-cnr-num"
               type="text"
               className={errors.cnrNum ? "input-has-error" : ""}
-              {...register("cnrNum", { transform: (v) => uppercaseAlphaNum(v, 100) })}
+              {...register("cnrNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
               required
             />
             {errors.cnrNum && <span className="field-error">{errors.cnrNum}</span>}
@@ -439,7 +440,7 @@ function CaseForm() {
               id="case-efiling-num"
               type="text"
               className={errors.efilingNum ? "input-has-error" : ""}
-              {...register("efilingNum", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
+              {...register("efilingNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
               required
             />
             {errors.efilingNum && <span className="field-error">{errors.efilingNum}</span>}
@@ -447,9 +448,9 @@ function CaseForm() {
         </div>
 
         <CascadingLocationDropdown
-          stateCode={selectedStateCode}
-          districtCode={selectedDistrictCode}
-          talukCode={selectedTalukCode}
+          State_ID={selectedStateCode}
+          District_ID={selectedDistrictCode}
+          Taluk_ID={selectedTalukCode}
           onChange={handleLocationChange}
           required
         />
