@@ -24,6 +24,11 @@ export async function createAdvocate(advocateData, plainPassword) {
     throw new BadRequestError("Invalid role selected.");
   }
 
+  const emailExists = await advocateRepository.getByEmail(advocateData.emailId);
+  if (emailExists) {
+    throw new BadRequestError("Email ID already exists.");
+  }
+
   let passwordHash = null;
   if (plainPassword) {
     passwordHash = await hashPassword(plainPassword);
@@ -37,6 +42,11 @@ export async function updateAdvocate(id, advocateData, plainPassword) {
   const roleExists = await roleRepository.exists(advocateData.roleId);
   if (!roleExists) {
     throw new BadRequestError("Invalid role selected.");
+  }
+
+  const emailExists = await advocateRepository.getByEmail(advocateData.emailId, id);
+  if (emailExists) {
+    throw new BadRequestError("Email ID already exists.");
   }
 
   let affectedRows;

@@ -82,6 +82,23 @@ export async function getById(id) {
   return rows[0] || null;
 }
 
+export async function getByEmail(email, excludeId = null) {
+  let sql = `
+    SELECT Advocate_ID AS id
+    FROM Advocate_Master
+    WHERE LOWER(Advocate_Email_ID) = LOWER(?)
+      AND ${activeCondition()}
+  `;
+  const params = [email];
+  if (excludeId) {
+    sql += " AND Advocate_ID != ?";
+    params.push(excludeId);
+  }
+  sql += " LIMIT 1";
+  const [rows] = await pool.query(sql, params);
+  return rows[0] || null;
+}
+
 export async function create(advocateData, passwordHash) {
   const [result] = await pool.query(
     `INSERT INTO Advocate_Master (
