@@ -260,12 +260,29 @@ function CourtMaster() {
               id="court-name"
               type="text"
               value={form.name}
-              onChange={(e) =>
+              onChange={(e) => {
+                const target = e.target;
+                const selectionStart = target ? target.selectionStart : null;
+                const selectionEnd = target ? target.selectionEnd : null;
+                const beforeLen = e.target.value ? e.target.value.length : 0;
+                const val = uppercaseAlphaNumAndSpaces(e.target.value, 149);
                 setForm((f) => ({
                   ...f,
-                  name: uppercaseAlphaNumAndSpaces(e.target.value, 149),
-                }))
-              }
+                  name: val,
+                }));
+
+                if (target && typeof target.setSelectionRange === "function" && selectionStart !== null) {
+                  const afterLen = val ? val.length : 0;
+                  const lengthDiff = beforeLen - afterLen;
+                  const adjustedStart = Math.max(0, selectionStart - lengthDiff);
+                  const adjustedEnd = Math.max(0, selectionEnd - lengthDiff);
+                  window.requestAnimationFrame(() => {
+                    if (document.activeElement === target) {
+                      target.setSelectionRange(adjustedStart, adjustedEnd);
+                    }
+                  });
+                }
+              }}
               required
             />
           </div>

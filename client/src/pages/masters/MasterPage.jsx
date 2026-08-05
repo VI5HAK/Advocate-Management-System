@@ -183,9 +183,26 @@ function MasterPage({ config }) {
               id={`${idPrefix}-name`}
               type="text"
               value={form.name}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, name: uppercaseAlphaAndSpaces(e.target.value, 99) }))
-              }
+              onChange={(e) => {
+                const target = e.target;
+                const selectionStart = target ? target.selectionStart : null;
+                const selectionEnd = target ? target.selectionEnd : null;
+                const beforeLen = e.target.value ? e.target.value.length : 0;
+                const val = uppercaseAlphaAndSpaces(e.target.value, 99);
+                setForm((f) => ({ ...f, name: val }));
+
+                if (target && typeof target.setSelectionRange === "function" && selectionStart !== null) {
+                  const afterLen = val ? val.length : 0;
+                  const lengthDiff = beforeLen - afterLen;
+                  const adjustedStart = Math.max(0, selectionStart - lengthDiff);
+                  const adjustedEnd = Math.max(0, selectionEnd - lengthDiff);
+                  window.requestAnimationFrame(() => {
+                    if (document.activeElement === target) {
+                      target.setSelectionRange(adjustedStart, adjustedEnd);
+                    }
+                  });
+                }
+              }}
               required
               autoFocus
             />

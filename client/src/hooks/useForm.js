@@ -87,10 +87,27 @@ export function useForm({ initialValues, schema, onSubmit }) {
       value: values[name] !== undefined && values[name] !== null ? String(values[name]) : "",
       onChange: (e) => {
         let val = e.target.value;
+        const target = e.target;
+        const selectionStart = target ? target.selectionStart : null;
+        const selectionEnd = target ? target.selectionEnd : null;
+        const beforeLen = val ? val.length : 0;
+
         if (options.transform) {
           val = options.transform(val);
         }
         setValue(name, val);
+
+        if (options.transform && target && typeof target.setSelectionRange === "function" && selectionStart !== null) {
+          const afterLen = val ? val.length : 0;
+          const lengthDiff = beforeLen - afterLen;
+          const adjustedStart = Math.max(0, selectionStart - lengthDiff);
+          const adjustedEnd = Math.max(0, selectionEnd - lengthDiff);
+          window.requestAnimationFrame(() => {
+            if (document.activeElement === target) {
+              target.setSelectionRange(adjustedStart, adjustedEnd);
+            }
+          });
+        }
       },
       onBlur: () => handleBlur(name),
     };
