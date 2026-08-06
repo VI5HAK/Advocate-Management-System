@@ -52,7 +52,14 @@ export async function listMasters(req, res, next) {
       const params = [];
       if (search) {
         sql += ` AND (c.Court_Name LIKE ? OR COALESCE(c.Court_Description, '') LIKE ? OR COALESCE(s.State_Name, '') LIKE ? OR COALESCE(d.District_Name, '') LIKE ? OR COALESCE(t.Taluk_Name, '') LIKE ? OR COALESCE(c.Court_Type, '') LIKE ?)`;
-        params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+        params.push(
+          `%${search}%`,
+          `%${search}%`,
+          `%${search}%`,
+          `%${search}%`,
+          `%${search}%`,
+          `%${search}%`,
+        );
       }
       sql += ` ORDER BY c.Court_Name ASC`;
       const [rows] = await pool.query(sql, params);
@@ -74,7 +81,8 @@ export async function createMaster(req, res, next) {
   try {
     const resource = req.params.resource;
     if (resource === "courts") {
-      const { name, description, State_ID, District_ID, Taluk_ID, courtType } = req.body;
+      const { name, description, State_ID, District_ID, Taluk_ID, courtType } =
+        req.body;
 
       if (!name?.trim()) {
         return res.status(400).json({ message: "Name is required." });
@@ -98,7 +106,7 @@ export async function createMaster(req, res, next) {
          WHERE REPLACE(LOWER(Court_Name), ' ', '') = REPLACE(LOWER(?), ' ', '')
            AND (Court_Delete_Flag = FALSE OR Court_Delete_Flag = 0)
          LIMIT 1`,
-        [name.trim()]
+        [name.trim()],
       );
       if (existing.length > 0) {
         return res.status(400).json({ message: "Name already exists." });
@@ -107,7 +115,14 @@ export async function createMaster(req, res, next) {
       const [result] = await pool.query(
         `INSERT INTO Court_Master (Court_Name, Court_Description, Court_Type, State_ID, District_ID, Taluk_ID, Court_Delete_Flag)
          VALUES (?, ?, ?, ?, ?, ?, FALSE)`,
-        [name.trim().replace(/\s+/g, ' '), description?.trim() || null, courtType, State_ID, District_ID, Taluk_ID],
+        [
+          name.trim().replace(/\s+/g, " "),
+          description?.trim() || null,
+          courtType,
+          State_ID,
+          District_ID,
+          Taluk_ID,
+        ],
       );
 
       const [rows] = await pool.query(
@@ -149,7 +164,7 @@ export async function createMaster(req, res, next) {
        WHERE REPLACE(LOWER(${nameColumn}), ' ', '') = REPLACE(LOWER(?), ' ', '')
          AND (${deleteFlagColumn} = FALSE OR ${deleteFlagColumn} = 0)
        LIMIT 1`,
-      [name.trim()]
+      [name.trim()],
     );
     if (existing.length > 0) {
       return res.status(400).json({ message: "Name already exists." });
@@ -158,7 +173,7 @@ export async function createMaster(req, res, next) {
     const [result] = await pool.query(
       `INSERT INTO ${table} (${nameColumn}, ${descriptionColumn}, ${deleteFlagColumn})
        VALUES (?, ?, FALSE)`,
-      [name.trim().replace(/\s+/g, ' '), description?.trim() || null],
+      [name.trim().replace(/\s+/g, " "), description?.trim() || null],
     );
 
     const [rows] = await pool.query(
@@ -187,7 +202,8 @@ export async function updateMaster(req, res, next) {
     const id = req.params.id;
 
     if (resource === "courts") {
-      const { name, description, State_ID, District_ID, Taluk_ID, courtType } = req.body;
+      const { name, description, State_ID, District_ID, Taluk_ID, courtType } =
+        req.body;
 
       if (!name?.trim()) {
         return res.status(400).json({ message: "Name is required." });
@@ -212,7 +228,7 @@ export async function updateMaster(req, res, next) {
            AND Court_ID != ?
            AND (Court_Delete_Flag = FALSE OR Court_Delete_Flag = 0)
          LIMIT 1`,
-        [name.trim(), id]
+        [name.trim(), id],
       );
       if (existing.length > 0) {
         return res.status(400).json({ message: "Name already exists." });
@@ -222,7 +238,15 @@ export async function updateMaster(req, res, next) {
         `UPDATE Court_Master
          SET Court_Name = ?, Court_Description = ?, Court_Type = ?, State_ID = ?, District_ID = ?, Taluk_ID = ?
          WHERE Court_ID = ? AND (Court_Delete_Flag = FALSE OR Court_Delete_Flag = 0)`,
-        [name.trim().replace(/\s+/g, ' '), description?.trim() || null, courtType, State_ID, District_ID, Taluk_ID, id],
+        [
+          name.trim().replace(/\s+/g, " "),
+          description?.trim() || null,
+          courtType,
+          State_ID,
+          District_ID,
+          Taluk_ID,
+          id,
+        ],
       );
 
       if (result.affectedRows === 0) {
@@ -247,7 +271,7 @@ export async function updateMaster(req, res, next) {
          LEFT JOIN DISTRICTS d ON c.District_ID = d.District_ID
          LEFT JOIN TALUKS t ON c.Taluk_ID = t.Taluk_ID
          WHERE c.Court_ID = ?`,
-         [id],
+        [id],
       );
 
       return res.json(rows[0]);
@@ -269,7 +293,7 @@ export async function updateMaster(req, res, next) {
          AND ${idColumn} != ?
          AND (${deleteFlagColumn} = FALSE OR ${deleteFlagColumn} = 0)
        LIMIT 1`,
-      [name.trim(), id]
+      [name.trim(), id],
     );
     if (existing.length > 0) {
       return res.status(400).json({ message: "Name already exists." });
@@ -279,7 +303,7 @@ export async function updateMaster(req, res, next) {
       `UPDATE ${table}
        SET ${nameColumn} = ?, ${descriptionColumn} = ?
        WHERE ${idColumn} = ? AND (${deleteFlagColumn} = FALSE OR ${deleteFlagColumn} = 0)`,
-      [name.trim().replace(/\s+/g, ' '), description?.trim() || null, id],
+      [name.trim().replace(/\s+/g, " "), description?.trim() || null, id],
     );
 
     if (result.affectedRows === 0) {
@@ -357,10 +381,37 @@ export async function deleteMaster(req, res, next) {
          WHERE ${ref.column} = ?
            AND (${ref.deleteFlagColumn} = FALSE OR ${ref.deleteFlagColumn} = 0)
          LIMIT 1`,
-        [id]
+        [id],
       );
       if (rows.length > 0) {
-        return res.status(400).json({ message: ref.message || "This master item is in use or assigned." });
+        return res
+          .status(400)
+          .json({
+            message: ref.message || "This master item is in use or assigned.",
+          });
+      }
+    }
+
+    if (req.params.resource === "judges") {
+      const [judgeRows] = await pool.query(
+        `SELECT Judge_Name FROM JUDGE_MASTER WHERE Judge_ID = ? AND (Judge_Delete_Flag = FALSE OR Judge_Delete_Flag = 0)`,
+        [id],
+      );
+      if (judgeRows.length > 0) {
+        const judgeName = judgeRows[0].Judge_Name;
+        const [hearingRows] = await pool.query(
+          `SELECT 1 FROM HEARING_MASTER
+           WHERE Judge_Name = ? AND (Hearing_Delete_Flag = FALSE OR Hearing_Delete_Flag = 0)
+           LIMIT 1`,
+          [judgeName],
+        );
+        if (hearingRows.length > 0) {
+          return res
+            .status(400)
+            .json({
+              message: "This judge is assigned to one or more Case hearings.",
+            });
+        }
       }
     }
 
