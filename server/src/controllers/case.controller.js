@@ -150,6 +150,7 @@ const CASE_SELECT = `
     cs.Case_ID AS id,
     cs.Case_Num AS caseNumber,
     cs.Case_Case_Type_ID AS caseTypeId,
+    ct.Case_Type_Name AS caseTypeName,
     cs.Case_Court_ID AS courtId,
     cs.Case_Advocate_ID AS advocateId,
     cs.Case_Petitioner AS petitioner,
@@ -172,6 +173,7 @@ const CASE_SELECT = `
       LIMIT 1
     ) AS clientId
   FROM Case_Master cs
+  LEFT JOIN Case_Type_Master ct ON cs.Case_Case_Type_ID = ct.Case_Type_ID
   WHERE cs.Case_ID = ?
     AND (cs.Case_Delete_Flag = FALSE OR cs.Case_Delete_Flag = 0)
 `;
@@ -181,6 +183,7 @@ const CASE_SELECT_LEGACY_FALLBACK = `
     cs.Case_ID AS id,
     cs.Case_Num AS caseNumber,
     cs.Case_Case_Type_ID AS caseTypeId,
+    ct.Case_Type_Name AS caseTypeName,
     cs.Case_Court_ID AS courtId,
     cs.Case_Advocate_ID AS advocateId,
     cs.Case_Petitioner AS petitioner,
@@ -202,6 +205,7 @@ const CASE_SELECT_LEGACY_FALLBACK = `
       LIMIT 1
     ) AS clientId
   FROM Case_Master cs
+  LEFT JOIN Case_Type_Master ct ON cs.Case_Case_Type_ID = ct.Case_Type_ID
   WHERE cs.Case_ID = ?
     AND (cs.Case_Delete_Flag = FALSE OR cs.Case_Delete_Flag = 0)
 `;

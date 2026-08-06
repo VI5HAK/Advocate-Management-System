@@ -1,10 +1,18 @@
 import pool from "../config/db.js";
 
 const ENTITY_COUNTS = [
-  { key: "advocates", table: "Advocate_Master", deleteFlag: "Advocate_Delete_Flag" },
+  {
+    key: "advocates",
+    table: "Advocate_Master",
+    deleteFlag: "Advocate_Delete_Flag",
+  },
   { key: "clients", table: "Client_Master", deleteFlag: "Client_Delete_Flag" },
   { key: "cases", table: "Case_Master", deleteFlag: "Case_Delete_Flag" },
-  { key: "appointments", table: "Appointment", deleteFlag: "Appoint_Delete_Flag" },
+  {
+    key: "appointments",
+    table: "Appointment",
+    deleteFlag: "Appoint_Delete_Flag",
+  },
 ];
 
 export async function getSummary(req, res, next) {

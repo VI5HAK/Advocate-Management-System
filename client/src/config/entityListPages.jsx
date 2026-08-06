@@ -115,4 +115,48 @@ export const ENTITY_LIST_CONFIG = {
       { key: "endTime", label: "End Time" },
     ],
   },
+  hearing: {
+    apiPath: "/hearings",
+    title: "Hearings",
+    createButtonLabel: "Create Hearing",
+    createPath: "/hearings/create",
+    updatePath: (id) => `/hearings/${id}/edit`,
+    searchPlaceholder: "Search by client, case, advocate, court, judge, or purpose",
+    emptyMessage: "No hearings found.",
+    loadErrorMessage: "Failed to load hearings.",
+    deleteErrorMessage: "Failed to delete hearing.",
+    deleteConfirm: (row) =>
+      `Do you want to delete the hearing for "${row.clientName}" on ${row.date || "—"}?`,
+    columns: [
+      { key: "clientName", label: "Client Name" },
+      { key: "caseNumber", label: "Case Number" },
+      {
+        key: "advocateName",
+        label: "Advocate Name",
+        render: (value) => {
+          if (!value) return "—";
+          const advocateNames = value.split(",").map((n) => n.trim()).filter(Boolean);
+          if (advocateNames.length > 1) {
+            return (
+              <div className="client-names-list">
+                {advocateNames.map((name, idx) => (
+                  <div key={idx} className="client-name-item">
+                    <span className="multiple-clients-dot" title="Multiple advocates"></span>
+                    <span>{name}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          }
+          return value;
+        },
+      },
+      { key: "courtName", label: "Court Name" },
+      { key: "judgeName", label: "Judge Name" },
+      { key: "date", label: "Date" },
+      { key: "startTime", label: "Start Time" },
+      { key: "endTime", label: "End Time" },
+      { key: "hearingPurpose", label: "Purpose" },
+    ],
+  },
 };
