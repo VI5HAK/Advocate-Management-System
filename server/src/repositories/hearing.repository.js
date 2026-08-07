@@ -14,12 +14,11 @@ export async function create(hearing, connection = pool) {
       Purpose_Text,
       Hearing_Date,
       Hearing_Time,
-      Hearing_End_Time,
       Court_Name,
       Judge_Name,
       Hearing_Created_By,
       Hearing_Created_Date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
     [
       hearing.clientId,
       hearing.caseId,
@@ -28,8 +27,7 @@ export async function create(hearing, connection = pool) {
       hearing.caseName,
       hearing.purposeText,
       hearing.hearingDate,
-      hearing.hearingTime,
-      hearing.hearingEndTime,
+      hearing.time,
       hearing.courtName,
       hearing.judgeName,
       hearing.createdBy
@@ -49,8 +47,7 @@ export async function getById(id) {
       Case_Name AS caseName,
       Purpose_Text AS purposeText,
       Hearing_Date AS hearingDate,
-      Hearing_Time AS hearingTime,
-      Hearing_End_Time AS hearingEndTime,
+      Hearing_Time AS time,
       Court_Name AS courtName,
       Judge_Name AS judgeName,
       Hearing_Created_By AS createdBy,
@@ -81,7 +78,7 @@ export async function checkActiveHearing(caseId, excludeHearingIds = []) {
     SELECT Hearing_ID FROM HEARING_MASTER
     WHERE Case_ID = ?
       AND ${activeCondition()}
-      AND (Hearing_Date > CURDATE() OR (Hearing_Date = CURDATE() AND Hearing_Time > CURTIME()))
+      AND TIMESTAMP(Hearing_Date, Hearing_Time) + INTERVAL 15 MINUTE > NOW()
   `;
   const params = [caseId];
   if (excludeHearingIds.length > 0) {
@@ -92,18 +89,16 @@ export async function checkActiveHearing(caseId, excludeHearingIds = []) {
   return rows.length > 0;
 }
 
-export async function checkAdvocateOverlaps(advocateIds, date, startTime, endTime, excludeHearingIds = []) {
+export async function checkAdvocateOverlaps(advocateIds, date, time, excludeHearingIds = []) {
   let query = `
     SELECT DISTINCT hm.Advocate_ID, am.Advocate_Name
     FROM HEARING_MASTER hm
     INNER JOIN Advocate_Master am ON hm.Advocate_ID = am.Advocate_ID
     WHERE hm.Advocate_ID IN (?)
-      AND DATE(hm.Hearing_Date) = DATE(?)
-      AND TIME(hm.Hearing_Time) < TIME(?)
-      AND TIME(hm.Hearing_End_Time) > TIME(?)
+      AND ABS(TIMESTAMPDIFF(MINUTE, TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time), TIMESTAMP(?, ?))) < 15
       AND ${activeCondition("hm.")}
   `;
-  const params = [advocateIds, date, endTime, startTime];
+  const params = [advocateIds, date, time];
   if (excludeHearingIds.length > 0) {
     query += ` AND hm.Hearing_ID NOT IN (?)`;
     params.push(excludeHearingIds);
@@ -136,8 +131,7 @@ export async function listHearings(search, advocateId = null) {
       hm.Case_Name AS caseNumber,
       hm.Purpose_Text AS purposeText,
       DATE_FORMAT(hm.Hearing_Date, '%Y-%m-%d') AS date,
-      TIME_FORMAT(hm.Hearing_Time, '%H:%i') AS startTime,
-      TIME_FORMAT(hm.Hearing_End_Time, '%H:%i') AS endTime,
+      TIME_FORMAT(hm.Hearing_Time, '%H:%i') AS time,
       hm.Court_Name AS courtName,
       hm.Judge_Name AS judgeName,
       (
@@ -152,7 +146,7 @@ export async function listHearings(search, advocateId = null) {
       ) AS advocateName
     FROM HEARING_MASTER hm
     WHERE ${activeCondition("hm.")}
-      AND (hm.Hearing_Date > CURDATE() OR (hm.Hearing_Date = CURDATE() AND hm.Hearing_Time > CURTIME()))
+      AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE > NOW()
   `;
   const params = [];
   
@@ -181,7 +175,7 @@ export async function listHearings(search, advocateId = null) {
   }
 
   query += `
-    GROUP BY hm.Client_ID, hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time, hm.Client_Name, hm.Case_Name, hm.Purpose_Text, hm.Hearing_End_Time, hm.Court_Name, hm.Judge_Name
+    GROUP BY hm.Client_ID, hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time, hm.Client_Name, hm.Case_Name, hm.Purpose_Text, hm.Court_Name, hm.Judge_Name
     ORDER BY hm.Hearing_Date ASC, hm.Hearing_Time ASC
   `;
 
@@ -199,8 +193,7 @@ export async function listCompletedHearings(search, advocateId = null) {
       hm.Case_Name AS caseNumber,
       hm.Purpose_Text AS purposeText,
       DATE_FORMAT(hm.Hearing_Date, '%Y-%m-%d') AS date,
-      TIME_FORMAT(hm.Hearing_Time, '%H:%i') AS startTime,
-      TIME_FORMAT(hm.Hearing_End_Time, '%H:%i') AS endTime,
+      TIME_FORMAT(hm.Hearing_Time, '%H:%i') AS time,
       hm.Court_Name AS courtName,
       hm.Judge_Name AS judgeName,
       (
@@ -215,7 +208,7 @@ export async function listCompletedHearings(search, advocateId = null) {
       ) AS advocateName
     FROM HEARING_MASTER hm
     WHERE ${activeCondition("hm.")}
-      AND (hm.Hearing_Date < CURDATE() OR (hm.Hearing_Date = CURDATE() AND hm.Hearing_Time <= CURTIME()))
+      AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE <= NOW()
   `;
   const params = [];
 
@@ -244,7 +237,7 @@ export async function listCompletedHearings(search, advocateId = null) {
   }
 
   query += `
-    GROUP BY hm.Client_ID, hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time, hm.Client_Name, hm.Case_Name, hm.Purpose_Text, hm.Hearing_End_Time, hm.Court_Name, hm.Judge_Name
+    GROUP BY hm.Client_ID, hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time, hm.Client_Name, hm.Case_Name, hm.Purpose_Text, hm.Court_Name, hm.Judge_Name
     ORDER BY hm.Hearing_Date DESC, hm.Hearing_Time DESC
   `;
 

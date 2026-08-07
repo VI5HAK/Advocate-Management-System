@@ -23,8 +23,7 @@ export async function createHearing(body, user) {
     caseId,
     advocateIds,
     date,
-    startTime,
-    endTime,
+    time,
     courtId,
     judgeId,
     hearingPurpose
@@ -39,20 +38,17 @@ export async function createHearing(body, user) {
   if (!advocateIds || !Array.isArray(advocateIds) || advocateIds.length === 0) {
     throw new BadRequestError("At least one advocate must be selected.");
   }
-  if (!date || !startTime || !endTime) {
-    throw new BadRequestError("Date, start time, and end time are required.");
-  }
-  if (startTime >= endTime) {
-    throw new BadRequestError("End time must be after start time.");
+  if (!date || !time) {
+    throw new BadRequestError("Date and time are required.");
   }
   if (!courtId || !judgeId) {
     throw new BadRequestError("Court and Judge are required.");
   }
 
   // Future check: date & time must be in the future
-  const selectedDateTime = new Date(`${date}T${startTime}:00`);
+  const selectedDateTime = new Date(`${date}T${time}:00`);
   if (isNaN(selectedDateTime.getTime())) {
-    throw new BadRequestError("Invalid date or start time format.");
+    throw new BadRequestError("Invalid date or time format.");
   }
   if (selectedDateTime.getTime() <= Date.now()) {
     throw new BadRequestError("Hearing can only be created after the current date and time.");
@@ -65,7 +61,7 @@ export async function createHearing(body, user) {
   }
 
   // Check advocate overlaps
-  const overlapping = await hearingRepository.checkAdvocateOverlaps(advocateIds, date, startTime, endTime);
+  const overlapping = await hearingRepository.checkAdvocateOverlaps(advocateIds, date, time);
   if (overlapping.length > 0) {
     const names = overlapping.map(o => o.Advocate_Name).join(", ");
     throw new BadRequestError(`Advocate(s) ${names} has/have an overlapping hearing scheduled during this time.`);
@@ -107,8 +103,7 @@ export async function createHearing(body, user) {
           caseName,
           purposeText: hearingPurpose,
           hearingDate: date,
-          hearingTime: startTime,
-          hearingEndTime: endTime,
+          time,
           courtName,
           judgeName,
           createdBy
@@ -133,8 +128,7 @@ export async function updateHearing(id, body, user) {
     caseId,
     advocateIds,
     date,
-    startTime,
-    endTime,
+    time,
     courtId,
     judgeId,
     hearingPurpose
@@ -149,11 +143,8 @@ export async function updateHearing(id, body, user) {
   if (!advocateIds || !Array.isArray(advocateIds) || advocateIds.length === 0) {
     throw new BadRequestError("At least one advocate must be selected.");
   }
-  if (!date || !startTime || !endTime) {
-    throw new BadRequestError("Date, start time, and end time are required.");
-  }
-  if (startTime >= endTime) {
-    throw new BadRequestError("End time must be after start time.");
+  if (!date || !time) {
+    throw new BadRequestError("Date and time are required.");
   }
   if (!courtId || !judgeId) {
     throw new BadRequestError("Court and Judge are required.");
@@ -164,13 +155,13 @@ export async function updateHearing(id, body, user) {
   if (!hearing) throw new NotFoundError("Hearing not found.");
 
   // Get all related row IDs (for all clients/advocates on this logical hearing)
-  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.clientId, hearing.caseId, hearing.hearingDate, hearing.hearingTime);
+  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.clientId, hearing.caseId, hearing.hearingDate, hearing.time);
   const existingIds = relatedRows.map(r => r.id);
 
   // Future check: date & time must be in the future
-  const selectedDateTime = new Date(`${date}T${startTime}:00`);
+  const selectedDateTime = new Date(`${date}T${time}:00`);
   if (isNaN(selectedDateTime.getTime())) {
-    throw new BadRequestError("Invalid date or start time format.");
+    throw new BadRequestError("Invalid date or time format.");
   }
   if (selectedDateTime.getTime() <= Date.now()) {
     throw new BadRequestError("Hearing can only be created after the current date and time.");
@@ -183,7 +174,7 @@ export async function updateHearing(id, body, user) {
   }
 
   // Check advocate overlaps (excluding current hearing rows)
-  const overlapping = await hearingRepository.checkAdvocateOverlaps(advocateIds, date, startTime, endTime, existingIds);
+  const overlapping = await hearingRepository.checkAdvocateOverlaps(advocateIds, date, time, existingIds);
   if (overlapping.length > 0) {
     const names = overlapping.map(o => o.Advocate_Name).join(", ");
     throw new BadRequestError(`Advocate(s) ${names} has/have an overlapping hearing scheduled during this time.`);
@@ -226,8 +217,7 @@ export async function updateHearing(id, body, user) {
           caseName,
           purposeText: hearingPurpose,
           hearingDate: date,
-          hearingTime: startTime,
-          hearingEndTime: endTime,
+          time,
           courtName,
           judgeName,
           createdBy: hearing.createdBy
@@ -264,7 +254,7 @@ export async function deleteHearing(id) {
   if (!hearing) throw new NotFoundError("Hearing not found.");
 
   // Get all related rows (same client, case, date, start time)
-  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.clientId, hearing.caseId, hearing.hearingDate, hearing.hearingTime);
+  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.clientId, hearing.caseId, hearing.hearingDate, hearing.time);
   const existingIds = relatedRows.map(r => r.id);
 
   await hearingRepository.softDeleteHearingRows(existingIds);
@@ -286,7 +276,7 @@ export async function getHearing(id) {
   if (!hearing) throw new NotFoundError("Hearing not found.");
 
   // Fetch all advocate IDs assigned to this logical hearing
-  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.clientId, hearing.caseId, hearing.hearingDate, hearing.hearingTime);
+  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.clientId, hearing.caseId, hearing.hearingDate, hearing.time);
   const advocateIds = relatedRows.map(r => r.advocateId);
   const clientIds = Array.from(new Set(relatedRows.map(r => r.clientId)));
 
@@ -300,8 +290,7 @@ export async function getHearing(id) {
     clientIds,
     caseId: hearing.caseId,
     date: hearing.hearingDate,
-    startTime: hearing.hearingTime,
-    endTime: hearing.hearingEndTime,
+    time: hearing.time,
     hearingPurpose: hearing.purposeText,
     courtId: courtRows[0]?.Court_ID || "",
     judgeId: judgeRows[0]?.Judge_ID || "",

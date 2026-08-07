@@ -11,8 +11,7 @@ import "../../styles/AdvocateForm.css";
 const EMPTY_FORM = {
   caseId: "",
   date: "",
-  startTime: "",
-  endTime: "",
+  time: "",
   courtId: "",
   judgeId: "",
   hearingPurpose: "",
@@ -117,8 +116,7 @@ function HearingForm() {
           setForm({
             caseId: data.caseId != null ? String(data.caseId) : "",
             date: data.date ? data.date.slice(0, 10) : "",
-            startTime: data.startTime ? data.startTime.slice(0, 5) : "",
-            endTime: data.endTime ? data.endTime.slice(0, 5) : "",
+            time: data.time ? data.time.slice(0, 5) : "",
             courtId: data.courtId != null ? String(data.courtId) : "",
             judgeId: data.judgeId != null ? String(data.judgeId) : "",
             hearingPurpose: toInputValue(data.hearingPurpose),
@@ -149,30 +147,10 @@ function HearingForm() {
     setForm((f) => ({ ...f, [field]: e.target.value }));
   };
 
-  const handleStartTimeChange = (e) => {
+  const handleTimeChange = (e) => {
     const val = e.target.value;
-    setForm((f) => {
-      const updated = { ...f, startTime: val };
-      if (getAmPm(val) === "PM" && getAmPm(f.endTime) === "AM") {
-        updated.endTime = "";
-      }
-      return updated;
-    });
-    setError((prev) =>
-      prev.includes("PM") && prev.includes("AM") ? "" : prev,
-    );
-  };
-
-  const handleEndTimeChange = (e) => {
-    const val = e.target.value;
-    if (getAmPm(form.startTime) === "PM" && getAmPm(val) === "AM") {
-      setError("If the start time is PM, then the end time can only be PM.");
-      return;
-    }
-    setError((prev) =>
-      prev.includes("PM") && prev.includes("AM") ? "" : prev,
-    );
-    setForm((f) => ({ ...f, endTime: val }));
+    setForm((f) => ({ ...f, time: val }));
+    setError("");
   };
 
   const handleClientChange = async (newClientIds) => {
@@ -226,26 +204,14 @@ function HearingForm() {
       return setError("Hearing date must be today or a future date.");
     }
 
-    if (!form.startTime) return setError("Start time is required.");
-    if (!form.endTime) return setError("End time is required.");
-
-    if (getAmPm(form.startTime) === "PM" && getAmPm(form.endTime) === "AM") {
-      return setError(
-        "If the start time is PM, then the end time can only be PM.",
-      );
-    }
-
-    if (form.startTime >= form.endTime) {
-      return setError("End time must be after start time.");
-    }
+    if (!form.time) return setError("Hearing time is required.");
 
     const payload = {
       clientIds: selectedClientIds,
       caseId: Number(form.caseId),
       advocateIds: selectedAdvocateIds,
       date: form.date,
-      startTime: form.startTime,
-      endTime: form.endTime,
+      time: form.time,
       courtId: Number(form.courtId),
       judgeId: Number(form.judgeId),
       hearingPurpose: form.hearingPurpose,
@@ -376,34 +342,20 @@ function HearingForm() {
           />
         </div>
 
-        <div className="advocate-form-row advocate-form-row-pair">
-          <label htmlFor="hearing-start-time">Start Time</label>
+        <div className="advocate-form-row">
+          <label htmlFor="hearing-time">Hearing Time</label>
           <div className="time-input-wrapper">
             <input
-              id="hearing-start-time"
+              id="hearing-time"
               type="time"
-              value={form.startTime}
-              onChange={handleStartTimeChange}
+              value={form.time}
+              onChange={handleTimeChange}
               required
             />
-            {form.startTime && (
+            {form.time && (
               <span className="time-am-pm-label">
-                {getAmPm(form.startTime)}
+                {getAmPm(form.time)}
               </span>
-            )}
-          </div>
-          <label htmlFor="hearing-end-time">End Time</label>
-          <div className="time-input-wrapper">
-            <input
-              id="hearing-end-time"
-              type="time"
-              value={form.endTime}
-              onChange={handleEndTimeChange}
-              required
-              min={getAmPm(form.startTime) === "PM" ? "12:00" : undefined}
-            />
-            {form.endTime && (
-              <span className="time-am-pm-label">{getAmPm(form.endTime)}</span>
             )}
           </div>
         </div>

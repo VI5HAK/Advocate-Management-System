@@ -273,7 +273,7 @@ function HearingList() {
                       </td>
                       <td>{formatDateDMY(h.date)}</td>
                       <td>
-                        {h.startTime} - {h.endTime}
+                        {h.time}
                       </td>
                       {!isAdvocate && (
                         <td className="master-actions">
@@ -354,6 +354,46 @@ function HearingList() {
                                   />
                                 </div>
                                 <div className="subform-field">
+                                  <label>Petitioner</label>
+                                  <input
+                                    type="text"
+                                    value={caseDetails.petitioner || "—"}
+                                    readOnly
+                                    disabled
+                                  />
+                                </div>
+                                <div className="subform-field">
+                                  <label>Pet Advocate</label>
+                                  <input
+                                    type="text"
+                                    value={
+                                      caseDetails.petitionerAdvocate || "—"
+                                    }
+                                    readOnly
+                                    disabled
+                                  />
+                                </div>
+                                <div className="subform-field">
+                                  <label>Respondent</label>
+                                  <input
+                                    type="text"
+                                    value={caseDetails.respondent || "—"}
+                                    readOnly
+                                    disabled
+                                  />
+                                </div>
+                                <div className="subform-field">
+                                  <label>Res Advocate</label>
+                                  <input
+                                    type="text"
+                                    value={
+                                      caseDetails.respondentAdvocate || "—"
+                                    }
+                                    readOnly
+                                    disabled
+                                  />
+                                </div>
+                                <div className="subform-field">
                                   <label>Filing Number</label>
                                   <input
                                     type="text"
@@ -383,10 +423,12 @@ function HearingList() {
                                   />
                                 </div>
                                 <div className="subform-field">
-                                  <label>CNR Number</label>
+                                  <label>Registration Date</label>
                                   <input
                                     type="text"
-                                    value={caseDetails.cnrNum || "—"}
+                                    value={formatDateDMY(
+                                      caseDetails.regDate,
+                                    )}
                                     readOnly
                                     disabled
                                   />
@@ -401,41 +443,21 @@ function HearingList() {
                                   />
                                 </div>
                                 <div className="subform-field">
-                                  <label>Petitioner</label>
+                                  <label>E-Filing Date</label>
                                   <input
                                     type="text"
-                                    value={caseDetails.petitioner || "—"}
+                                    value={formatDateDMY(
+                                      caseDetails.efilingDate,
+                                    )}
                                     readOnly
                                     disabled
                                   />
                                 </div>
                                 <div className="subform-field">
-                                  <label>Respondent</label>
+                                  <label>CNR Number</label>
                                   <input
                                     type="text"
-                                    value={caseDetails.respondent || "—"}
-                                    readOnly
-                                    disabled
-                                  />
-                                </div>
-                                <div className="subform-field">
-                                  <label>Pet Advocate</label>
-                                  <input
-                                    type="text"
-                                    value={
-                                      caseDetails.petitionerAdvocate || "—"
-                                    }
-                                    readOnly
-                                    disabled
-                                  />
-                                </div>
-                                <div className="subform-field">
-                                  <label>Res Advocate</label>
-                                  <input
-                                    type="text"
-                                    value={
-                                      caseDetails.respondentAdvocate || "—"
-                                    }
+                                    value={caseDetails.cnrNum || "—"}
                                     readOnly
                                     disabled
                                   />

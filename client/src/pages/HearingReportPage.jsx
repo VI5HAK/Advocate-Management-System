@@ -189,7 +189,7 @@ function HearingReportPage() {
                           {group.hearings.map((h) => (
                             <tr key={h.id}>
                               <td className="appt-date">{formatDateDMY(h.date)}</td>
-                              <td className="appt-time">{h.startTime} - {h.endTime}</td>
+                              <td className="appt-time">{h.time}</td>
                               <td>{h.courtName || "—"}</td>
                               <td>{h.judgeName || "—"}</td>
                               <td>{h.purposeText || "—"}</td>

@@ -25,8 +25,10 @@ const EMPTY_FORM = {
   respondentAdvocate: "",
   filingDate: "",
   filingNum: "",
+  regDate: "",
   regNum: "",
   cnrNum: "",
+  efilingDate: "",
   efilingNum: "",
   courtName: "",
   advocateIds: [],
@@ -61,8 +63,10 @@ function CaseForm() {
       respondentAdvocate: formValues.respondentAdvocate,
       filingDate: formValues.filingDate,
       filingNum: formValues.filingNum,
+      regDate: formValues.regDate,
       regNum: formValues.regNum,
       cnrNum: formValues.cnrNum,
+      efilingDate: formValues.efilingDate,
       efilingNum: formValues.efilingNum,
       courtName: formValues.courtName,
       advocateIds: formValues.advocateIds,
@@ -144,8 +148,10 @@ function CaseForm() {
             respondentAdvocate: data.respondentAdvocate || "",
             filingDate: data.filingDate ? data.filingDate.slice(0, 10) : "",
             filingNum: data.filingNum || "",
+            regDate: data.regDate ? data.regDate.slice(0, 10) : "",
             regNum: data.regNum || "",
             cnrNum: data.cnrNum || "",
+            efilingDate: data.efilingDate ? data.efilingDate.slice(0, 10) : "",
             efilingNum: data.efilingNum || "",
             courtName: data.courtName || "",
             advocateIds: data.advocateIds || [],
@@ -327,126 +333,6 @@ function CaseForm() {
           </div>
         </div>
 
-        <div className="advocate-form-row advocate-form-row-pair">
-          <label htmlFor="case-petitioner">Petitioner</label>
-          <div className="form-input-wrapper">
-            <input
-              id="case-petitioner"
-              type="text"
-              className={errors.petitioner ? "input-has-error" : ""}
-              {...register("petitioner", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
-              required
-            />
-            {errors.petitioner && <span className="field-error">{errors.petitioner}</span>}
-          </div>
-
-          <label htmlFor="case-petitioner-advocate">Petitioner Advocate</label>
-          <div className="form-input-wrapper">
-            <input
-              id="case-petitioner-advocate"
-              type="text"
-              className={errors.petitionerAdvocate ? "input-has-error" : ""}
-              {...register("petitionerAdvocate", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
-              required
-            />
-            {errors.petitionerAdvocate && <span className="field-error">{errors.petitionerAdvocate}</span>}
-          </div>
-        </div>
-
-        <div className="advocate-form-row advocate-form-row-pair">
-          <label htmlFor="case-respondent">Respondent</label>
-          <div className="form-input-wrapper">
-            <input
-              id="case-respondent"
-              type="text"
-              className={errors.respondent ? "input-has-error" : ""}
-              {...register("respondent", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
-              required
-            />
-            {errors.respondent && <span className="field-error">{errors.respondent}</span>}
-          </div>
-
-          <label htmlFor="case-respondent-advocate">Respondent Advocate</label>
-          <div className="form-input-wrapper">
-            <input
-              id="case-respondent-advocate"
-              type="text"
-              className={errors.respondentAdvocate ? "input-has-error" : ""}
-              {...register("respondentAdvocate", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
-              required
-            />
-            {errors.respondentAdvocate && <span className="field-error">{errors.respondentAdvocate}</span>}
-          </div>
-        </div>
-
-        <div className="advocate-form-row">
-          <label htmlFor="case-filing-date">Filing Date</label>
-          <div className="form-input-wrapper">
-            <CustomDatePicker
-              id="case-filing-date"
-              value={values.filingDate}
-              onChange={(e) => setValue("filingDate", e.target.value)}
-              max={today}
-              required
-            />
-            {errors.filingDate && <span className="field-error">{errors.filingDate}</span>}
-          </div>
-        </div>
-
-        <div className="advocate-form-row advocate-form-row-pair">
-          <label htmlFor="case-filing-num">Filing Number</label>
-          <div className="form-input-wrapper">
-            <input
-              id="case-filing-num"
-              type="text"
-              className={errors.filingNum ? "input-has-error" : ""}
-              {...register("filingNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
-              required
-            />
-            {errors.filingNum && <span className="field-error">{errors.filingNum}</span>}
-          </div>
-
-          <label htmlFor="case-reg-num">Registration Number</label>
-          <div className="form-input-wrapper">
-            <input
-              id="case-reg-num"
-              type="text"
-              className={errors.regNum ? "input-has-error" : ""}
-              {...register("regNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
-              required
-            />
-            {errors.regNum && <span className="field-error">{errors.regNum}</span>}
-          </div>
-        </div>
-
-        <div className="advocate-form-row">
-          <label htmlFor="case-cnr-num">CNR Number</label>
-          <div className="form-input-wrapper">
-            <input
-              id="case-cnr-num"
-              type="text"
-              className={errors.cnrNum ? "input-has-error" : ""}
-              {...register("cnrNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
-              required
-            />
-            {errors.cnrNum && <span className="field-error">{errors.cnrNum}</span>}
-          </div>
-        </div>
-
-        <div className="advocate-form-row">
-          <label htmlFor="case-efiling-num">E-Filing Number</label>
-          <div className="form-input-wrapper">
-            <input
-              id="case-efiling-num"
-              type="text"
-              className={errors.efilingNum ? "input-has-error" : ""}
-              {...register("efilingNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
-              required
-            />
-            {errors.efilingNum && <span className="field-error">{errors.efilingNum}</span>}
-          </div>
-        </div>
-
         <CascadingLocationDropdown
           State_ID={selectedStateCode}
           District_ID={selectedDistrictCode}
@@ -511,6 +397,148 @@ function CaseForm() {
               disabled={!selectedStateCode || !selectedDistrictCode || !selectedTalukCode || !selectedCourtType || !values.courtId}
             />
             {errors.advocateIds && <span className="field-error">{errors.advocateIds}</span>}
+          </div>
+        </div>
+
+        <div className="advocate-form-row advocate-form-row-pair">
+          <label htmlFor="case-petitioner">Petitioner</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-petitioner"
+              type="text"
+              className={errors.petitioner ? "input-has-error" : ""}
+              {...register("petitioner", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
+              required
+            />
+            {errors.petitioner && <span className="field-error">{errors.petitioner}</span>}
+          </div>
+
+          <label htmlFor="case-petitioner-advocate">Petitioner Advocate</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-petitioner-advocate"
+              type="text"
+              className={errors.petitionerAdvocate ? "input-has-error" : ""}
+              {...register("petitionerAdvocate", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
+              required
+            />
+            {errors.petitionerAdvocate && <span className="field-error">{errors.petitionerAdvocate}</span>}
+          </div>
+        </div>
+
+        <div className="advocate-form-row advocate-form-row-pair">
+          <label htmlFor="case-respondent">Respondent</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-respondent"
+              type="text"
+              className={errors.respondent ? "input-has-error" : ""}
+              {...register("respondent", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
+              required
+            />
+            {errors.respondent && <span className="field-error">{errors.respondent}</span>}
+          </div>
+
+          <label htmlFor="case-respondent-advocate">Respondent Advocate</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-respondent-advocate"
+              type="text"
+              className={errors.respondentAdvocate ? "input-has-error" : ""}
+              {...register("respondentAdvocate", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
+              required
+            />
+            {errors.respondentAdvocate && <span className="field-error">{errors.respondentAdvocate}</span>}
+          </div>
+        </div>
+
+        <div className="advocate-form-row advocate-form-row-pair">
+          <label htmlFor="case-filing-num">Filing Number</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-filing-num"
+              type="text"
+              className={errors.filingNum ? "input-has-error" : ""}
+              {...register("filingNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
+              required
+            />
+            {errors.filingNum && <span className="field-error">{errors.filingNum}</span>}
+          </div>
+
+          <label htmlFor="case-filing-date">Filing Date</label>
+          <div className="form-input-wrapper">
+            <CustomDatePicker
+              id="case-filing-date"
+              value={values.filingDate}
+              onChange={(e) => setValue("filingDate", e.target.value)}
+              max={today}
+              required
+            />
+            {errors.filingDate && <span className="field-error">{errors.filingDate}</span>}
+          </div>
+        </div>
+
+        <div className="advocate-form-row advocate-form-row-pair">
+          <label htmlFor="case-reg-num">Registration Number</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-reg-num"
+              type="text"
+              className={errors.regNum ? "input-has-error" : ""}
+              {...register("regNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
+              required
+            />
+            {errors.regNum && <span className="field-error">{errors.regNum}</span>}
+          </div>
+
+          <label htmlFor="case-reg-date">Registration Date</label>
+          <div className="form-input-wrapper">
+            <CustomDatePicker
+              id="case-reg-date"
+              value={values.regDate}
+              onChange={(e) => setValue("regDate", e.target.value)}
+              required
+            />
+            {errors.regDate && <span className="field-error">{errors.regDate}</span>}
+          </div>
+        </div>
+
+        <div className="advocate-form-row advocate-form-row-pair">
+          <label htmlFor="case-efiling-num">E-Filing Number</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-efiling-num"
+              type="text"
+              className={errors.efilingNum ? "input-has-error" : ""}
+              {...register("efilingNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
+              required
+            />
+            {errors.efilingNum && <span className="field-error">{errors.efilingNum}</span>}
+          </div>
+
+          <label htmlFor="case-efiling-date">E-Filing Date</label>
+          <div className="form-input-wrapper">
+            <CustomDatePicker
+              id="case-efiling-date"
+              value={values.efilingDate}
+              onChange={(e) => setValue("efilingDate", e.target.value)}
+              required
+            />
+            {errors.efilingDate && <span className="field-error">{errors.efilingDate}</span>}
+          </div>
+        </div>
+
+        <div className="advocate-form-row">
+          <label htmlFor="case-cnr-num">CNR Number</label>
+          <div className="form-input-wrapper">
+            <input
+              id="case-cnr-num"
+              type="text"
+              className={errors.cnrNum ? "input-has-error" : ""}
+              {...register("cnrNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
+              required
+            />
+            {errors.cnrNum && <span className="field-error">{errors.cnrNum}</span>}
           </div>
         </div>
 
