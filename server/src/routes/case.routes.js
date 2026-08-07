@@ -11,11 +11,11 @@ import { requireAdmin } from "../middleware/role.middleware.js";
 
 const router = Router();
 
-router.use(authenticate, requireAdmin);
+router.use(authenticate);
 router.get("/", listCases);
-router.post("/", createCase);
+router.post("/", requireAdmin, createCase);
 router.get("/:id", getCase);
-router.put("/:id", updateCase);
-router.delete("/:id", deleteCase);
+router.put("/:id", requireAdmin, updateCase);
+router.delete("/:id", requireAdmin, deleteCase);
 
 export default router;
