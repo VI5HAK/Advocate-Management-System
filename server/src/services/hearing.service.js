@@ -321,7 +321,19 @@ export async function addHearingNote(hearingId, body, user) {
   const hearing = await hearingRepository.getById(hearingId);
   if (!hearing) throw new NotFoundError("Hearing not found.");
 
-  const createdBy = user.email || user.fullName || "advocate";
+  let createdBy = user.email || user.fullName || "advocate";
+  if (user.role === "admin") {
+    const [rows] = await pool.query("SELECT full_name FROM users WHERE id = ?", [user.id]);
+    if (rows[0]?.full_name) {
+      createdBy = rows[0].full_name;
+    }
+  } else if (user.role === "advocate") {
+    const advocateId = user.advocateId || user.id;
+    const [rows] = await pool.query("SELECT Advocate_Name FROM Advocate_Master WHERE Advocate_ID = ?", [advocateId]);
+    if (rows[0]?.Advocate_Name) {
+      createdBy = rows[0].Advocate_Name;
+    }
+  }
   const noteId = await hearingRepository.addNote({
     hearingId,
     text: remarkText,

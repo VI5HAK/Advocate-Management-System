@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/client";
 import { SubmitButton } from "./ActionButtons";
+import { formatDateDMY } from "../utils/formatters";
 
 export function HearingNotesModal({ hearing, onClose }) {
   const { user } = useAuth();
@@ -92,7 +93,7 @@ export function HearingNotesModal({ hearing, onClose }) {
                   <div className="remark-item-meta">
                     <span className="remark-author">{n.createdBy}</span>
                     <span className="remark-date">
-                      {n.remarkDate ? String(n.remarkDate).slice(0, 10) : "—"}
+                      {n.remarkDate ? formatDateDMY(n.remarkDate) : "—"}
                     </span>
                   </div>
                   <p className="remark-text">{n.remarkText}</p>

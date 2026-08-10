@@ -249,14 +249,16 @@ export async function listCompletedHearings(search, advocateId = null) {
 export async function getNotes(hearingId) {
   const [rows] = await pool.query(
     `SELECT
-      HN_ID AS id,
-      Hearing_ID AS hearingId,
-      HN_Text AS remarkText,
-      HN_Created_By AS createdBy,
-      HN_Created_Date AS remarkDate
-     FROM HEARING_NOTES_MASTER
-     WHERE Hearing_ID = ?
-     ORDER BY HN_ID DESC`,
+      hn.HN_ID AS id,
+      hn.Hearing_ID AS hearingId,
+      hn.HN_Text AS remarkText,
+      COALESCE(am.Advocate_Name, u.full_name, hn.HN_Created_By) AS createdBy,
+      hn.HN_Created_Date AS remarkDate
+     FROM HEARING_NOTES_MASTER hn
+     LEFT JOIN Advocate_Master am ON hn.HN_Created_By = am.Advocate_Email_ID
+     LEFT JOIN users u ON hn.HN_Created_By = u.email
+     WHERE hn.Hearing_ID = ?
+     ORDER BY hn.HN_ID DESC`,
     [hearingId]
   );
   return rows;
