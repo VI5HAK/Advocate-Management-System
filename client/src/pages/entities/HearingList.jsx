@@ -245,6 +245,7 @@ function HearingList() {
                 <th>Case Number</th>
                 <th>Hearing Date</th>
                 <th>Hearing Time</th>
+                <th>Advocate Name</th>
                 {!isAdvocate && <th className="master-actions-col">Actions</th>}
               </tr>
             </thead>
@@ -275,6 +276,7 @@ function HearingList() {
                       <td>
                         {h.time}
                       </td>
+                      <td>{h.advocateName || "—"}</td>
                       {!isAdvocate && (
                         <td className="master-actions">
                           <Link
@@ -326,7 +328,7 @@ function HearingList() {
                     </tr>
                     {isExpanded && (
                       <tr className="subform-row-container">
-                        <td colSpan={isAdvocate ? 3 : 4}>
+                        <td colSpan={isAdvocate ? 4 : 5}>
                           <div className="case-detail-subform-wrapper">
                             <h4>Case Master Details ({h.caseNumber})</h4>
                             {caseLoading ? (
