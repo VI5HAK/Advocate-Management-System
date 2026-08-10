@@ -19,14 +19,7 @@ function HearingReportPage() {
       const { data } = await api.get("/hearings/completed");
       setHearings(data || []);
       
-      // Auto-expand all cases by default
-      const initialExpanded = {};
-      data.forEach((item) => {
-        if (item.caseId) {
-          initialExpanded[item.caseId] = true;
-        }
-      });
-      setExpandedCases(initialExpanded);
+      setExpandedCases({});
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch completed hearings.");
     } finally {
@@ -131,7 +124,7 @@ function HearingReportPage() {
       ) : (
         <div className="completed-appts-list">
           {groupedArray.map((group) => {
-            const isExpanded = expandedCases[group.caseId] !== false;
+            const isExpanded = !!expandedCases[group.caseId];
             return (
               <div key={group.caseId} className="completed-case-card">
                 <div
@@ -147,7 +140,6 @@ function HearingReportPage() {
                   }}
                 >
                   <div className="completed-case-info">
-                    <span className="completed-case-badge">Case ID: {group.caseId}</span>
                     <h2 className="completed-case-num">{group.caseNumber}</h2>
                     <span className="completed-case-client">Client: {group.clientName}</span>
                   </div>

@@ -147,7 +147,6 @@ function CompletedAppointmentsPage() {
                   }}
                 >
                   <div className="completed-case-info">
-                    <span className="completed-case-badge">Case ID: {group.caseId}</span>
                     <h2 className="completed-case-num">{group.caseNumber}</h2>
                     <span className="completed-case-client">Client: {group.clientName}</span>
                   </div>
