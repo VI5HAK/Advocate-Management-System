@@ -18,10 +18,12 @@ function HearingReportPage() {
     try {
       const { data } = await api.get("/hearings/completed");
       setHearings(data || []);
-      
+
       setExpandedCases({});
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch completed hearings.");
+      setError(
+        err.response?.data?.message || "Failed to fetch completed hearings.",
+      );
     } finally {
       setLoading(false);
     }
@@ -67,13 +69,23 @@ function HearingReportPage() {
       <div className="completed-appts-header-section">
         <h1 className="completed-appts-title">Hearing Report</h1>
         <p className="completed-appts-subtitle">
-          View case-wise elapsed hearings and enter progress notes
+          View case-wise hearings and enter progress notes
         </p>
       </div>
 
       <div className="completed-appts-filters">
         <div className="completed-appts-search-wrapper">
-          <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            className="search-icon"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
@@ -91,7 +103,16 @@ function HearingReportPage() {
           onClick={fetchCompletedHearings}
           aria-label="Refresh completed hearings"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M23 4v6h-6"></path>
             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
           </svg>
@@ -107,13 +128,26 @@ function HearingReportPage() {
       ) : error ? (
         <div className="completed-appts-state-container completed-appts-error-container">
           <p className="completed-appts-error-msg">{error}</p>
-          <button type="button" className="master-btn btn-create" onClick={fetchCompletedHearings}>
+          <button
+            type="button"
+            className="master-btn btn-create"
+            onClick={fetchCompletedHearings}
+          >
             Retry
           </button>
         </div>
       ) : groupedArray.length === 0 ? (
         <div className="completed-appts-state-container completed-appts-empty">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="16" y1="2" x2="16" y2="6"></line>
             <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -141,11 +175,14 @@ function HearingReportPage() {
                 >
                   <div className="completed-case-info">
                     <h2 className="completed-case-num">{group.caseNumber}</h2>
-                    <span className="completed-case-client">Client: {group.clientName}</span>
+                    <span className="completed-case-client">
+                      Client: {group.clientName}
+                    </span>
                   </div>
                   <div className="completed-case-header-actions">
                     <span className="completed-appts-count">
-                      {group.hearings.length} hearing{group.hearings.length > 1 ? "s" : ""}
+                      {group.hearings.length} hearing
+                      {group.hearings.length > 1 ? "s" : ""}
                     </span>
                     <svg
                       className={`completed-case-chevron ${isExpanded ? "is-expanded" : ""}`}
@@ -180,7 +217,9 @@ function HearingReportPage() {
                         <tbody>
                           {group.hearings.map((h) => (
                             <tr key={h.id}>
-                              <td className="appt-date">{formatDateDMY(h.date)}</td>
+                              <td className="appt-date">
+                                {formatDateDMY(h.date)}
+                              </td>
                               <td className="appt-time">{h.time}</td>
                               <td>{h.courtName || "—"}</td>
                               <td>{h.judgeName || "—"}</td>

@@ -276,6 +276,19 @@
   color: #92400e;
 }
 
+.card-hearings {
+  background: #fff1f2;
+  border-color: #f43f5e;
+}
+
+.card-hearings .dashboard-stat-value {
+  color: #be123c;
+}
+
+.card-hearings .dashboard-stat-label {
+  color: #9f1239;
+}
+
 @media (max-width: 768px) {
   .dashboard-stats {
     grid-template-columns: 1fr;

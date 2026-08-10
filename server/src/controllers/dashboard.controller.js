@@ -13,6 +13,11 @@ const ENTITY_COUNTS = [
     table: "Appointment",
     deleteFlag: "Appoint_Delete_Flag",
   },
+  {
+    key: "hearings",
+    table: "HEARING_MASTER",
+    deleteFlag: "Hearing_Delete_Flag",
+  },
 ];
 
 export async function getSummary(req, res, next) {
@@ -31,6 +36,14 @@ export async function getSummary(req, res, next) {
             AND (cl.Client_Delete_Flag = FALSE OR cl.Client_Delete_Flag = 0)
             AND (cs.Case_ID IS NULL OR cs.Case_Delete_Flag = FALSE OR cs.Case_Delete_Flag = 0)
             AND (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != 'SYSTEM_CASE_LINK')
+            AND TIMESTAMP(ap.Appoint_Date, ap.Appoint_Start_Time) + INTERVAL 15 MINUTE > NOW()
+        `;
+      } else if (key === "hearings") {
+        sql = `
+          SELECT COUNT(DISTINCT hm.Client_ID, hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time) AS count
+          FROM HEARING_MASTER hm
+          WHERE (hm.Hearing_Delete_Flag = FALSE OR hm.Hearing_Delete_Flag = 0)
+            AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE > NOW()
         `;
       } else {
         sql = `

@@ -7,6 +7,7 @@ const STAT_LABELS = {
   clients: "Clients",
   cases: "Cases",
   appointments: "Appointments",
+  hearings: "Hearings",
   roles: "Roles",
 };
 
@@ -15,6 +16,7 @@ const STAT_ROUTES = {
   clients: "/client",
   cases: "/case",
   appointments: "/appointments",
+  hearings: "/hearings",
   roles: "/masters/role",
 };
 
