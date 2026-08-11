@@ -237,3 +237,34 @@
     font-size: 1rem;
   }
 }
+
+/* Hearing Case Details Summary */
+.hearing-case-details-summary {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem;
+  font-size: 0.95rem;
+  color: #334155;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.hearing-case-details-summary div {
+  margin: 0;
+}
+
+.hearing-case-details-summary .court-line {
+  font-weight: 500;
+}
+
+.hearing-case-details-summary .vs-line {
+  margin-top: 0.5rem;
+  font-weight: 600;
+  color: #1e3a8a;
+  font-size: 1.05rem;
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 0.5rem;
+}

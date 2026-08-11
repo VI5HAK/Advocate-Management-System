@@ -25,5 +25,5 @@ export function formatRemarkDate(dateValue) {
   if (!dateValue) return "—";
   const parsed = dayjs(dateValue);
   if (!parsed.isValid()) return String(dateValue);
-  return parsed.format("DD/MM/YYYY, h:mm:ss A");
+  return parsed.format("DD/MM/YYYY, h:mm A");
 }

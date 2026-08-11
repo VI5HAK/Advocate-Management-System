@@ -205,7 +205,19 @@ export async function listCompletedHearings(search, advocateId = null) {
           AND DATE(hm2.Hearing_Date) = DATE(hm.Hearing_Date)
           AND TIME(hm2.Hearing_Time) = TIME(hm.Hearing_Time)
           AND ${activeCondition("hm2.")}
-      ) AS advocateName
+      ) AS advocateName,
+      (
+        SELECT DATE_FORMAT(hn.Next_Hearing_Date, '%Y-%m-%d')
+        FROM HEARING_NOTES_MASTER hn
+        INNER JOIN HEARING_MASTER hm4 ON hn.Hearing_ID = hm4.Hearing_ID
+        WHERE hm4.Client_ID = hm.Client_ID
+          AND hm4.Case_ID = hm.Case_ID
+          AND DATE(hm4.Hearing_Date) = DATE(hm.Hearing_Date)
+          AND TIME(hm4.Hearing_Time) = TIME(hm.Hearing_Time)
+          AND hn.Next_Hearing_Date IS NOT NULL
+        ORDER BY hn.HN_ID DESC
+        LIMIT 1
+      ) AS nextHearingDate
     FROM HEARING_MASTER hm
     WHERE ${activeCondition("hm.")}
       AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE <= NOW()
@@ -252,6 +264,8 @@ export async function getNotes(hearingId) {
       hn.HN_ID AS id,
       hn.Hearing_ID AS hearingId,
       hn.HN_Text AS remarkText,
+      hn.Next_Hearing_Date AS nextHearingDate,
+      hn.Next_Hearing_Purpose AS nextHearingPurpose,
       COALESCE(am.Advocate_Name, u.full_name, hn.HN_Created_By) AS createdBy,
       hn.HN_Created_Date AS remarkDate
      FROM HEARING_NOTES_MASTER hn
@@ -269,10 +283,18 @@ export async function addNote(note, connection = pool) {
     `INSERT INTO HEARING_NOTES_MASTER (
       Hearing_ID,
       HN_Text,
+      Next_Hearing_Date,
+      Next_Hearing_Purpose,
       HN_Created_By,
       HN_Created_Date
-    ) VALUES (?, ?, ?, CURDATE())`,
-    [note.hearingId, note.text, note.createdBy]
+    ) VALUES (?, ?, ?, ?, ?, CURDATE())`,
+    [
+      note.hearingId,
+      note.text,
+      note.nextHearingDate || null,
+      note.nextHearingPurpose || null,
+      note.createdBy
+    ]
   );
   return result.insertId;
 }

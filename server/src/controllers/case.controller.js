@@ -167,6 +167,7 @@ const CASE_SELECT = `
     DATE_FORMAT(cs.Case_Efiling_Date, '%Y-%m-%d') AS efilingDate,
     cs.Case_Efiling_Num AS efilingNum,
     cs.Case_Court_Name AS courtName,
+    d.District_Name AS districtName,
     (
       SELECT ap.Appoint_Client_ID
       FROM Appointment ap
@@ -178,6 +179,8 @@ const CASE_SELECT = `
     ) AS clientId
   FROM Case_Master cs
   LEFT JOIN Case_Type_Master ct ON cs.Case_Case_Type_ID = ct.Case_Type_ID
+  LEFT JOIN Court_Master cm ON cs.Case_Court_ID = cm.Court_ID
+  LEFT JOIN DISTRICTS d ON cm.District_ID = d.District_ID
   WHERE cs.Case_ID = ?
     AND (cs.Case_Delete_Flag = FALSE OR cs.Case_Delete_Flag = 0)
 `;
@@ -202,6 +205,7 @@ const CASE_SELECT_LEGACY_FALLBACK = `
     DATE_FORMAT(cs.Case_Efiling_Date, '%Y-%m-%d') AS efilingDate,
     cs.Case_Efiling_Num AS efilingNum,
     cs.Case_Court_Name AS courtName,
+    d.District_Name AS districtName,
     (
       SELECT ap.Appoint_Client_ID
       FROM Appointment ap
@@ -212,6 +216,8 @@ const CASE_SELECT_LEGACY_FALLBACK = `
     ) AS clientId
   FROM Case_Master cs
   LEFT JOIN Case_Type_Master ct ON cs.Case_Case_Type_ID = ct.Case_Type_ID
+  LEFT JOIN Court_Master cm ON cs.Case_Court_ID = cm.Court_ID
+  LEFT JOIN DISTRICTS d ON cm.District_ID = d.District_ID
   WHERE cs.Case_ID = ?
     AND (cs.Case_Delete_Flag = FALSE OR cs.Case_Delete_Flag = 0)
 `;

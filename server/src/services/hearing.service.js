@@ -313,9 +313,14 @@ export async function getHearingNotes(hearingId) {
 }
 
 export async function addHearingNote(hearingId, body, user) {
-  const { remarkText } = body;
-  if (!remarkText || !remarkText.trim()) {
-    throw new BadRequestError("Note text is required.");
+  const { remarkText, nextHearingDate, nextHearingPurpose } = body;
+
+  if ((nextHearingDate || nextHearingPurpose) && (!nextHearingDate || !nextHearingPurpose || !nextHearingPurpose.trim())) {
+    throw new BadRequestError("Both next hearing date and next hearing purpose must be entered.");
+  }
+
+  if ((!remarkText || !remarkText.trim()) && !nextHearingDate && !nextHearingPurpose) {
+    throw new BadRequestError("Progress note text or next hearing details are required.");
   }
 
   const hearing = await hearingRepository.getById(hearingId);
@@ -336,7 +341,9 @@ export async function addHearingNote(hearingId, body, user) {
   }
   const noteId = await hearingRepository.addNote({
     hearingId,
-    text: remarkText,
+    text: remarkText ? remarkText.trim() : "Next hearing details updated",
+    nextHearingDate: nextHearingDate || null,
+    nextHearingPurpose: nextHearingPurpose || null,
     createdBy
   });
 

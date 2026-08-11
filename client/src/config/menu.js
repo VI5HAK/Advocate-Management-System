@@ -24,10 +24,18 @@ export const ADMIN_MENU_ITEMS = [
     id: "reports",
     label: "Reports",
     children: [
-      { id: "appointment-report", label: "Appointment Report", path: "/reports/appointment" },
+      {
+        id: "appointment-report",
+        label: "Appointment Report",
+        path: "/reports/appointment",
+      },
       { id: "client-report", label: "Client Report", path: "/reports/client" },
       { id: "case-report", label: "Case Report", path: "/reports/case" },
-      { id: "hearing-report", label: "Hearing Report", path: "/reports/hearing" },
+      {
+        id: "hearing-report",
+        label: "Completed Hearings",
+        path: "/reports/hearing",
+      },
     ],
   },
 ];
@@ -36,8 +44,16 @@ export const ADVOCATE_MENU_ITEMS = [
   { id: "home", label: "Home", path: "/" },
   { id: "appointments", label: "Appointments", path: "/appointments" },
   { id: "hearings", label: "Hearings", path: "/hearings" },
-  { id: "completed-appointments", label: "Completed Appointments", path: "/completed-appointments" },
-  { id: "hearing-report", label: "Hearing Report", path: "/reports/hearing" },
+  {
+    id: "completed-appointments",
+    label: "Completed Appointments",
+    path: "/completed-appointments",
+  },
+  {
+    id: "hearing-report",
+    label: "Completed Hearings",
+    path: "/reports/hearing",
+  },
 ];
 
 export function getMenuItemsForRole(role) {

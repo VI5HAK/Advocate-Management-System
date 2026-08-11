@@ -48,6 +48,7 @@ function HearingReportPage() {
         caseId: item.caseId,
         caseNumber: item.caseNumber || "NO CASE",
         clientName: item.clientName || "—",
+        advocateName: item.advocateName || "—",
         hearings: [],
       };
     }
@@ -178,6 +179,9 @@ function HearingReportPage() {
                     <span className="completed-case-client">
                       Client: {group.clientName}
                     </span>
+                    <span className="completed-case-client">
+                      Advocate: {group.advocateName}
+                    </span>
                   </div>
                   <div className="completed-case-header-actions">
                     <span className="completed-appts-count">
@@ -207,9 +211,8 @@ function HearingReportPage() {
                         <thead>
                           <tr>
                             <th>Date</th>
+                            <th>Next Hearing Date</th>
                             <th>Time</th>
-                            <th>Court</th>
-                            <th>Judge</th>
                             <th>Purpose</th>
                             <th className="actions-column">Actions</th>
                           </tr>
@@ -220,9 +223,10 @@ function HearingReportPage() {
                               <td className="appt-date">
                                 {formatDateDMY(h.date)}
                               </td>
+                              <td className="appt-date">
+                                {h.nextHearingDate ? formatDateDMY(h.nextHearingDate) : "—"}
+                              </td>
                               <td className="appt-time">{h.time}</td>
-                              <td>{h.courtName || "—"}</td>
-                              <td>{h.judgeName || "—"}</td>
                               <td>{h.purposeText || "—"}</td>
                               <td className="actions-column">
                                 <button
@@ -249,7 +253,10 @@ function HearingReportPage() {
       {selectedHearing && (
         <HearingNotesModal
           hearing={selectedHearing}
-          onClose={() => setSelectedHearing(null)}
+          onClose={() => {
+            setSelectedHearing(null);
+            fetchCompletedHearings();
+          }}
         />
       )}
     </div>
