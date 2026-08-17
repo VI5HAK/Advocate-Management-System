@@ -70,12 +70,10 @@ function AppLayout() {
             <Menu className="h-6 w-6" />
           </button>
           
-          <span className="hidden sm:block text-sm font-bold tracking-wider text-slate-400 uppercase">
+          <span className="text-[10px] xs:text-xs sm:text-sm font-bold tracking-wider text-slate-400 uppercase">
             NEXORA TECHNOLOGY SERVICES PVT LTD
           </span>
-          <span className="sm:hidden text-xs font-bold tracking-wider text-slate-400 uppercase">
-            NEXORA TECH
-          </span>
+
 
           <div className="relative" ref={dropdownRef}>
             <button
