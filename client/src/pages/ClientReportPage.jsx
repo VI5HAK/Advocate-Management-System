@@ -3,6 +3,7 @@ import api from "../api/client";
 import { CustomDatePicker } from "../components/CustomDatePicker";
 import RemarksModal from "../components/RemarksModal";
 import { formatTime12Hour, formatDateDMY } from "../utils/formatters";
+import { Users } from "lucide-react";
 import "../styles/ReportsPage.css";
 import "../styles/EntityListPage.css";
 
@@ -64,7 +65,10 @@ function ClientReportPage() {
 
   return (
     <div className="reports-page">
-      <h1 className="reports-title">Client Report</h1>
+      <h1 className="reports-title flex items-center justify-center gap-2">
+        <Users className="h-8 w-8 text-indigo-650 shrink-0" />
+        Client Report
+      </h1>
 
       <form className="reports-form" onSubmit={handleSubmit}>
         {error && <div className="reports-error">{error}</div>}
@@ -143,7 +147,7 @@ function ClientReportPage() {
                 </thead>
                 <tbody>
                   {appointments.map((appoint) => (
-                    <tr key={appoint.id}>
+                    <tr key={appoint.id} className="hover:bg-indigo-50/30 even:bg-slate-200/60 transition-colors">
                       <td>{appoint.clientName || "—"}</td>
                       <td>{appoint.caseNumber}</td>
                       <td>{formatDateDMY(appoint.date)}</td>

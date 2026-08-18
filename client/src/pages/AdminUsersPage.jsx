@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { CreateButton, SubmitButton, CancelButton, DeleteButton } from "../components/ActionButtons";
+import { UserCog } from "lucide-react";
 import "../styles/MasterPage.css";
 import "../styles/AdvocateForm.css";
 
@@ -98,7 +99,10 @@ function AdminUsersPage() {
   if (view === "form") {
     return (
       <div className="advocate-form-page">
-        <h1 className="advocate-form-title">Create Admin</h1>
+        <h1 className="advocate-form-title flex items-center justify-center gap-2">
+          <UserCog className="h-8 w-8 text-indigo-650 shrink-0" />
+          Create Admin
+        </h1>
 
         {error && (
           <p className="master-error" role="alert">
@@ -200,7 +204,10 @@ function AdminUsersPage() {
   return (
     <div className="master-page">
       <header className="master-header">
-        <h1 className="master-title">Admin Users</h1>
+        <h1 className="master-title">
+          <UserCog className="h-8 w-8 text-indigo-650 shrink-0" />
+          Admin Users
+        </h1>
         <CreateButton onClick={openCreateForm} label="Create Admin" />
       </header>
 
@@ -234,7 +241,7 @@ function AdminUsersPage() {
               </tr>
             ) : (
               admins.map((admin) => (
-                <tr key={admin.id}>
+                <tr key={admin.id} className="hover:bg-indigo-50/30 even:bg-slate-200/60 transition-colors">
                   <td>{admin.email}</td>
                   <td>{admin.fullName}</td>
                   <td className="master-actions">

@@ -16,8 +16,18 @@ import {
 } from "../../utils/formatters";
 import "../../styles/MasterPage.css";
 import "../../styles/EntityListPage.css";
+import { UserCheck, Users, Briefcase, Calendar, Scale, Database } from "lucide-react";
+
+const ICON_MAP = {
+  "/advocates": UserCheck,
+  "/clients": Users,
+  "/cases": Briefcase,
+  "/appointments": Calendar,
+  "/hearings": Scale,
+};
 
 function EntityListPage({ config, readOnly = false }) {
+  const IconComponent = ICON_MAP[config.apiPath] || Database;
   const {
     apiPath,
     title,
@@ -126,7 +136,8 @@ function EntityListPage({ config, readOnly = false }) {
   return (
     <div className="space-y-6">
       <header className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <IconComponent className="h-8 w-8 text-indigo-650 shrink-0" />
           {title}
         </h1>
         {!readOnly && (
@@ -248,7 +259,7 @@ function EntityListPage({ config, readOnly = false }) {
               items.map((row) => (
                 <tr
                   key={row.id}
-                  className="hover:bg-slate-50/40 transition-colors"
+                  className="hover:bg-indigo-50/30 even:bg-slate-200/60 transition-colors"
                 >
                   {displayedColumns.map((col) => {
                     const rawValue = row[col.key];

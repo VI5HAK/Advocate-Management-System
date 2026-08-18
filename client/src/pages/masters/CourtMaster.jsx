@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../../api/client";
 import { CascadingLocationDropdown } from "../../components/CascadingLocationDropdown";
+import { Landmark } from "lucide-react";
 import SearchableSelect from "../../components/SearchableSelect";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import {
@@ -317,6 +318,7 @@ function CourtMaster() {
     <div className="space-y-6">
       <header className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <Landmark className="h-8 w-8 text-indigo-650 shrink-0" />
           Court Master
           <button
             type="button"
@@ -420,7 +422,7 @@ function CourtMaster() {
               </tr>
             ) : (
               items.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/40 transition-colors">
+                <tr key={item.id} className="hover:bg-indigo-50/30 even:bg-slate-200/60 transition-colors">
                   <td className="px-5 py-4 text-slate-700 font-semibold align-middle">{item.name}</td>
                   <td className="px-5 py-4 text-slate-650 font-semibold align-middle">{item.courtType || "—"}</td>
                   <td className="hidden md:table-cell px-5 py-4 text-slate-650 font-semibold align-middle">{item.description || "—"}</td>

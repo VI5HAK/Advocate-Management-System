@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { SubmitButton, CancelButton } from "../components/ActionButtons";
+import { KeyRound } from "lucide-react";
 import "../styles/MasterPage.css";
 import "../styles/AdvocateForm.css";
 import "../styles/EntityListPage.css";
@@ -61,7 +62,10 @@ function ChangePassword() {
 
   return (
     <div className="advocate-form-page">
-      <h1 className="advocate-form-title">Change Password</h1>
+      <h1 className="advocate-form-title flex items-center justify-center gap-2">
+        <KeyRound className="h-8 w-8 text-indigo-650 shrink-0" />
+        Change Password
+      </h1>
 
       {error && (
         <p className="master-error" role="alert">

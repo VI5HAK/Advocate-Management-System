@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../api/client";
 import RemarksModal from "../components/RemarksModal";
+import { CheckCircle } from "lucide-react";
 import { formatTime12Hour, formatDateDMY } from "../utils/formatters";
 import "../styles/CompletedAppointmentsPage.css";
 
@@ -72,7 +73,10 @@ function CompletedAppointmentsPage() {
   return (
     <div className="completed-appts-container">
       <div className="completed-appts-header-section">
-        <h1 className="completed-appts-title">Completed Appointments</h1>
+        <h1 className="completed-appts-title flex items-center gap-2.5">
+          <CheckCircle className="h-8 w-8 text-indigo-650 shrink-0" />
+          Completed Appointments
+        </h1>
         <p className="completed-appts-subtitle">
           View case-wise completed appointments and enter progress remarks
         </p>
@@ -184,7 +188,7 @@ function CompletedAppointmentsPage() {
                         </thead>
                         <tbody>
                           {group.appointments.map((appt) => (
-                            <tr key={appt.id}>
+                            <tr key={appt.id} className="hover:bg-indigo-50/30 even:bg-slate-200/60 transition-colors">
                               <td className="appt-date">{formatDateDMY(appt.date)}</td>
                               <td className="appt-time">
                                 {formatTime12Hour(appt.startTime)} - {formatTime12Hour(appt.endTime)}

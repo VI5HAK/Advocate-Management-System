@@ -10,6 +10,7 @@ import {
   CancelButton,
 } from "../../components/ActionButtons";
 import { uppercaseAlphaAndSpaces } from "../../utils/validation";
+import { MapPin } from "lucide-react";
 
 function LocationMaster() {
   const [view, setView] = useState("list");
@@ -495,7 +496,10 @@ function LocationMaster() {
   return (
     <div className="space-y-6">
       <header className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Location Master</h1>
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <MapPin className="h-8 w-8 text-indigo-650 shrink-0" />
+          Location Master
+        </h1>
         <CreateButton onClick={openCreateForm} label="Create New" />
       </header>
 

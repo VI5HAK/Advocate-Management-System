@@ -8,7 +8,8 @@ import {
   Calendar,
   Scale,
   Shield,
-  ArrowRight
+  ArrowRight,
+  LayoutDashboard
 } from "lucide-react";
 import { motion } from "motion/react";
 
@@ -105,7 +106,10 @@ function Dashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard</h1>
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <LayoutDashboard className="h-8 w-8 text-indigo-650 shrink-0" />
+          Dashboard
+        </h1>
         <p className="text-sm font-medium text-slate-550 mt-1">
           Welcome to the Advocate Management System home screen.
         </p>

@@ -4,6 +4,18 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import { CreateButton, EditButton, DeleteButton, SubmitButton, CancelButton } from "../../components/ActionButtons";
 import "../../styles/MasterPage.css";
 import { uppercaseAlphaAndSpaces, descriptionValidation } from "../../utils/validation";
+import { ShieldCheck, UserSquare2, Briefcase, Activity, Landmark, Gavel, MapPin, Database } from "lucide-react";
+
+const ICON_MAP = {
+  "roles": ShieldCheck,
+  "client-types": UserSquare2,
+  "case-types": Briefcase,
+  "statuses": Activity,
+  "courts": Landmark,
+  "judges": Gavel,
+  "locations": MapPin,
+};
+
 
 const helpPdfs = import.meta.glob("../../assets/*_Help.pdf", { eager: true, import: "default" });
 
@@ -16,6 +28,7 @@ const RESOURCE_TO_PDF = {
 };
 
 function MasterPage({ config }) {
+  const IconComponent = ICON_MAP[config.resource] || Database;
   const {
     resource,
     idPrefix,
@@ -240,6 +253,7 @@ function MasterPage({ config }) {
     <div className="space-y-6">
       <header className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <IconComponent className="h-8 w-8 text-indigo-650 shrink-0" />
           {title}
           <button
             type="button"
@@ -342,7 +356,7 @@ function MasterPage({ config }) {
               </tr>
             ) : (
               items.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/40 transition-colors">
+                <tr key={item.id} className="hover:bg-indigo-50/30 even:bg-slate-200/60 transition-colors">
                   <td className="px-5 py-4 text-slate-700 font-semibold align-middle">{item.name}</td>
                   <td className="hidden md:table-cell px-5 py-4 text-slate-650 font-semibold align-middle">{item.description || "—"}</td>
                   <td className="px-5 py-4 align-middle">

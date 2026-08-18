@@ -6,6 +6,7 @@ import { SubmitButton, CancelButton } from "../../components/ActionButtons";
 import dayjs from "../../utils/datePicker";
 import "../../styles/MasterPage.css";
 import "../../styles/AdvocateForm.css";
+import { Calendar } from "lucide-react";
 
 const EMPTY_FORM = {
   clientId: "",
@@ -251,7 +252,8 @@ function AppointmentForm() {
   if (loading) {
     return (
       <div className="advocate-form-page">
-        <h1 className="advocate-form-title">
+        <h1 className="advocate-form-title flex items-center justify-center gap-2">
+          <Calendar className="h-8 w-8 text-indigo-650 shrink-0" />
           {isEdit ? "Update Appointment" : "Create Appointment"}
         </h1>
         <p className="master-empty">Loading…</p>
@@ -261,7 +263,8 @@ function AppointmentForm() {
 
   return (
     <div className="advocate-form-page">
-      <h1 className="advocate-form-title">
+      <h1 className="advocate-form-title flex items-center justify-center gap-2">
+        <Calendar className="h-8 w-8 text-indigo-650 shrink-0" />
         {isEdit ? "Update Appointment" : "Create Appointment"}
       </h1>
 

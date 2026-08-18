@@ -7,6 +7,7 @@ import { SubmitButton, CancelButton } from "../../components/ActionButtons";
 import "../../styles/MasterPage.css";
 import "../../styles/AdvocateForm.css";
 import { useForm } from "../../hooks/useForm";
+import { Users } from "lucide-react";
 import {
   getClientSchema,
   digitsOnly,
@@ -168,7 +169,8 @@ function ClientForm() {
     return (
       <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6 animate-pulse">
         <header className="border-b border-slate-100 pb-4">
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <Users className="h-7 w-7 text-indigo-650 shrink-0" />
             {isEdit ? "Update Client" : "Create Client"}
           </h1>
         </header>
@@ -182,7 +184,8 @@ function ClientForm() {
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6">
       <header className="border-b border-slate-100 pb-4">
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <Users className="h-7 w-7 text-indigo-650 shrink-0" />
           {isEdit ? "Update Client" : "Create Client"}
         </h1>
       </header>

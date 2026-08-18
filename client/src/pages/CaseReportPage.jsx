@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../api/client";
 import { CustomDatePicker } from "../components/CustomDatePicker";
 import { formatTime12Hour, formatDateDMY } from "../utils/formatters";
+import { Briefcase } from "lucide-react";
 import "../styles/ReportsPage.css";
 
 function getStatusBadgeStyle(status) {
@@ -88,7 +89,10 @@ function CaseReportPage() {
 
   return (
     <div className="reports-page">
-      <h1 className="reports-title">Case Report</h1>
+      <h1 className="reports-title flex items-center justify-center gap-2">
+        <Briefcase className="h-8 w-8 text-indigo-650 shrink-0" />
+        Case Report
+      </h1>
 
       <form className="reports-form" onSubmit={handleSubmit}>
         {error && <div className="reports-error">{error}</div>}
@@ -172,7 +176,7 @@ function CaseReportPage() {
                     </thead>
                     <tbody>
                       {list.map((appoint) => (
-                        <tr key={appoint.id}>
+                        <tr key={appoint.id} className="hover:bg-indigo-50/30 even:bg-slate-200/60 transition-colors">
                           <td>{formatDateDMY(appoint.date)}</td>
                           <td>
                             {appoint.startTime && appoint.endTime

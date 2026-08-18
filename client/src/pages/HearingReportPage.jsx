@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../api/client";
 import HearingNotesModal from "../components/HearingNotesModal";
+import { Scale } from "lucide-react";
 import { formatDateDMY } from "../utils/formatters";
 import "../styles/CompletedAppointmentsPage.css";
 
@@ -68,7 +69,10 @@ function HearingReportPage() {
   return (
     <div className="completed-appts-container">
       <div className="completed-appts-header-section">
-        <h1 className="completed-appts-title">Hearing Report</h1>
+        <h1 className="completed-appts-title flex items-center gap-2.5">
+          <Scale className="h-8 w-8 text-indigo-650 shrink-0" />
+          Hearing Report
+        </h1>
         <p className="completed-appts-subtitle">
           View case-wise hearings and enter progress notes
         </p>
@@ -219,7 +223,7 @@ function HearingReportPage() {
                         </thead>
                         <tbody>
                           {group.hearings.map((h) => (
-                            <tr key={h.id}>
+                             <tr key={h.id} className="hover:bg-indigo-50/30 even:bg-slate-200/60 transition-colors">
                               <td className="appt-date">
                                 {formatDateDMY(h.date)}
                               </td>
