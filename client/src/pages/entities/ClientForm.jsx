@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
 import { CascadingLocationDropdown } from "../../components/CascadingLocationDropdown";
+import SearchableSelect from "../../components/SearchableSelect";
 import { SubmitButton, CancelButton } from "../../components/ActionButtons";
 import "../../styles/MasterPage.css";
 import "../../styles/AdvocateForm.css";
@@ -165,220 +166,329 @@ function ClientForm() {
 
   if (loading) {
     return (
-      <div className="advocate-form-page">
-        <h1 className="advocate-form-title">
-          {isEdit ? "Update Client" : "Create Client"}
-        </h1>
-        <p className="master-empty">Loading…</p>
+      <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6 animate-pulse">
+        <header className="border-b border-slate-100 pb-4">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            {isEdit ? "Update Client" : "Create Client"}
+          </h1>
+        </header>
+        <div className="py-8 text-center text-slate-400 font-medium">
+          Loading…
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="advocate-form-page">
-      <h1 className="advocate-form-title">
-        {isEdit ? "Update Client" : "Create Client"}
-      </h1>
+    <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6">
+      <header className="border-b border-slate-100 pb-4">
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          {isEdit ? "Update Client" : "Create Client"}
+        </h1>
+      </header>
 
       {error && (
-        <p className="master-error" role="alert">
+        <div className="p-4 text-sm font-semibold text-red-650 bg-red-50 border border-red-100 rounded-xl" role="alert">
           {error}
-        </p>
+        </div>
       )}
 
-      <form className="advocate-form" onSubmit={handleSubmit}>
-        <div className="advocate-form-row">
-          <label htmlFor="client-name">Client Name</label>
-          <div className="form-input-wrapper">
-            <input
-              id="client-name"
-              type="text"
-              className={errors.name ? "input-has-error" : ""}
-              {...register("name", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
-              required
-              autoFocus
-            />
-            {errors.name && <span className="field-error">{errors.name}</span>}
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-1.5">
+            <label htmlFor="client-name" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Client Name</label>
+            <div className="relative">
+              <input
+                id="client-name"
+                type="text"
+                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
+                  errors.name
+                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
+                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
+                }`}
+                {...register("name", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
+                required
+                autoFocus
+              />
+              {errors.name && (
+                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
+                  {errors.name}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="advocate-form-row">
-          <label htmlFor="client-type">Client Type</label>
-          <div className="form-input-wrapper">
-            <select
+          <div className="space-y-1.5">
+            <label htmlFor="client-type" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Client Type</label>
+            <SearchableSelect
               id="client-type"
-              className={errors.clientTypeId ? "input-has-error" : ""}
-              {...register("clientTypeId")}
-              onChange={(e) => {
-                const val = e.target.value;
-                const type = clientTypes.find((t) => String(t.id) === val);
+              value={values.clientTypeId}
+              options={clientTypes.map((type) => ({
+                value: String(type.id),
+                label: type.name,
+              }))}
+              onChange={(val) => {
+                const type = clientTypes.find((t) => String(t.id) === String(val));
                 const individual = isIndividualType(type?.name);
                 setValue("clientTypeId", val);
                 setValue("gstNumber", individual ? "" : values.gstNumber);
                 setValue("aadhaarNumber", individual ? values.aadhaarNumber : "");
               }}
-              required
-            >
-              <option value="">Select client type</option>
-              {clientTypes.map((type) => (
-                <option key={type.id} value={type.id}>
-                  {type.name}
-                </option>
-              ))}
-            </select>
-            {errors.clientTypeId && <span className="field-error">{errors.clientTypeId}</span>}
+              placeholder="Select client type"
+              searchPlaceholder="Search client type..."
+              emptyMessage="No client types found."
+              className={
+                errors.clientTypeId
+                  ? "border-red-400 focus:border-red-500 focus:ring-red-500/10"
+                  : ""
+              }
+            />
+            {errors.clientTypeId && (
+              <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
+                {errors.clientTypeId}
+              </span>
+            )}
           </div>
         </div>
 
-        <div className="advocate-form-row advocate-form-row-wide">
-          <label htmlFor="client-address">Address</label>
-          <div className="form-input-wrapper">
+        <div className="space-y-1.5">
+          <label htmlFor="client-address" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Address</label>
+          <div className="relative">
             <textarea
               id="client-address"
-              className={errors.address ? "input-has-error" : ""}
+              className={`w-full px-4 py-3 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white resize-vertical min-h-[100px] ${
+                errors.address
+                  ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
+                  : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
+              }`}
               maxLength={200}
               {...register("address", { transform: (v) => v.slice(0, 200) })}
               required
             />
-            {errors.address && <span className="field-error">{errors.address}</span>}
+            {errors.address && (
+              <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
+                {errors.address}
+              </span>
+            )}
           </div>
         </div>
 
-        <CascadingLocationDropdown
-          State_ID={values.State_ID}
-          District_ID={values.District_ID}
-          Taluk_ID={values.Taluk_ID}
-          onChange={(loc) => {
-            setValue("State_ID", loc.State_ID ? String(loc.State_ID) : "");
-            setValue("District_ID", loc.District_ID ? String(loc.District_ID) : "");
-            setValue("Taluk_ID", loc.Taluk_ID ? String(loc.Taluk_ID) : "");
-          }}
-          errors={errors}
-          required
-        />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <CascadingLocationDropdown
+            State_ID={values.State_ID}
+            District_ID={values.District_ID}
+            Taluk_ID={values.Taluk_ID}
+            onChange={(loc) => {
+              setValue("State_ID", loc.State_ID ? String(loc.State_ID) : "");
+              setValue("District_ID", loc.District_ID ? String(loc.District_ID) : "");
+              setValue("Taluk_ID", loc.Taluk_ID ? String(loc.Taluk_ID) : "");
+            }}
+            errors={errors}
+            rowClassName="space-y-1.5 [&>label]:block [&>label]:text-xs [&>label]:font-bold [&>label]:text-slate-500 [&>label]:uppercase [&>label]:tracking-wider"
+            inputWrapperClassName="relative"
+            selectClassName="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none text-sm bg-slate-50 focus:bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+            required
+          />
+        </div>
 
-        <div className="advocate-form-row">
-          <label htmlFor="client-Pincode">Pincode</label>
-          <div className="form-input-wrapper">
-            <input
-              id="client-Pincode"
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              className={errors.Pincode ? "input-has-error" : ""}
-              {...register("Pincode", { transform: (v) => digitsOnly(v, 6) })}
-              required
-            />
-            {errors.Pincode && <span className="field-error">{errors.Pincode}</span>}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="space-y-1.5 col-span-1">
+            <label htmlFor="client-Pincode" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Pincode</label>
+            <div className="relative">
+              <input
+                id="client-Pincode"
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
+                  errors.Pincode
+                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
+                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
+                }`}
+                {...register("Pincode", { transform: (v) => digitsOnly(v, 6) })}
+                required
+              />
+              {errors.Pincode && (
+                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
+                  {errors.Pincode}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1.5 col-span-1 md:col-span-2">
+            <label htmlFor="client-contact-person" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Contact Person Name</label>
+            <div className="relative">
+              <input
+                id="client-contact-person"
+                type="text"
+                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
+                  errors.contactPerson
+                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
+                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
+                }`}
+                {...register("contactPerson", { transform: (v) => v.slice(0, 50) })}
+                required
+              />
+              {errors.contactPerson && (
+                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
+                  {errors.contactPerson}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="advocate-form-row advocate-form-row-wide">
-          <label htmlFor="client-contact-person">Contact Person Name</label>
-          <div className="form-input-wrapper">
-            <input
-              id="client-contact-person"
-              type="text"
-              className={errors.contactPerson ? "input-has-error" : ""}
-              {...register("contactPerson", { transform: (v) => v.slice(0, 50) })}
-              required
-            />
-            {errors.contactPerson && <span className="field-error">{errors.contactPerson}</span>}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-1.5">
+            <label htmlFor="client-contact" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Contact No</label>
+            <div className="relative">
+              <input
+                id="client-contact"
+                type="text"
+                inputMode="tel"
+                maxLength={10}
+                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
+                  errors.contactNumber
+                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
+                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
+                }`}
+                {...register("contactNumber", { transform: (v) => digitsOnly(v, 10) })}
+                required
+              />
+              {errors.contactNumber && (
+                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
+                  {errors.contactNumber}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="client-alt-contact" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Alternate Contact No</label>
+            <div className="relative">
+              <input
+                id="client-alt-contact"
+                type="text"
+                inputMode="tel"
+                maxLength={10}
+                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
+                  errors.alternateContactNumber
+                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
+                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
+                }`}
+                {...register("alternateContactNumber", { transform: (v) => digitsOnly(v, 10) })}
+                required
+              />
+              {errors.alternateContactNumber && (
+                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
+                  {errors.alternateContactNumber}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="advocate-form-row advocate-form-row-pair">
-          <label htmlFor="client-contact">Contact No</label>
-          <div className="form-input-wrapper">
-            <input
-              id="client-contact"
-              type="text"
-              inputMode="tel"
-              maxLength={10}
-              className={errors.contactNumber ? "input-has-error" : ""}
-              {...register("contactNumber", { transform: (v) => digitsOnly(v, 10) })}
-              required
-            />
-            {errors.contactNumber && <span className="field-error">{errors.contactNumber}</span>}
-          </div>
-          <label htmlFor="client-alt-contact">Alternate Contact No :</label>
-          <div className="form-input-wrapper">
-            <input
-              id="client-alt-contact"
-              type="text"
-              inputMode="tel"
-              maxLength={10}
-              className={errors.alternateContactNumber ? "input-has-error" : ""}
-              {...register("alternateContactNumber", { transform: (v) => digitsOnly(v, 10) })}
-              required
-            />
-            {errors.alternateContactNumber && <span className="field-error">{errors.alternateContactNumber}</span>}
-          </div>
-        </div>
-
-        <div className="advocate-form-row advocate-form-row-wide">
-          <label htmlFor="client-email">Email Id</label>
-          <div className="form-input-wrapper">
+        <div className="space-y-1.5">
+          <label htmlFor="client-email" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Email Id</label>
+          <div className="relative">
             <input
               id="client-email"
               type="email"
-              className={errors.emailId ? "input-has-error" : ""}
+              className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
+                errors.emailId
+                  ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
+                  : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
+              }`}
               {...register("emailId")}
             />
-            {errors.emailId && <span className="field-error">{errors.emailId}</span>}
+            {errors.emailId && (
+              <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
+                {errors.emailId}
+              </span>
+            )}
           </div>
         </div>
 
-        <div className="advocate-form-row advocate-form-row-pair">
-          <label htmlFor="client-pan">PAN No</label>
-          <div className="form-input-wrapper">
-            <input
-              id="client-pan"
-              type="text"
-              maxLength={10}
-              className={errors.panNumber ? "input-has-error" : ""}
-              {...register("panNumber", { transform: (v) => uppercaseAlphaNum(v, 10) })}
-            />
-            {errors.panNumber && <span className="field-error">{errors.panNumber}</span>}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-1.5">
+            <label htmlFor="client-pan" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">PAN No</label>
+            <div className="relative">
+              <input
+                id="client-pan"
+                type="text"
+                maxLength={10}
+                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
+                  errors.panNumber
+                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
+                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
+                }`}
+                {...register("panNumber", { transform: (v) => uppercaseAlphaNum(v, 10) })}
+              />
+              {errors.panNumber && (
+                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
+                  {errors.panNumber}
+                </span>
+              )}
+            </div>
           </div>
-          {showAadhaar ? (
-            <>
-              <label htmlFor="client-aadhaar">Aadhar No</label>
-              <div className="form-input-wrapper">
-                <input
-                  id="client-aadhaar"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={12}
-                  className={errors.aadhaarNumber ? "input-has-error" : ""}
-                  {...register("aadhaarNumber", { transform: (v) => digitsOnly(v, 12) })}
-                />
-                {errors.aadhaarNumber && <span className="field-error">{errors.aadhaarNumber}</span>}
-              </div>
-            </>
-          ) : (
-            <>
-              <label htmlFor="client-gst">GST No</label>
-              <div className="form-input-wrapper">
-                <input
-                  id="client-gst"
-                  type="text"
-                  maxLength={15}
-                  className={errors.gstNumber ? "input-has-error" : ""}
-                  {...register("gstNumber", { transform: (v) => uppercaseAlphaNum(v, 15) })}
-                />
-                {errors.gstNumber && <span className="field-error">{errors.gstNumber}</span>}
-              </div>
-            </>
-          )}
+
+          <div className="space-y-1.5">
+            {showAadhaar ? (
+              <>
+                <label htmlFor="client-aadhaar" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Aadhar No</label>
+                <div className="relative">
+                  <input
+                    id="client-aadhaar"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={12}
+                    className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
+                      errors.aadhaarNumber
+                        ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
+                        : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
+                    }`}
+                    {...register("aadhaarNumber", { transform: (v) => digitsOnly(v, 12) })}
+                  />
+                  {errors.aadhaarNumber && (
+                    <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
+                      {errors.aadhaarNumber}
+                    </span>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <label htmlFor="client-gst" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">GST No</label>
+                <div className="relative">
+                  <input
+                    id="client-gst"
+                    type="text"
+                    maxLength={15}
+                    className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
+                      errors.gstNumber
+                        ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
+                        : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
+                    }`}
+                    {...register("gstNumber", { transform: (v) => uppercaseAlphaNum(v, 15) })}
+                  />
+                  {errors.gstNumber && (
+                    <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
+                      {errors.gstNumber}
+                    </span>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
-        <div className="advocate-form-actions">
-          <SubmitButton isEdit={isEdit} saving={saving || isSubmitting} />
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
           <CancelButton onClick={handleCancel} disabled={saving || isSubmitting} />
+          <SubmitButton isEdit={isEdit} saving={saving || isSubmitting} />
         </div>
-        <div className="form-mandatory-hint">
-          ALL FIELDS ARE MANDATORY<sup>*</sup>
+        <div className="text-[10px] font-bold text-red-500 text-right mt-2 uppercase tracking-wider">
+          * All fields are mandatory
         </div>
       </form>
     </div>
