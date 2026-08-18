@@ -1,21 +1,21 @@
 .home-page-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 12rem);
   overflow: hidden;
   background-image: url("../assets/home-bg.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
 }
 
 /* White transparent overlay */
 .home-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.45);
   z-index: 1;
 }
 

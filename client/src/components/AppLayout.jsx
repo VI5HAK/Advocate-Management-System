@@ -142,8 +142,14 @@ function AppLayout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8">
-          <div className="mx-auto max-w-7xl">
+        <main className="flex-1 overflow-y-auto bg-slate-100/40 bg-gradient-to-tr from-slate-100/40 via-indigo-50/60 to-purple-50/40 p-6 md:p-8 relative">
+          {/* Ambient background decoration container */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <div className="absolute top-1/4 right-0 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl" />
+            <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-purple-200/25 rounded-full blur-3xl" />
+          </div>
+          
+          <div className="mx-auto max-w-7xl relative z-10">
             <Outlet />
           </div>
         </main>

@@ -115,18 +115,18 @@ function EntityListPage({ config, readOnly = false }) {
   const hasActions = !readOnly || (isAdvocate && apiPath === "/appointments");
 
   return (
-    <div className="master-page entity-list-page">
-      <header className="master-header">
-        <h1 className="master-title">{title}</h1>
+    <div className="space-y-6">
+      <header className="flex items-center justify-between gap-4">
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">{title}</h1>
         {!readOnly && (
           <CreateButton onClick={handleCreate} label={createButtonLabel} />
         )}
       </header>
 
-      <form className="master-search" onSubmit={handleSearch}>
-        <div className="master-search-input-wrap">
+      <form className="flex gap-3" onSubmit={handleSearch}>
+        <div className="relative flex-1 flex">
           <svg
-            className="search-icon-svg"
+            className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="none"
@@ -140,7 +140,7 @@ function EntityListPage({ config, readOnly = false }) {
           </svg>
           <input
             type="text"
-            className="master-search-input"
+            className="flex-1 w-full h-11 pl-11 pr-10 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none text-sm bg-slate-550/10 bg-slate-50 focus:bg-white"
             placeholder={searchPlaceholder}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -148,16 +148,19 @@ function EntityListPage({ config, readOnly = false }) {
           {searchInput && (
             <button
               type="button"
-              className="search-clear-btn"
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center h-7 w-7 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
               onClick={handleClearSearch}
             >
               ✕
             </button>
           )}
         </div>
-        <button type="submit" className="master-btn">
-          <span className="btn-text">Search</span>
-          <svg className="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <button
+          type="submit"
+          className="h-11 px-5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] transition-all text-xs sm:text-sm font-semibold text-slate-750 inline-flex items-center gap-1.5 cursor-pointer bg-white"
+        >
+          <span className="hidden sm:inline">Search</span>
+          <svg className="h-4 w-4" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -165,76 +168,85 @@ function EntityListPage({ config, readOnly = false }) {
       </form>
 
       {error && (
-        <p className="master-error" role="alert">
+        <div className="p-4 text-sm font-semibold text-red-650 bg-red-50 border border-red-100 rounded-xl" role="alert">
           {error}
-        </p>
+        </div>
       )}
 
       {info && (
-        <p className="entity-info" role="status">
+        <div className="p-4 text-sm font-semibold text-indigo-650 bg-indigo-50/50 border border-indigo-100/50 rounded-xl" role="status">
           {info}
-        </p>
+        </div>
       )}
 
-      <div className="master-table-wrap entity-table-wrap">
-        <table className="master-table entity-table">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <table className="w-full border-collapse text-left text-sm">
           <thead>
-            <tr>
+            <tr className="border-b border-slate-250 bg-slate-50/75">
               {displayedColumns.map((col) => (
-                <th key={col.key}>{col.label}</th>
+                <th key={col.key} className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px]">{col.label}</th>
               ))}
-              {hasActions && <th className="master-actions-col">Actions</th>}
+              {hasActions && <th className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px] text-right w-[180px]">Actions</th>}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={displayedColumns.length + (hasActions ? 1 : 0)} className="master-empty">
+                <td colSpan={displayedColumns.length + (hasActions ? 1 : 0)} className="px-5 py-8 text-center text-slate-400 font-medium">
                   Loading…
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={displayedColumns.length + (hasActions ? 1 : 0)} className="master-empty">
+                <td colSpan={displayedColumns.length + (hasActions ? 1 : 0)} className="px-5 py-8 text-center text-slate-400 font-medium">
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
               items.map((row) => (
-                <tr key={row.id}>
+                <tr key={row.id} className="hover:bg-slate-50/40 transition-colors">
                   {displayedColumns.map((col) => {
                     const rawValue = row[col.key];
+                    let cellContent;
                     if (col.render) {
-                      return <td key={col.key}>{col.render(rawValue, row)}</td>;
+                      cellContent = col.render(rawValue, row);
+                    } else {
+                      let value = formatCellValue(rawValue);
+                      if ((col.key === "startTime" || col.key === "endTime") && value !== "—") {
+                        value = formatTime12Hour(value);
+                      }
+                      if (col.key === "date" && value !== "—") {
+                        value = formatDateDMY(value);
+                      }
+                      cellContent = value;
                     }
-                    let value = formatCellValue(rawValue);
-                    if ((col.key === "startTime" || col.key === "endTime") && value !== "—") {
-                      value = formatTime12Hour(value);
-                    }
-                    if (col.key === "date" && value !== "—") {
-                      value = formatDateDMY(value);
-                    }
-                    return <td key={col.key}>{value}</td>;
+                    return (
+                      <td key={col.key} className="px-5 py-4 text-slate-700 font-semibold align-middle">
+                        {cellContent}
+                      </td>
+                    );
                   })}
                   {hasActions && (
-                    <td className="master-actions">
-                      {!readOnly ? (
-                        <>
-                          <EditButton onClick={() => handleUpdate(row)} />
-                          <DeleteButton onClick={() => handleDelete(row)} />
-                        </>
-                      ) : (
-                        apiPath === "/appointments" && row.caseNumber === "NO CASE" ? (
-                          "—"
+                    <td className="px-5 py-4 align-middle">
+                      <div className="flex gap-2 justify-end">
+                        {!readOnly ? (
+                          <>
+                            <EditButton onClick={() => handleUpdate(row)} />
+                            <DeleteButton onClick={() => handleDelete(row)} />
+                          </>
                         ) : (
-                          <EditButton onClick={() => handleOpenRemarks(row)} label="Remarks">
-                            <span className="btn-text">Remarks</span>
-                            <svg className="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                            </svg>
-                          </EditButton>
-                        )
-                      )}
+                          apiPath === "/appointments" && row.caseNumber === "NO CASE" ? (
+                            <span className="text-slate-400 font-medium px-3">—</span>
+                          ) : (
+                            <EditButton onClick={() => handleOpenRemarks(row)} label="Remarks">
+                              <span className="hidden sm:inline">Remarks</span>
+                              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                              </svg>
+                            </EditButton>
+                          )
+                        )}
+                      </div>
                     </td>
                   )}
                 </tr>

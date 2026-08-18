@@ -8,8 +8,6 @@ import {
   SubmitButton,
   CancelButton,
 } from "../../components/ActionButtons";
-import "../../styles/MasterPage.css";
-import "../../styles/LocationMaster.css";
 import { uppercaseAlphaAndSpaces } from "../../utils/validation";
 
 function LocationMaster() {
@@ -319,9 +317,9 @@ function LocationMaster() {
 
   if (view === "form") {
     return (
-      <div className="master-page master-page-form">
-        <header className="master-header">
-          <h1 className="master-title">
+      <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6">
+        <header className="border-b border-slate-100 pb-4">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
             {editingItem
               ? `Update ${form.type === "state" ? "State" : form.type === "district" ? "District" : "Taluk"}`
               : "Create New Location"}
@@ -329,20 +327,21 @@ function LocationMaster() {
         </header>
 
         {error && (
-          <p className="master-error" role="alert">
+          <div className="p-4 text-sm font-semibold text-red-650 bg-red-50 border border-red-100 rounded-xl" role="alert">
             {error}
-          </p>
+          </div>
         )}
 
-        <form className="master-form" onSubmit={handleSave}>
-          <div className="master-field">
-            <label>Location Type</label>
-            <div className="radio-group">
-              <label className="radio-label">
+        <form className="space-y-5" onSubmit={handleSave}>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Location Type</label>
+            <div className="flex flex-wrap gap-5 pt-1">
+              <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 cursor-pointer">
                 <input
                   type="radio"
                   name="locationType"
                   value="state"
+                  className="h-4 w-4 text-indigo-655 border-slate-300 focus:ring-indigo-500 focus:ring-offset-0 transition-all"
                   checked={form.type === "state"}
                   onChange={() =>
                     setForm((f) => ({
@@ -356,11 +355,12 @@ function LocationMaster() {
                 />
                 State
               </label>
-              <label className="radio-label">
+              <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 cursor-pointer">
                 <input
                   type="radio"
                   name="locationType"
                   value="district"
+                  className="h-4 w-4 text-indigo-650 border-slate-300 focus:ring-indigo-500 focus:ring-offset-0 transition-all"
                   checked={form.type === "district"}
                   onChange={() =>
                     setForm((f) => ({
@@ -374,11 +374,12 @@ function LocationMaster() {
                 />
                 District
               </label>
-              <label className="radio-label">
+              <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 cursor-pointer">
                 <input
                   type="radio"
                   name="locationType"
                   value="taluk"
+                  className="h-4 w-4 text-indigo-650 border-slate-300 focus:ring-indigo-500 focus:ring-offset-0 transition-all"
                   checked={form.type === "taluk"}
                   onChange={() =>
                     setForm((f) => ({
@@ -396,10 +397,11 @@ function LocationMaster() {
           </div>
 
           {(form.type === "district" || form.type === "taluk") && (
-            <div className="master-field">
-              <label htmlFor="form-state">State</label>
+            <div className="space-y-1.5">
+              <label htmlFor="form-state" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">State</label>
               <select
                 id="form-state"
+                className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none text-sm bg-slate-50 focus:bg-white"
                 value={form.State_ID}
                 onChange={(e) =>
                   setForm((f) => ({
@@ -423,10 +425,11 @@ function LocationMaster() {
           )}
 
           {form.type === "taluk" && (
-            <div className="master-field">
-              <label htmlFor="form-district">District</label>
+            <div className="space-y-1.5">
+              <label htmlFor="form-district" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">District</label>
               <select
                 id="form-district"
+                className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none text-sm bg-slate-50 focus:bg-white"
                 value={form.District_ID}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, District_ID: e.target.value }))
@@ -448,8 +451,8 @@ function LocationMaster() {
             </div>
           )}
 
-          <div className="master-field">
-            <label htmlFor="location-name">
+          <div className="space-y-1.5">
+            <label htmlFor="location-name" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
               {form.type === "state"
                 ? "State Name"
                 : form.type === "district"
@@ -459,6 +462,7 @@ function LocationMaster() {
             <input
               id="location-name"
               type="text"
+              className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none text-sm bg-slate-50 focus:bg-white"
               value={form.name}
               onChange={(e) => {
                 const target = e.target;
@@ -488,7 +492,7 @@ function LocationMaster() {
             />
           </div>
 
-          <div className="master-form-actions">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <CancelButton onClick={backToList} disabled={saving} />
             <SubmitButton isEdit={!!editingItem} saving={saving} />
           </div>
@@ -498,23 +502,23 @@ function LocationMaster() {
   }
 
   return (
-    <div className="master-page">
-      <header className="master-header">
-        <h1 className="master-title">Location Master</h1>
+    <div className="space-y-6">
+      <header className="flex items-center justify-between gap-4">
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Location Master</h1>
         <CreateButton onClick={openCreateForm} label="Create New" />
       </header>
 
       {error && (
-        <p className="master-error" role="alert">
+        <div className="p-4 text-sm font-semibold text-red-650 bg-red-50 border border-red-100 rounded-xl" role="alert">
           {error}
-        </p>
+        </div>
       )}
 
-      <div className="location-tree">
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden divide-y divide-slate-100">
         {loadingStates ? (
-          <div className="master-empty">Loading Locations…</div>
+          <div className="px-5 py-8 text-center text-slate-400 font-medium">Loading Locations…</div>
         ) : states.length === 0 ? (
-          <div className="master-empty">
+          <div className="px-5 py-8 text-center text-slate-400 font-medium">
             No states found. Please add a state.
           </div>
         ) : (
@@ -524,12 +528,12 @@ function LocationMaster() {
             const isStateLoading = !!loadingDistricts[state.State_ID];
 
             return (
-              <div key={state.State_ID} className="tree-node">
-                <div className="node-row state-row">
-                  <div className="node-content">
+              <div key={state.State_ID} className="flex flex-col divide-y divide-slate-100">
+                <div className="flex items-center justify-between px-5 py-4 bg-slate-50/75 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-3 flex-1">
                     <button
                       type="button"
-                      className="expand-toggle"
+                      className="p-1 rounded-lg text-slate-400 hover:text-slate-750 hover:bg-slate-150 active:scale-95 transition-all inline-flex items-center justify-center cursor-pointer h-7 w-7 bg-white/50"
                       onClick={() => toggleState(state.State_ID)}
                       aria-label={
                         isStateExpanded ? "Collapse state" : "Expand state"
@@ -538,30 +542,30 @@ function LocationMaster() {
                       {isStateExpanded ? (
                         <svg
                           viewBox="0 0 24 24"
-                          width="18"
-                          height="18"
+                          width="16"
+                          height="16"
                           fill="none"
                           stroke="currentColor"
-                          strokeWidth="2.5"
+                          strokeWidth="3"
                         >
                           <polyline points="6 9 12 15 18 9" />
                         </svg>
                       ) : (
                         <svg
                           viewBox="0 0 24 24"
-                          width="18"
-                          height="18"
+                          width="16"
+                          height="16"
                           fill="none"
                           stroke="currentColor"
-                          strokeWidth="2.5"
+                          strokeWidth="3"
                         >
                           <polyline points="9 18 15 12 9 6" />
                         </svg>
                       )}
                     </button>
-                    <span className="node-label">{state.State_Name}</span>
+                    <span className="text-slate-800 font-bold text-base">{state.State_Name}</span>
                   </div>
-                  <div className="node-actions">
+                  <div className="flex gap-2 justify-end">
                     <EditButton onClick={() => handleEditState(state)} />
                     <DeleteButton
                       onClick={() =>
@@ -576,13 +580,13 @@ function LocationMaster() {
                 </div>
 
                 {isStateExpanded && (
-                  <div className="children-container">
+                  <div className="flex flex-col divide-y divide-slate-100 bg-slate-50/10">
                     {isStateLoading ? (
-                      <div className="node-row district-row master-empty">
+                      <div className="pl-12 px-5 py-4 text-slate-400 font-medium">
                         Loading districts...
                       </div>
                     ) : stateDistricts.length === 0 ? (
-                      <div className="node-row district-row master-empty">
+                      <div className="pl-12 px-5 py-4 text-slate-400 font-medium">
                         No districts mapped.
                       </div>
                     ) : (
@@ -597,13 +601,13 @@ function LocationMaster() {
                         return (
                           <div
                             key={district.District_ID}
-                            className="tree-node"
+                            className="flex flex-col divide-y divide-slate-100"
                           >
-                            <div className="node-row district-row">
-                              <div className="node-content">
+                            <div className="flex items-center justify-between pl-12 pr-5 py-3.5 hover:bg-slate-50/40 transition-colors">
+                              <div className="flex items-center gap-3 flex-1">
                                 <button
                                   type="button"
-                                  className="expand-toggle"
+                                  className="p-1 rounded-lg text-slate-400 hover:text-slate-750 hover:bg-slate-150 active:scale-95 transition-all inline-flex items-center justify-center cursor-pointer h-7 w-7 bg-white/50"
                                   onClick={() =>
                                     toggleDistrict(district.District_ID)
                                   }
@@ -616,32 +620,32 @@ function LocationMaster() {
                                   {isDistrictExpanded ? (
                                     <svg
                                       viewBox="0 0 24 24"
-                                      width="18"
-                                      height="18"
+                                      width="16"
+                                      height="16"
                                       fill="none"
                                       stroke="currentColor"
-                                      strokeWidth="2.5"
+                                      strokeWidth="3"
                                     >
                                       <polyline points="6 9 12 15 18 9" />
                                     </svg>
                                   ) : (
                                     <svg
                                       viewBox="0 0 24 24"
-                                      width="18"
-                                      height="18"
+                                      width="16"
+                                      height="16"
                                       fill="none"
                                       stroke="currentColor"
-                                      strokeWidth="2.5"
+                                      strokeWidth="3"
                                     >
                                       <polyline points="9 18 15 12 9 6" />
                                     </svg>
                                   )}
                                 </button>
-                                <span className="node-label">
+                                <span className="text-slate-700 font-semibold text-sm">
                                   {district.District_Name}
                                 </span>
                               </div>
-                              <div className="node-actions">
+                              <div className="flex gap-2 justify-end">
                                 <EditButton
                                   onClick={() => handleEditDistrict(district)}
                                 />
@@ -659,28 +663,28 @@ function LocationMaster() {
                             </div>
 
                             {isDistrictExpanded && (
-                              <div className="children-container">
+                              <div className="flex flex-col divide-y divide-slate-100 bg-slate-50/20">
                                 {isDistrictLoading ? (
-                                  <div className="node-row taluk-row master-empty">
+                                  <div className="pl-20 px-5 py-3 text-slate-400 font-medium">
                                     Loading taluks...
                                   </div>
                                 ) : districtTaluks.length === 0 ? (
-                                  <div className="node-row taluk-row master-empty">
+                                  <div className="pl-20 px-5 py-3 text-slate-400 font-medium">
                                     No taluks mapped.
                                   </div>
                                 ) : (
                                   districtTaluks.map((taluk) => (
                                     <div
                                       key={taluk.Taluk_ID}
-                                      className="node-row taluk-row"
+                                      className="flex items-center justify-between pl-20 pr-5 py-3 hover:bg-slate-50/60 transition-colors"
                                     >
-                                      <div className="node-content">
-                                        <div className="expand-toggle-spacer" />
-                                        <span className="node-label">
+                                      <div className="flex items-center gap-3 flex-1">
+                                        <div className="w-7 h-7" />
+                                        <span className="text-slate-600 font-medium text-sm">
                                           {taluk.Taluk_Name}
                                         </span>
                                       </div>
-                                      <div className="node-actions">
+                                      <div className="flex gap-2 justify-end">
                                         <EditButton
                                           onClick={() =>
                                             handleEditTaluk(
