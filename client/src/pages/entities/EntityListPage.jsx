@@ -3,9 +3,17 @@ import { useNavigate } from "react-router-dom";
 import api from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import { CreateButton, EditButton, DeleteButton } from "../../components/ActionButtons";
+import {
+  CreateButton,
+  EditButton,
+  DeleteButton,
+} from "../../components/ActionButtons";
 import RemarksModal from "../../components/RemarksModal";
-import { formatCellValue, formatTime12Hour, formatDateDMY } from "../../utils/formatters";
+import {
+  formatCellValue,
+  formatTime12Hour,
+  formatDateDMY,
+} from "../../utils/formatters";
 import "../../styles/MasterPage.css";
 import "../../styles/EntityListPage.css";
 
@@ -28,9 +36,10 @@ function EntityListPage({ config, readOnly = false }) {
   const { user } = useAuth();
   const isAdvocate = user?.role === "advocate";
 
-  const displayedColumns = (isAdvocate && apiPath === "/appointments")
-    ? columns.filter((col) => col.key !== "advocateName")
-    : columns;
+  const displayedColumns =
+    isAdvocate && apiPath === "/appointments"
+      ? columns.filter((col) => col.key !== "advocateName")
+      : columns;
 
   const [items, setItems] = useState([]);
   const [searchInput, setSearchInput] = useState("");
@@ -117,7 +126,9 @@ function EntityListPage({ config, readOnly = false }) {
   return (
     <div className="space-y-6">
       <header className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">{title}</h1>
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          {title}
+        </h1>
         {!readOnly && (
           <CreateButton onClick={handleCreate} label={createButtonLabel} />
         )}
@@ -160,7 +171,17 @@ function EntityListPage({ config, readOnly = false }) {
           className="h-11 px-5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] transition-all text-xs sm:text-sm font-semibold text-slate-750 inline-flex items-center gap-1.5 cursor-pointer bg-white"
         >
           <span className="hidden sm:inline">Search</span>
-          <svg className="h-4 w-4" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            className="h-4 w-4"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -168,13 +189,19 @@ function EntityListPage({ config, readOnly = false }) {
       </form>
 
       {error && (
-        <div className="p-4 text-sm font-semibold text-red-650 bg-red-50 border border-red-100 rounded-xl" role="alert">
+        <div
+          className="p-4 text-sm font-semibold text-red-650 bg-red-50 border border-red-100 rounded-xl"
+          role="alert"
+        >
           {error}
         </div>
       )}
 
       {info && (
-        <div className="p-4 text-sm font-semibold text-indigo-650 bg-indigo-50/50 border border-indigo-100/50 rounded-xl" role="status">
+        <div
+          className="p-4 text-sm font-semibold text-indigo-650 bg-indigo-50/50 border border-indigo-100/50 rounded-xl"
+          role="status"
+        >
           {info}
         </div>
       )}
@@ -184,27 +211,45 @@ function EntityListPage({ config, readOnly = false }) {
           <thead>
             <tr className="border-b border-slate-250 bg-slate-50/75">
               {displayedColumns.map((col) => (
-                <th key={col.key} className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px]">{col.label}</th>
+                <th
+                  key={col.key}
+                  className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px]"
+                >
+                  {col.label}
+                </th>
               ))}
-              {hasActions && <th className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px] text-right w-[180px]">Actions</th>}
+              {hasActions && (
+                <th className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px] text-right w-[180px]">
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
               <tr>
-                <td colSpan={displayedColumns.length + (hasActions ? 1 : 0)} className="px-5 py-8 text-center text-slate-400 font-medium">
+                <td
+                  colSpan={displayedColumns.length + (hasActions ? 1 : 0)}
+                  className="px-5 py-8 text-center text-slate-400 font-medium"
+                >
                   Loading…
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={displayedColumns.length + (hasActions ? 1 : 0)} className="px-5 py-8 text-center text-slate-400 font-medium">
+                <td
+                  colSpan={displayedColumns.length + (hasActions ? 1 : 0)}
+                  className="px-5 py-8 text-center text-slate-400 font-medium"
+                >
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
               items.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50/40 transition-colors">
+                <tr
+                  key={row.id}
+                  className="hover:bg-slate-50/40 transition-colors"
+                >
                   {displayedColumns.map((col) => {
                     const rawValue = row[col.key];
                     let cellContent;
@@ -212,7 +257,10 @@ function EntityListPage({ config, readOnly = false }) {
                       cellContent = col.render(rawValue, row);
                     } else {
                       let value = formatCellValue(rawValue);
-                      if ((col.key === "startTime" || col.key === "endTime") && value !== "—") {
+                      if (
+                        (col.key === "startTime" || col.key === "endTime") &&
+                        value !== "—"
+                      ) {
                         value = formatTime12Hour(value);
                       }
                       if (col.key === "date" && value !== "—") {
@@ -221,7 +269,10 @@ function EntityListPage({ config, readOnly = false }) {
                       cellContent = value;
                     }
                     return (
-                      <td key={col.key} className="px-5 py-4 text-slate-700 font-semibold align-middle">
+                      <td
+                        key={col.key}
+                        className="px-5 py-4 text-slate-700 font-semibold align-middle"
+                      >
                         {cellContent}
                       </td>
                     );
@@ -234,17 +285,29 @@ function EntityListPage({ config, readOnly = false }) {
                             <EditButton onClick={() => handleUpdate(row)} />
                             <DeleteButton onClick={() => handleDelete(row)} />
                           </>
+                        ) : apiPath === "/appointments" &&
+                          row.caseNumber === "NO CASE" ? (
+                          <span className="text-slate-400 font-medium px-3">
+                            —
+                          </span>
                         ) : (
-                          apiPath === "/appointments" && row.caseNumber === "NO CASE" ? (
-                            <span className="text-slate-400 font-medium px-3">—</span>
-                          ) : (
-                            <EditButton onClick={() => handleOpenRemarks(row)} label="Remarks">
-                              <span className="hidden sm:inline">Remarks</span>
-                              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                              </svg>
-                            </EditButton>
-                          )
+                          <EditButton
+                            onClick={() => handleOpenRemarks(row)}
+                            label="Remarks"
+                          >
+                            <span className="hidden sm:inline">Remarks</span>
+                            <svg
+                              className="h-4 w-4"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                            </svg>
+                          </EditButton>
                         )}
                       </div>
                     </td>

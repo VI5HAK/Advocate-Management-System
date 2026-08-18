@@ -119,8 +119,8 @@ async function parseCaseBody(body) {
   if (!cnrNum || !alphaNumRegex.test(cnrNum)) {
     return { error: "CNR number is required and must contain only uppercase alphabets and numbers." };
   }
-  if (!efilingNum || !alphaNumSpaceRegex.test(efilingNum)) {
-    return { error: "E-filing number is required and must contain only uppercase alphabets, numbers, spaces, and /, \\, - characters." };
+  if (efilingNum && !alphaNumSpaceRegex.test(efilingNum)) {
+    return { error: "E-filing number must contain only uppercase alphabets, numbers, spaces, and /, \\, - characters." };
   }
 
   return {

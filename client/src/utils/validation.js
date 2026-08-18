@@ -197,8 +197,16 @@ export const caseSchema = z.object({
   regDate: z.string().min(1, "Registration date is required."),
   regNum: alphaNumSpaceField("Registration number", 100),
   cnrNum: alphaNumSpaceField("CNR number", 100),
-  efilingDate: z.string().min(1, "E-filing date is required."),
-  efilingNum: alphaNumSpaceField("E-filing number", 100),
+  efilingDate: z.string().optional().or(z.literal("")),
+  efilingNum: z.string()
+    .trim()
+    .max(100, "E-filing number must be less than 101 characters.")
+    .regex(
+      /^[A-Z0-9 \/\\-]*$/,
+      "E-filing number must contain only alphabets, numbers, spaces, and /, \\, - characters (uppercase)."
+    )
+    .optional()
+    .or(z.literal("")),
   courtName: z.string().min(1, "Court name is required."),
   advocateIds: z.array(z.number()).min(1, "At least one advocate must be selected."),
 });
