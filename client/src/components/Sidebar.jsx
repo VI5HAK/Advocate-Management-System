@@ -45,7 +45,7 @@ function SidebarLink({ item, className, onClick, icon: Icon }) {
           `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
             isActive
               ? "bg-indigo-600 text-white font-semibold shadow-md shadow-indigo-200/80 hover:bg-indigo-700"
-              : "text-slate-600 hover:bg-slate-50 hover:text-slate-950"
+              : "text-slate-600 hover:bg-white hover:text-slate-950"
           }`
         }
         onClick={onClick}
@@ -87,7 +87,7 @@ function Sidebar({ isOpen, onClose }) {
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200/80 bg-white transition-transform duration-300 md:sticky md:translate-x-0 ${
+      className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200/80 bg-slate-50 transition-transform duration-300 md:sticky md:translate-x-0 ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
       aria-label="Main navigation"
@@ -113,8 +113,8 @@ function Sidebar({ isOpen, onClose }) {
                 type="button"
                 className={`flex w-full items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                   expanded[item.id]
-                    ? "text-indigo-600 hover:bg-slate-50"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "text-indigo-600 hover:bg-white"
+                    : "text-slate-600 hover:bg-white hover:text-slate-900"
                 }`}
                 onClick={() => toggleSection(item.id)}
                 aria-expanded={Boolean(expanded[item.id])}
@@ -150,7 +150,7 @@ function Sidebar({ isOpen, onClose }) {
                             `flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors duration-200 ${
                               isChildActive
                                 ? "bg-indigo-100 text-indigo-700 font-bold"
-                                : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                                : "text-slate-500 hover:bg-white hover:text-slate-800"
                             }`
                           }
                         >
