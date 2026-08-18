@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../../api/client";
 import { CascadingLocationDropdown } from "../../components/CascadingLocationDropdown";
+import SearchableSelect from "../../components/SearchableSelect";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import {
   CreateButton,
@@ -235,25 +236,24 @@ function CourtMaster() {
 
           <div className="space-y-1.5">
             <label htmlFor="court-type" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Court Type</label>
-            <select
+            <SearchableSelect
               id="court-type"
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none text-sm bg-slate-50 focus:bg-white"
               value={form.courtType}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, courtType: e.target.value }))
+              options={[
+                { value: "Supreme Court", label: "Supreme Court" },
+                { value: "High Court", label: "High Court" },
+                { value: "District Court", label: "District Court" },
+                { value: "Family Court", label: "Family Court" },
+                { value: "Municipal Court", label: "Municipal Court" },
+                { value: "Sessions Court", label: "Sessions Court" },
+              ]}
+              onChange={(val) =>
+                setForm((f) => ({ ...f, courtType: val }))
               }
-              required
-            >
-              <option value="" disabled>
-                Select Court Type
-              </option>
-              <option value="Supreme Court">Supreme Court</option>
-              <option value="High Court">High Court</option>
-              <option value="District Court">District Court</option>
-              <option value="Family Court">Family Court</option>
-              <option value="Municipal Court">Municipal Court</option>
-              <option value="Sessions Court">Sessions Court</option>
-            </select>
+              placeholder="Select Court Type"
+              searchPlaceholder="Search court type..."
+              emptyMessage="No court types found."
+            />
           </div>
 
           <div className="space-y-1.5">

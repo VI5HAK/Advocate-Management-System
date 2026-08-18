@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
 import { CascadingLocationDropdown } from "../../components/CascadingLocationDropdown";
+import SearchableSelect from "../../components/SearchableSelect";
 import { SubmitButton, CancelButton } from "../../components/ActionButtons";
 import "../../styles/MasterPage.css";
 import "../../styles/AdvocateForm.css";
@@ -208,30 +209,28 @@ function AdvocateForm() {
 
           <div className="space-y-1.5">
             <label htmlFor="advocate-role" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Role</label>
-            <div className="relative">
-              <select
+              <SearchableSelect
                 id="advocate-role"
-                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
+                value={values.roleId}
+                options={roles.map((role) => ({
+                  value: String(role.id),
+                  label: role.name,
+                }))}
+                onChange={(val) => setValue("roleId", val)}
+                placeholder="Select role"
+                searchPlaceholder="Search role..."
+                emptyMessage="No roles found."
+                className={
                   errors.roleId
-                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
-                }`}
-                {...register("roleId")}
-                required
-              >
-                <option value="">Select role</option>
-                {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}
-                  </option>
-                ))}
-              </select>
+                    ? "border-red-400 focus:border-red-500 focus:ring-red-500/10"
+                    : ""
+                }
+              />
               {errors.roleId && (
                 <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
                   {errors.roleId}
                 </span>
               )}
-            </div>
           </div>
         </div>
 

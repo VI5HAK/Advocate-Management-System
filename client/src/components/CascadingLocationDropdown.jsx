@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/client";
+import SearchableSelect from "./SearchableSelect";
 
 /**
  * CascadingLocationDropdown Component
@@ -102,8 +103,7 @@ export function CascadingLocationDropdown({
     };
   }, [District_ID]);
 
-  const handleStateChange = (e) => {
-    const val = e.target.value;
+  const handleStateChange = (val) => {
     const selectedState = states.find((s) => String(s.State_ID) === String(val));
     onChange({
       State_ID: val ? Number(val) : "",
@@ -115,8 +115,7 @@ export function CascadingLocationDropdown({
     });
   };
 
-  const handleDistrictChange = (e) => {
-    const val = e.target.value;
+  const handleDistrictChange = (val) => {
     const selectedState = states.find((s) => String(s.State_ID) === String(State_ID));
     const selectedDistrict = districts.find((d) => String(d.District_ID) === String(val));
     onChange({
@@ -129,8 +128,7 @@ export function CascadingLocationDropdown({
     });
   };
 
-  const handleTalukChange = (e) => {
-    const val = e.target.value;
+  const handleTalukChange = (val) => {
     const selectedState = states.find((s) => String(s.State_ID) === String(State_ID));
     const selectedDistrict = districts.find((d) => String(d.District_ID) === String(District_ID));
     const selectedTaluk = taluks.find((t) => String(t.Taluk_ID) === String(val));
@@ -144,28 +142,26 @@ export function CascadingLocationDropdown({
     });
   };
 
+  const stateOptions = states.map((s) => ({ value: s.State_ID, label: s.State_Name }));
+  const districtOptions = districts.map((d) => ({ value: d.District_ID, label: d.District_Name }));
+  const talukOptions = taluks.map((t) => ({ value: t.Taluk_ID, label: t.Taluk_Name }));
+
   return (
     <>
       <div className={rowClassName}>
         <label htmlFor="location-state">State</label>
         <div className={inputWrapperClassName || undefined}>
-          <select
+          <SearchableSelect
             id="location-state"
             value={State_ID || ""}
+            options={stateOptions}
             onChange={handleStateChange}
-            required={required}
-            className={`${errors.State_ID ? "input-has-error" : ""} ${selectClassName}`}
+            placeholder={loadingStates ? "Loading states..." : "Select state"}
+            searchPlaceholder="Search state..."
+            emptyMessage="No states found."
             disabled={loadingStates}
-          >
-            <option value="">
-              {loadingStates ? "Loading states..." : "Select state"}
-            </option>
-            {states.map((s) => (
-              <option key={s.State_ID} value={s.State_ID}>
-                {s.State_Name}
-              </option>
-            ))}
-          </select>
+            className={errors.State_ID ? "border-red-500 focus:ring-red-500/10" : ""}
+          />
           {errors.State_ID && <span className="field-error">{errors.State_ID}</span>}
         </div>
       </div>
@@ -173,23 +169,23 @@ export function CascadingLocationDropdown({
       <div className={rowClassName}>
         <label htmlFor="location-district">District</label>
         <div className={inputWrapperClassName || undefined}>
-          <select
+          <SearchableSelect
             id="location-district"
             value={District_ID || ""}
+            options={districtOptions}
             onChange={handleDistrictChange}
-            required={required}
+            placeholder={
+              !State_ID
+                ? "Select a state first"
+                : loadingDistricts
+                ? "Loading districts..."
+                : "Select district"
+            }
+            searchPlaceholder="Search district..."
+            emptyMessage="No districts found."
             disabled={!State_ID || loadingDistricts}
-            className={`${errors.District_ID ? "input-has-error" : ""} ${selectClassName}`}
-          >
-            <option value="">
-              {loadingDistricts ? "Loading districts..." : "Select district"}
-            </option>
-            {districts.map((d) => (
-              <option key={d.District_ID} value={d.District_ID}>
-                {d.District_Name}
-              </option>
-            ))}
-          </select>
+            className={errors.District_ID ? "border-red-500 focus:ring-red-500/10" : ""}
+          />
           {errors.District_ID && <span className="field-error">{errors.District_ID}</span>}
         </div>
       </div>
@@ -197,23 +193,23 @@ export function CascadingLocationDropdown({
       <div className={rowClassName}>
         <label htmlFor="location-taluk">Taluk</label>
         <div className={inputWrapperClassName || undefined}>
-          <select
+          <SearchableSelect
             id="location-taluk"
             value={Taluk_ID || ""}
+            options={talukOptions}
             onChange={handleTalukChange}
-            required={required}
+            placeholder={
+              !District_ID
+                ? "Select a district first"
+                : loadingTaluks
+                ? "Loading taluks..."
+                : "Select taluk"
+            }
+            searchPlaceholder="Search taluk..."
+            emptyMessage="No taluks found."
             disabled={!District_ID || loadingTaluks}
-            className={`${errors.Taluk_ID ? "input-has-error" : ""} ${selectClassName}`}
-          >
-            <option value="">
-              {loadingTaluks ? "Loading taluks..." : "Select taluk"}
-            </option>
-            {taluks.map((t) => (
-              <option key={t.Taluk_ID} value={t.Taluk_ID}>
-                {t.Taluk_Name}
-              </option>
-            ))}
-          </select>
+            className={errors.Taluk_ID ? "border-red-500 focus:ring-red-500/10" : ""}
+          />
           {errors.Taluk_ID && <span className="field-error">{errors.Taluk_ID}</span>}
         </div>
       </div>

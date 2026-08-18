@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../../api/client";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import SearchableSelect from "../../components/SearchableSelect";
 import {
   CreateButton,
   EditButton,
@@ -399,55 +400,45 @@ function LocationMaster() {
           {(form.type === "district" || form.type === "taluk") && (
             <div className="space-y-1.5">
               <label htmlFor="form-state" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">State</label>
-              <select
+              <SearchableSelect
                 id="form-state"
-                className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none text-sm bg-slate-50 focus:bg-white"
                 value={form.State_ID}
-                onChange={(e) =>
+                options={states.map((s) => ({ value: s.State_ID, label: s.State_Name }))}
+                onChange={(val) =>
                   setForm((f) => ({
                     ...f,
-                    State_ID: e.target.value,
+                    State_ID: val,
                     District_ID: "",
                   }))
                 }
-                required
-              >
-                <option value="" disabled>
-                  Select State
-                </option>
-                {states.map((s) => (
-                  <option key={s.State_ID} value={s.State_ID}>
-                    {s.State_Name}
-                  </option>
-                ))}
-              </select>
+                placeholder="Select State"
+                searchPlaceholder="Search state..."
+                emptyMessage="No states found."
+              />
             </div>
           )}
 
           {form.type === "taluk" && (
             <div className="space-y-1.5">
               <label htmlFor="form-district" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">District</label>
-              <select
+              <SearchableSelect
                 id="form-district"
-                className="w-full h-11 px-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none text-sm bg-slate-50 focus:bg-white"
                 value={form.District_ID}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, District_ID: e.target.value }))
+                options={formDistricts.map((d) => ({ value: d.District_ID, label: d.District_Name }))}
+                onChange={(val) =>
+                  setForm((f) => ({ ...f, District_ID: val }))
                 }
-                required
-                disabled={!form.State_ID || loadingFormDistricts}
-              >
-                <option value="" disabled>
-                  {loadingFormDistricts
+                placeholder={
+                  !form.State_ID
+                    ? "Select a state first"
+                    : loadingFormDistricts
                     ? "Loading districts..."
-                    : "Select District"}
-                </option>
-                {formDistricts.map((d) => (
-                  <option key={d.District_ID} value={d.District_ID}>
-                    {d.District_Name}
-                  </option>
-                ))}
-              </select>
+                    : "Select District"
+                }
+                searchPlaceholder="Search district..."
+                emptyMessage="No districts found."
+                disabled={!form.State_ID || loadingFormDistricts}
+              />
             </div>
           )}
 
