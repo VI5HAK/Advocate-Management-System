@@ -116,8 +116,8 @@ async function parseCaseBody(body) {
   if (!regNum || !alphaNumSpaceRegex.test(regNum)) {
     return { error: "Registration number is required and must contain only uppercase alphabets, numbers, spaces, and /, \\, - characters." };
   }
-  if (!cnrNum || !alphaNumRegex.test(cnrNum)) {
-    return { error: "CNR number is required and must contain only uppercase alphabets and numbers." };
+  if (!cnrNum || cnrNum.length !== 16 || !alphaNumRegex.test(cnrNum)) {
+    return { error: "CNR number is required and must be exactly 16 uppercase alphabets and numbers." };
   }
   if (efilingNum && !alphaNumSpaceRegex.test(efilingNum)) {
     return { error: "E-filing number must contain only uppercase alphabets, numbers, spaces, and /, \\, - characters." };
@@ -404,6 +404,8 @@ export async function listCases(req, res, next) {
         cs.Case_Num AS caseNumber,
         cs.Case_Petitioner AS petitioner,
         cs.Case_Respodent AS respondent,
+        cs.Case_Filing_Num AS filingNum,
+        cs.Case_CNR_Num AS cnrNum,
         (
           SELECT GROUP_CONCAT(DISTINCT cl.Client_Name ORDER BY cl.Client_Name SEPARATOR ', ')
           FROM Appointment ap
@@ -431,7 +433,22 @@ export async function listCases(req, res, next) {
             AND (cl.Client_Delete_Flag = FALSE OR cl.Client_Delete_Flag = 0)
           ORDER BY ap.Appoint_Date DESC, ap.Appoint_ID DESC
           LIMIT 1
-        ) AS legacyClientName
+        ) AS legacyClientName,
+        (
+          SELECT GROUP_CONCAT(DISTINCT adv.Advocate_Name ORDER BY adv.Advocate_Name SEPARATOR ', ')
+          FROM Appointment ap
+          INNER JOIN Advocate_Master adv ON ap.Appoint_Advocate_ID = adv.Advocate_ID
+          WHERE ap.Appoint_Case_ID = cs.Case_ID
+            AND ap.Appoint_Created_By = '${SYSTEM_CASE_LINK}'
+            AND (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
+            AND (adv.Advocate_Delete_Flag = FALSE OR adv.Advocate_Delete_Flag = 0)
+        ) AS advocateName,
+        (
+          SELECT adv.Advocate_Name
+          FROM Advocate_Master adv
+          WHERE adv.Advocate_ID = cs.Case_Advocate_ID
+            AND (adv.Advocate_Delete_Flag = FALSE OR adv.Advocate_Delete_Flag = 0)
+        ) AS legacyAdvocateName
       FROM Case_Master cs
     `;
     const params = [];
@@ -477,10 +494,16 @@ export async function listCases(req, res, next) {
         clientCount = 1;
       }
 
+      let advocateName = row.advocateName;
+      if (!advocateName && row.legacyAdvocateName) {
+        advocateName = row.legacyAdvocateName;
+      }
+
       return {
         ...row,
         clientName: clientName ?? "—",
         clientCount: clientCount,
+        advocateName: advocateName ?? "—",
       };
     });
 

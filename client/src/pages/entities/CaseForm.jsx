@@ -12,6 +12,7 @@ import {
   caseSchema,
   uppercaseAlphaAndSpaces,
   uppercaseAlphaNumAndSpaces,
+  uppercaseAlphaNum,
 } from "../../utils/validation";
 
 const EMPTY_FORM = {
@@ -648,7 +649,7 @@ function CaseForm() {
                   ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
                   : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
               }`}
-              {...register("cnrNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
+              {...register("cnrNum", { transform: (v) => uppercaseAlphaNum(v, 16) })}
               required
             />
             {errors.cnrNum && (

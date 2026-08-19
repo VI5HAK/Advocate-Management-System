@@ -196,7 +196,9 @@ export const caseSchema = z.object({
   filingNum: alphaNumSpaceField("Filing number", 100),
   regDate: z.string().min(1, "Registration date is required."),
   regNum: alphaNumSpaceField("Registration number", 100),
-  cnrNum: alphaNumSpaceField("CNR number", 100),
+  cnrNum: z.string()
+    .length(16, "CNR number must be exactly 16 characters.")
+    .regex(/^[A-Z0-9]+$/, "CNR number must contain only uppercase alphabets and numbers."),
   efilingDate: z.string().optional().or(z.literal("")),
   efilingNum: z.string()
     .trim()

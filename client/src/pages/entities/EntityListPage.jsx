@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
@@ -133,6 +133,25 @@ function AppointmentMobileCard({
   );
 }
 
+function getColumnVisibilityClass(apiPath, columnKey) {
+  if (apiPath === "/advocates") {
+    if (columnKey !== "advocateName" && columnKey !== "roleName") {
+      return "hidden md:table-cell";
+    }
+  }
+  if (apiPath === "/clients") {
+    if (columnKey !== "clientName" && columnKey !== "clientType") {
+      return "hidden md:table-cell";
+    }
+  }
+  if (apiPath === "/cases") {
+    if (columnKey !== "clientName" && columnKey !== "caseNumber") {
+      return "hidden md:table-cell";
+    }
+  }
+  return "";
+}
+
 function EntityListPage({ config, readOnly = false }) {
   const IconComponent = ICON_MAP[config.apiPath] || Database;
   const {
@@ -166,6 +185,14 @@ function EntityListPage({ config, readOnly = false }) {
   const [info, setInfo] = useState("");
   const [selectedRemarksAppt, setSelectedRemarksAppt] = useState(null);
   const [rowToDelete, setRowToDelete] = useState(null);
+  const [expandedCases, setExpandedCases] = useState({});
+
+  const toggleCaseExpanded = (caseId) => {
+    setExpandedCases((prev) => ({
+      ...prev,
+      [caseId]: !prev[caseId],
+    }));
+  };
 
   const fetchItems = useCallback(
     async (search) => {
@@ -358,7 +385,7 @@ function EntityListPage({ config, readOnly = false }) {
               {displayedColumns.map((col) => (
                 <th
                   key={col.key}
-                  className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px]"
+                  className={`px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px] ${getColumnVisibilityClass(apiPath, col.key)}`}
                 >
                   {col.label}
                 </th>
@@ -390,75 +417,138 @@ function EntityListPage({ config, readOnly = false }) {
                 </td>
               </tr>
             ) : (
-              items.map((row) => (
-                <tr
-                  key={row.id}
-                  className="hover:bg-indigo-50/30 even:bg-slate-200/60 transition-colors"
-                >
-                  {displayedColumns.map((col) => {
-                    const rawValue = row[col.key];
-                    let cellContent;
-                    if (col.render) {
-                      cellContent = col.render(rawValue, row);
-                    } else {
-                      let value = formatCellValue(rawValue);
-                      if (
-                        (col.key === "startTime" || col.key === "endTime") &&
-                        value !== "—"
-                      ) {
-                        value = formatTime12Hour(value);
-                      }
-                      if (col.key === "date" && value !== "—") {
-                        value = formatDateDMY(value);
-                      }
-                      cellContent = value;
-                    }
-                    return (
-                      <td
-                        key={col.key}
-                        className="px-5 py-4 text-slate-700 font-semibold align-middle"
-                      >
-                        {cellContent}
-                      </td>
-                    );
-                  })}
-                  {hasActions && (
-                    <td className="px-5 py-4 align-middle">
-                      <div className="flex gap-2 justify-end">
-                        {!readOnly ? (
-                          <>
-                            <EditButton onClick={() => handleUpdate(row)} />
-                            <DeleteButton onClick={() => handleDelete(row)} />
-                          </>
-                        ) : apiPath === "/appointments" &&
-                          row.caseNumber === "NO CASE" ? (
-                          <span className="text-slate-400 font-medium px-3">
-                            —
-                          </span>
-                        ) : (
-                          <EditButton
-                            onClick={() => handleOpenRemarks(row)}
-                            label="Remarks"
+              items.map((row) => {
+                const isCaseExpanded = apiPath === "/cases" && !!expandedCases[row.id];
+                return (
+                  <Fragment key={row.id}>
+                    <tr
+                      className="hover:bg-indigo-50/30 even:bg-slate-200/60 transition-colors"
+                    >
+                      {displayedColumns.map((col) => {
+                        const rawValue = row[col.key];
+                        let cellContent;
+                        if (col.render) {
+                          cellContent = col.render(rawValue, row);
+                        } else {
+                          let value = formatCellValue(rawValue);
+                          if (
+                            (col.key === "startTime" || col.key === "endTime") &&
+                            value !== "—"
+                          ) {
+                            value = formatTime12Hour(value);
+                          }
+                          if (col.key === "date" && value !== "—") {
+                            value = formatDateDMY(value);
+                          }
+                          cellContent = value;
+                        }
+
+                        if (apiPath === "/cases" && col.key === "caseNumber") {
+                          const isExpanded = !!expandedCases[row.id];
+                          cellContent = (
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleCaseExpanded(row.id);
+                                }}
+                                className="p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer shrink-0 text-slate-400 hover:text-slate-650"
+                              >
+                                {isExpanded ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
+                              </button>
+                              <span className="font-semibold text-slate-750">{cellContent}</span>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <td
+                            key={col.key}
+                            className={`px-5 py-4 text-slate-700 font-semibold align-middle ${getColumnVisibilityClass(apiPath, col.key)}`}
                           >
-                            <span className="hidden sm:inline">Remarks</span>
-                            <svg
-                              className="h-4 w-4"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                            </svg>
-                          </EditButton>
-                        )}
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))
+                            {cellContent}
+                          </td>
+                        );
+                      })}
+                      {hasActions && (
+                        <td className="px-5 py-4 align-middle">
+                          <div className="flex gap-2 justify-end">
+                            {!readOnly ? (
+                              <>
+                                <EditButton onClick={() => handleUpdate(row)} />
+                                <DeleteButton onClick={() => handleDelete(row)} />
+                              </>
+                            ) : apiPath === "/appointments" &&
+                              row.caseNumber === "NO CASE" ? (
+                              <span className="text-slate-400 font-medium px-3">
+                                —
+                              </span>
+                            ) : (
+                              <EditButton
+                                onClick={() => handleOpenRemarks(row)}
+                                label="Remarks"
+                              >
+                                <span className="hidden sm:inline">Remarks</span>
+                                <svg
+                                  className="h-4 w-4"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                </svg>
+                              </EditButton>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                    {isCaseExpanded && (
+                      <tr className="bg-indigo-50/15">
+                        <td
+                          colSpan={displayedColumns.length + (hasActions ? 1 : 0)}
+                          className="px-8 py-4 border-t border-slate-100"
+                        >
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs animate-[fadeIn_0.15s_ease-out]">
+                            <div>
+                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                Petitioner
+                              </span>
+                              <span className="text-slate-700 font-semibold">{row.petitioner || "—"}</span>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                Respondent
+                              </span>
+                              <span className="text-slate-700 font-semibold">{row.respondent || "—"}</span>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                Filing Number
+                              </span>
+                              <span className="text-slate-700 font-semibold">{row.filingNum || "—"}</span>
+                            </div>
+                            <div>
+                              <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                CNR Number
+                              </span>
+                              <span className="text-slate-700 font-semibold">{row.cnrNum || "—"}</span>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })
             )}
           </tbody>
         </table>

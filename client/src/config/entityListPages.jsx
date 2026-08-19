@@ -50,10 +50,12 @@ export const ENTITY_LIST_CONFIG = {
     deleteErrorMessage: "Failed to delete case.",
     deleteConfirm: (row) => `Do you want to delete case "${row.caseNumber}"?`,
     columns: [
+      { key: "caseNumber", label: "Case Number" },
       {
         key: "clientName",
         label: "Client Name",
         render: (value) => {
+          if (!value) return "—";
           const clientNames = value.split(",").map((n) => n.trim()).filter(Boolean);
           if (clientNames.length > 1) {
             return (
@@ -70,9 +72,27 @@ export const ENTITY_LIST_CONFIG = {
           return value;
         },
       },
-      { key: "caseNumber", label: "Case Number" },
-      { key: "petitioner", label: "Petitioner" },
-      { key: "respondent", label: "Respondent" },
+      {
+        key: "advocateName",
+        label: "Advocates Assigned",
+        render: (value) => {
+          if (!value) return "—";
+          const advocateNames = value.split(",").map((n) => n.trim()).filter(Boolean);
+          if (advocateNames.length > 1) {
+            return (
+              <div className="client-names-list">
+                {advocateNames.map((name, idx) => (
+                  <div key={idx} className="client-name-item">
+                    <span className="multiple-clients-dot" title="Multiple advocates"></span>
+                    <span>{name}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          }
+          return value;
+        },
+      },
     ],
   },
   appointment: {
