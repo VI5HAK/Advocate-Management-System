@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
-import { CustomDatePicker } from "../../components/CustomDatePicker";
+import DatePicker from "../../components/ui/date-picker";
+import TimePicker from "../../components/ui/time-picker";
 import { SubmitButton, CancelButton } from "../../components/ActionButtons";
+import SearchableSelect from "../../components/SearchableSelect";
+import CheckboxDropdown from "../../components/CheckboxDropdown";
 import dayjs from "../../utils/datePicker";
-import "../../styles/MasterPage.css";
-import "../../styles/AdvocateForm.css";
 import { Calendar } from "lucide-react";
 
 const EMPTY_FORM = {
@@ -44,23 +45,10 @@ function AppointmentForm() {
   const [advocates, setAdvocates] = useState([]);
   const [caseAdvocateIds, setCaseAdvocateIds] = useState([]);
   const [selectedAdvocateIds, setSelectedAdvocateIds] = useState([]);
-  const [advocateDropdownOpen, setAdvocateDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [isExpired, setIsExpired] = useState(false);
-
-  useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (!e.target.closest(".custom-checkbox-dropdown")) {
-        setAdvocateDropdownOpen(false);
-      }
-    };
-    document.addEventListener("click", handleOutsideClick);
-    return () => {
-      document.removeEventListener("click", handleOutsideClick);
-    };
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -137,10 +125,6 @@ function AppointmentForm() {
     };
   }, [id, isEdit]);
 
-  const updateField = (field) => (e) => {
-    setForm((f) => ({ ...f, [field]: e.target.value }));
-  };
-
   const handleStartTimeChange = (e) => {
     const val = e.target.value;
     setForm((f) => {
@@ -150,17 +134,23 @@ function AppointmentForm() {
       }
       return updated;
     });
-    setError((prev) => (prev.includes("PM") && prev.includes("AM") ? "" : prev));
+    setError("");
   };
 
   const handleEndTimeChange = (e) => {
     const val = e.target.value;
-    if (getAmPm(form.startTime) === "PM" && getAmPm(val) === "AM") {
-      setError("If the start time is PM, then the end time can only be PM.");
-      return;
-    }
-    setError((prev) => (prev.includes("PM") && prev.includes("AM") ? "" : prev));
     setForm((f) => ({ ...f, endTime: val }));
+    setError("");
+  };
+
+  const handleDateChange = (e) => {
+    setForm((f) => ({ ...f, filingDate: e.target.value }));
+    setError("");
+  };
+
+  const handleAdvocateChange = (newIds) => {
+    setSelectedAdvocateIds(newIds);
+    setError("");
   };
 
   const handleClientChange = async (e) => {
@@ -169,6 +159,7 @@ function AppointmentForm() {
     setCases([]);
     setCaseAdvocateIds([]);
     setSelectedAdvocateIds([]);
+    setError("");
     if (val) {
       try {
         const casesRes = await api.get(`/cases?clientId=${val}`);
@@ -184,6 +175,7 @@ function AppointmentForm() {
     setForm((f) => ({ ...f, caseId: val }));
     setCaseAdvocateIds([]);
     setSelectedAdvocateIds([]);
+    setError("");
     if (val === "NO_CASE") {
       setCaseAdvocateIds(advocates.map((a) => a.id));
     } else if (val) {
@@ -213,6 +205,14 @@ function AppointmentForm() {
     }
 
     if (!form.startTime) return setError("Start time is required.");
+
+    if (!isEdit && form.filingDate === todayStr) {
+      const currentTimeStr = dayjs().format("HH:mm");
+      if (form.startTime < currentTimeStr) {
+        return setError("Appointment start time cannot be in the past.");
+      }
+    }
+
     if (!form.endTime) return setError("End time is required.");
 
     if (getAmPm(form.startTime) === "PM" && getAmPm(form.endTime) === "AM") {
@@ -251,163 +251,153 @@ function AppointmentForm() {
 
   if (loading) {
     return (
-      <div className="advocate-form-page">
-        <h1 className="advocate-form-title flex items-center justify-center gap-2">
-          <Calendar className="h-8 w-8 text-indigo-650 shrink-0" />
-          {isEdit ? "Update Appointment" : "Create Appointment"}
-        </h1>
-        <p className="master-empty">Loading…</p>
+      <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6 animate-pulse">
+        <header className="border-b border-slate-100 pb-4">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <Calendar className="h-7 w-7 text-indigo-650 shrink-0" />
+            {isEdit ? "Update Appointment" : "Create Appointment"}
+          </h1>
+        </header>
+        <div className="py-8 text-center text-slate-400 font-medium">
+          Loading…
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="advocate-form-page">
-      <h1 className="advocate-form-title flex items-center justify-center gap-2">
-        <Calendar className="h-8 w-8 text-indigo-650 shrink-0" />
-        {isEdit ? "Update Appointment" : "Create Appointment"}
-      </h1>
+    <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6">
+      <header className="border-b border-slate-100 pb-4">
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <Calendar className="h-7 w-7 text-indigo-650 shrink-0" />
+          {isEdit ? "Update Appointment" : "Create Appointment"}
+        </h1>
+      </header>
 
       {error && (
-        <p className="master-error" role="alert">
+        <div className="p-4 text-sm font-semibold text-red-650 bg-red-50 border border-red-100 rounded-xl" role="alert">
           {error}
-        </p>
+        </div>
       )}
 
-      <form className="advocate-form" onSubmit={handleSubmit}>
-        <div className="advocate-form-row">
-          <label htmlFor="appointment-client">Client Name</label>
-          <select
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="space-y-1.5">
+          <label htmlFor="appointment-client" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Client Name
+          </label>
+          <SearchableSelect
             id="appointment-client"
             value={form.clientId}
-            onChange={handleClientChange}
-            required
-            disabled={isExpired}
-          >
-            <option value="">Select client</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.clientName}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="advocate-form-row">
-          <label htmlFor="appointment-case">Case Number</label>
-          <select
-            id="appointment-case"
-            value={form.caseId}
-            onChange={handleCaseChange}
-            required
-            disabled={isExpired}
-          >
-            <option value="">Select case</option>
-            <option value="NO_CASE">NO CASE</option>
-            {cases.map((cs) => (
-              <option key={cs.id} value={cs.id}>
-                {cs.caseNumber}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="advocate-form-row">
-          <label htmlFor="appointment-advocate">Advocate</label>
-          <div className="custom-checkbox-dropdown">
-            <button
-              id="appointment-advocate"
-              type="button"
-              className="dropdown-trigger-btn"
-              onClick={() => setAdvocateDropdownOpen(!advocateDropdownOpen)}
-              disabled={!form.caseId || isExpired}
-            >
-              {selectedAdvocateIds.length > 0
-                ? advocates
-                  .filter((a) => selectedAdvocateIds.includes(a.id))
-                  .map((a) => a.advocateName)
-                  .join(", ")
-                : "Select advocates"}
-              <span className="dropdown-arrow">▼</span>
-            </button>
-            {advocateDropdownOpen && (
-              <div className="dropdown-options-list">
-                {advocates
-                  .filter((a) => caseAdvocateIds.includes(a.id))
-                  .map((a) => {
-                    const isChecked = selectedAdvocateIds.includes(a.id);
-                    return (
-                      <label key={a.id} className="dropdown-option-item">
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => {
-                            if (isChecked) {
-                              setSelectedAdvocateIds(selectedAdvocateIds.filter((id) => id !== a.id));
-                            } else {
-                              setSelectedAdvocateIds([...selectedAdvocateIds, a.id]);
-                            }
-                          }}
-                        />
-                        <span className="option-label-text">{a.advocateName}</span>
-                      </label>
-                    );
-                  })}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="advocate-form-row">
-          <label htmlFor="appointment-filing-date"> Date</label>
-          <CustomDatePicker
-            id="appointment-filing-date"
-            min={getTodayDateString()}
-            value={form.filingDate}
-            onChange={updateField("filingDate")}
-            required
+            options={clients.map((c) => ({
+              value: String(c.id),
+              label: c.clientName,
+            }))}
+            onChange={(val) => handleClientChange({ target: { value: val } })}
+            placeholder="Select client"
+            searchPlaceholder="Search client..."
+            emptyMessage="No clients found."
             disabled={isExpired}
           />
         </div>
 
-        <div className="advocate-form-row advocate-form-row-pair">
-          <label htmlFor="appointment-start-date">Start Time</label>
-          <div className="time-input-wrapper">
-            <input
-              id="appointment-start-date"
-              type="time"
-              value={form.startTime}
-              onChange={handleStartTimeChange}
-              required
-              disabled={isExpired}
-            />
-            {form.startTime && (
-              <span className="time-am-pm-label">{getAmPm(form.startTime)}</span>
-            )}
+        <div className="space-y-1.5">
+          <label htmlFor="appointment-case" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Case Number
+          </label>
+          <SearchableSelect
+            id="appointment-case"
+            value={form.caseId}
+            options={[
+              { value: "NO_CASE", label: "NO CASE" },
+              ...cases.map((cs) => ({
+                value: String(cs.id),
+                label: cs.caseNumber,
+              })),
+            ]}
+            onChange={(val) => handleCaseChange({ target: { value: val } })}
+            placeholder="Select case"
+            searchPlaceholder="Search case..."
+            emptyMessage="No cases found."
+            disabled={!form.clientId || isExpired}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label htmlFor="appointment-advocate" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Advocate
+          </label>
+          <CheckboxDropdown
+            id="appointment-advocate"
+            options={advocates
+              .filter((a) => caseAdvocateIds.includes(a.id))
+              .map((a) => ({ id: a.id, name: a.advocateName }))}
+            selectedIds={selectedAdvocateIds}
+            onChange={handleAdvocateChange}
+            placeholder="Select advocates"
+            disabled={!form.caseId || isExpired}
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label htmlFor="appointment-filing-date" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Date
+          </label>
+          <DatePicker
+            id="appointment-filing-date"
+            min={getTodayDateString()}
+            value={form.filingDate}
+            onChange={(val) => handleDateChange({ target: { value: val } })}
+            required={true}
+            disabled={isExpired}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-1.5">
+            <label htmlFor="appointment-start-date" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Start Time
+            </label>
+            <div className="flex items-center gap-2">
+              <TimePicker
+                id="appointment-start-date"
+                value={form.startTime}
+                onChange={handleStartTimeChange}
+                disabled={isExpired}
+              />
+              {form.startTime && (
+                <span className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-tr from-indigo-50 to-indigo-100 text-indigo-750 border border-indigo-200 shadow-sm shrink-0 animate-[fadeIn_0.2s_ease-out]">
+                  {getAmPm(form.startTime)}
+                </span>
+              )}
+            </div>
           </div>
-          <label htmlFor="appointment-end-date">End Time</label>
-          <div className="time-input-wrapper">
-            <input
-              id="appointment-end-date"
-              type="time"
-              value={form.endTime}
-              onChange={handleEndTimeChange}
-              required
-              disabled={isExpired}
-              min={getAmPm(form.startTime) === "PM" ? "12:00" : undefined}
-            />
-            {form.endTime && (
-              <span className="time-am-pm-label">{getAmPm(form.endTime)}</span>
-            )}
+
+          <div className="space-y-1.5">
+            <label htmlFor="appointment-end-date" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+              End Time
+            </label>
+            <div className="flex items-center gap-2">
+              <TimePicker
+                id="appointment-end-date"
+                value={form.endTime}
+                onChange={handleEndTimeChange}
+                disabled={isExpired}
+              />
+              {form.endTime && (
+                <span className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-tr from-indigo-50 to-indigo-100 text-indigo-750 border border-indigo-200 shadow-sm shrink-0 animate-[fadeIn_0.2s_ease-out]">
+                  {getAmPm(form.endTime)}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="advocate-form-actions">
-          <SubmitButton isEdit={isEdit} saving={saving} disabled={saving || isExpired} />
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
           <CancelButton onClick={handleCancel} disabled={saving} />
+          <SubmitButton isEdit={isEdit} saving={saving} disabled={saving || isExpired} />
         </div>
-        <div className="form-mandatory-hint">
-          ALL FIELDS ARE MANDATORY<sup>*</sup>
+        <div className="text-[10px] font-bold text-red-500 text-right mt-2 uppercase tracking-wider">
+          * All fields are mandatory
         </div>
       </form>
     </div>

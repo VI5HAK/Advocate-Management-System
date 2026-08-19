@@ -102,6 +102,16 @@ export async function parseAppointmentBody(body, excludeAppointmentId = null) {
     return { error: "Appointment date must be today or a future date." };
   }
 
+  if (!excludeAppointmentId && filingDate === todayStr) {
+    const now = new Date();
+    const currentHours = String(now.getHours()).padStart(2, '0');
+    const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+    const currentTimeStr = `${currentHours}:${currentMinutes}`;
+    if (startTime < currentTimeStr) {
+      return { error: "Appointment start time cannot be in the past." };
+    }
+  }
+
   if (!startTime) {
     return { error: "Start time is required." };
   }
@@ -456,7 +466,7 @@ export async function listAppointments(req, res, next) {
     }
 
     sql += " GROUP BY ap.Appoint_Client_ID, ap.Appoint_Case_ID, cl.Client_Name, cs.Case_Num, ap.Appoint_Date, ap.Appoint_Start_Time, ap.Appoint_End_Time";
-    sql += " ORDER BY date DESC, startTime DESC";
+    sql += " ORDER BY date ASC, startTime ASC";
 
     const [rows] = await pool.query(sql, params);
     const mapped = rows.map((row) => {
