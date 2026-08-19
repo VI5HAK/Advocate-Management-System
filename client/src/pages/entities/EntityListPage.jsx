@@ -16,7 +16,7 @@ import {
 } from "../../utils/formatters";
 import "../../styles/MasterPage.css";
 import "../../styles/EntityListPage.css";
-import { UserCheck, Users, Briefcase, Calendar, Scale, Database } from "lucide-react";
+import { UserCheck, Users, Briefcase, Calendar, Scale, Database, ChevronDown, ChevronUp } from "lucide-react";
 
 const ICON_MAP = {
   "/advocates": UserCheck,
@@ -25,6 +25,113 @@ const ICON_MAP = {
   "/appointments": Calendar,
   "/hearings": Scale,
 };
+
+function AppointmentMobileCard({
+  row,
+  readOnly,
+  isAdvocate,
+  hasActions,
+  handleUpdate,
+  handleDelete,
+  handleOpenRemarks,
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  const formattedDate = row.date && row.date !== "—" ? formatDateDMY(row.date) : "—";
+  const formattedStartTime = row.startTime && row.startTime !== "—" ? formatTime12Hour(row.startTime) : "—";
+  const formattedEndTime = row.endTime && row.endTime !== "—" ? formatTime12Hour(row.endTime) : "—";
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        {/* Clickable Header Area */}
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="flex-1 text-left flex items-center gap-2 focus:outline-none cursor-pointer min-w-0"
+        >
+          <div className="flex-1 min-w-0">
+            <h4 className="font-bold text-slate-800 text-sm break-words">
+              {row.advocateName || "—"}
+            </h4>
+            <span className="text-xs text-indigo-650 font-bold bg-indigo-50/75 px-2 py-0.5 rounded-lg inline-block mt-1">
+              {formattedDate}
+            </span>
+          </div>
+          <span className="p-1 rounded-lg hover:bg-slate-50 transition-colors shrink-0">
+            {expanded ? (
+              <ChevronUp className="h-4 w-4 text-slate-400 shrink-0" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
+            )}
+          </span>
+        </button>
+
+        {/* Actions Area */}
+        {hasActions && (
+          <div className="flex gap-1.5 shrink-0 items-center">
+            {!readOnly ? (
+              <>
+                <EditButton onClick={() => handleUpdate(row)} />
+                <DeleteButton onClick={() => handleDelete(row)} />
+              </>
+            ) : row.caseNumber === "NO CASE" ? (
+              <span className="text-slate-400 font-medium text-xs px-2 py-1">—</span>
+            ) : (
+              <EditButton
+                onClick={() => handleOpenRemarks(row)}
+                label="Remarks"
+              >
+                <span className="hidden sm:inline">Remarks</span>
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              </EditButton>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Accordion Body */}
+      {expanded && (
+        <div className="border-t border-slate-100 pt-3 grid grid-cols-2 gap-3 text-xs animate-[fadeIn_0.15s_ease-out]">
+          <div>
+            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Client Name
+            </span>
+            <span className="text-slate-700 font-semibold">{row.clientName || "—"}</span>
+          </div>
+          <div>
+            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Case Number
+            </span>
+            <span className="text-slate-700 font-semibold">{row.caseNumber || "—"}</span>
+          </div>
+          <div>
+            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Start Time
+            </span>
+            <span className="text-slate-700 font-semibold">{formattedStartTime}</span>
+          </div>
+          <div>
+            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              End Time
+            </span>
+            <span className="text-slate-700 font-semibold">{formattedEndTime}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function EntityListPage({ config, readOnly = false }) {
   const IconComponent = ICON_MAP[config.apiPath] || Database;
@@ -217,7 +324,34 @@ function EntityListPage({ config, readOnly = false }) {
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+      {apiPath === "/appointments" && (
+        <div className="block md:hidden space-y-4">
+          {loading ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 font-medium shadow-sm">
+              Loading…
+            </div>
+          ) : items.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 font-medium shadow-sm">
+              {emptyMessage}
+            </div>
+          ) : (
+            items.map((row) => (
+              <AppointmentMobileCard
+                key={row.id}
+                row={row}
+                readOnly={readOnly}
+                isAdvocate={isAdvocate}
+                hasActions={hasActions}
+                handleUpdate={handleUpdate}
+                handleDelete={handleDelete}
+                handleOpenRemarks={handleOpenRemarks}
+              />
+            ))
+          )}
+        </div>
+      )}
+
+      <div className={`overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm ${apiPath === "/appointments" ? "hidden md:block" : "block"}`}>
         <table className="w-full border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-slate-250 bg-slate-50/75">
