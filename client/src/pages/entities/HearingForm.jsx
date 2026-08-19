@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/client";
-import { CustomDatePicker } from "../../components/CustomDatePicker";
-import { CheckboxDropdown } from "../../components/CheckboxDropdown";
+import DatePicker from "../../components/ui/date-picker";
+import TimePicker from "../../components/ui/time-picker";
+import SearchableSelect from "../../components/SearchableSelect";
+import CheckboxDropdown from "../../components/CheckboxDropdown";
 import { SubmitButton, CancelButton } from "../../components/ActionButtons";
 import dayjs from "../../utils/datePicker";
-import "../../styles/MasterPage.css";
-import "../../styles/AdvocateForm.css";
 import { Scale } from "lucide-react";
 
 const EMPTY_FORM = {
@@ -239,32 +239,40 @@ function HearingForm() {
 
   if (loading) {
     return (
-      <div className="advocate-form-page">
-        <h1 className="advocate-form-title flex items-center justify-center gap-2">
-          <Scale className="h-8 w-8 text-indigo-650 shrink-0" />
-          {isEdit ? "Update Hearing" : "Create Hearing"}
-        </h1>
-        <p className="master-empty">Loading…</p>
+      <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6 animate-pulse">
+        <header className="border-b border-slate-100 pb-4">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <Scale className="h-7 w-7 text-indigo-650 shrink-0" />
+            {isEdit ? "Update Hearing" : "Create Hearing"}
+          </h1>
+        </header>
+        <div className="py-8 text-center text-slate-400 font-medium">
+          Loading…
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="advocate-form-page">
-      <h1 className="advocate-form-title flex items-center justify-center gap-2">
-        <Scale className="h-8 w-8 text-indigo-650 shrink-0" />
-        {isEdit ? "Update Hearing" : "Create Hearing"}
-      </h1>
+    <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6">
+      <header className="border-b border-slate-100 pb-4">
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <Scale className="h-7 w-7 text-indigo-650 shrink-0" />
+          {isEdit ? "Update Hearing" : "Create Hearing"}
+        </h1>
+      </header>
 
       {error && (
-        <p className="master-error" role="alert">
+        <div className="p-4 text-sm font-semibold text-red-650 bg-red-50 border border-red-100 rounded-xl" role="alert">
           {error}
-        </p>
+        </div>
       )}
 
-      <form className="advocate-form" onSubmit={handleSubmit}>
-        <div className="advocate-form-row">
-          <label htmlFor="hearing-client">Client Name</label>
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="space-y-1.5">
+          <label htmlFor="hearing-client" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Client Name
+          </label>
           <CheckboxDropdown
             id="hearing-client"
             options={clients.map((c) => ({ id: c.id, name: c.clientName }))}
@@ -274,26 +282,29 @@ function HearingForm() {
           />
         </div>
 
-        <div className="advocate-form-row">
-          <label htmlFor="hearing-case">Case Number</label>
-          <select
+        <div className="space-y-1.5">
+          <label htmlFor="hearing-case" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Case Number
+          </label>
+          <SearchableSelect
             id="hearing-case"
             value={form.caseId}
-            onChange={handleCaseChange}
-            required
+            options={cases.map((cs) => ({
+              value: String(cs.id),
+              label: cs.caseNumber,
+            }))}
+            onChange={(val) => handleCaseChange({ target: { value: val } })}
+            placeholder="Select case"
+            searchPlaceholder="Search case..."
+            emptyMessage="No cases found."
             disabled={selectedClientIds.length === 0}
-          >
-            <option value="">Select case</option>
-            {cases.map((cs) => (
-              <option key={cs.id} value={cs.id}>
-                {cs.caseNumber}
-              </option>
-            ))}
-          </select>
+          />
         </div>
 
-        <div className="advocate-form-row">
-          <label htmlFor="hearing-advocate">Advocate</label>
+        <div className="space-y-1.5">
+          <label htmlFor="hearing-advocate" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Advocate
+          </label>
           <CheckboxDropdown
             id="hearing-advocate"
             options={advocates
@@ -306,80 +317,91 @@ function HearingForm() {
           />
         </div>
 
-        <div className="advocate-form-row">
-          <label htmlFor="hearing-court">Court Name</label>
+        <div className="space-y-1.5">
+          <label htmlFor="hearing-court" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Court Name
+          </label>
           <input
             id="hearing-court"
             type="text"
             value={courtName || "—"}
             readOnly
             disabled
+            className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-100/50 text-slate-500 font-semibold cursor-not-allowed outline-none text-sm"
           />
         </div>
 
-        <div className="advocate-form-row">
-          <label htmlFor="hearing-judge">Judge Name</label>
-          <select
+        <div className="space-y-1.5">
+          <label htmlFor="hearing-judge" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Judge Name
+          </label>
+          <SearchableSelect
             id="hearing-judge"
             value={form.judgeId}
-            onChange={updateField("judgeId")}
-            required
-          >
-            <option value="">Select judge</option>
-            {judges.map((j) => (
-              <option key={j.id} value={j.id}>
-                {j.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="advocate-form-row">
-          <label htmlFor="hearing-date">Hearing Date</label>
-          <CustomDatePicker
-            id="hearing-date"
-            min={getTodayDateString()}
-            value={form.date}
-            onChange={updateField("date")}
-            required
+            options={judges.map((j) => ({
+              value: String(j.id),
+              label: j.name,
+            }))}
+            onChange={(val) => setForm((f) => ({ ...f, judgeId: val }))}
+            placeholder="Select judge"
+            searchPlaceholder="Search judge..."
+            emptyMessage="No judges found."
           />
         </div>
 
-        <div className="advocate-form-row">
-          <label htmlFor="hearing-time">Hearing Time</label>
-          <div className="time-input-wrapper">
-            <input
-              id="hearing-time"
-              type="time"
-              value={form.time}
-              onChange={handleTimeChange}
-              required
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="space-y-1.5">
+            <label htmlFor="hearing-date" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Hearing Date
+            </label>
+            <DatePicker
+              id="hearing-date"
+              min={getTodayDateString()}
+              value={form.date}
+              onChange={(val) => setForm((f) => ({ ...f, date: val }))}
+              required={true}
             />
-            {form.time && (
-              <span className="time-am-pm-label">
-                {getAmPm(form.time)}
-              </span>
-            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="hearing-time" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Hearing Time
+            </label>
+            <div className="flex items-center gap-2">
+              <TimePicker
+                id="hearing-time"
+                value={form.time}
+                onChange={handleTimeChange}
+              />
+              {form.time && (
+                <span className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-tr from-indigo-50 to-indigo-100 text-indigo-750 border border-indigo-200 shadow-sm shrink-0 animate-[fadeIn_0.2s_ease-out]">
+                  {getAmPm(form.time)}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="advocate-form-row">
-          <label htmlFor="hearing-purpose">Purpose of Hearing</label>
+        <div className="space-y-1.5">
+          <label htmlFor="hearing-purpose" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Purpose of Hearing
+          </label>
           <textarea
             id="hearing-purpose"
             value={form.hearingPurpose}
             onChange={updateField("hearingPurpose")}
             maxLength={250}
             rows={4}
+            className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-slate-200 outline-none text-sm transition-all focus:ring-4 focus:bg-white focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50 text-slate-800"
           />
         </div>
 
-        <div className="advocate-form-actions">
-          <SubmitButton isEdit={isEdit} saving={saving} disabled={saving} />
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
           <CancelButton onClick={handleCancel} disabled={saving} />
+          <SubmitButton isEdit={isEdit} saving={saving} disabled={saving} />
         </div>
-        <div className="form-mandatory-hint">
-          ALL FIELDS ARE MANDATORY<sup>*</sup>
+        <div className="text-[10px] font-bold text-red-500 text-right mt-2 uppercase tracking-wider">
+          * All fields are mandatory
         </div>
       </form>
     </div>

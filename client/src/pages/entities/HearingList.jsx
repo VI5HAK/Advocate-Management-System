@@ -1,14 +1,20 @@
 import { useEffect, useState, Fragment } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/client";
 import { formatDateDMY } from "../../utils/formatters";
-import "../../styles/MasterPage.css";
-import "../../styles/EntityListPage.css";
+import {
+  CreateButton,
+  EditButton,
+  DeleteButton,
+} from "../../components/ActionButtons";
+import ConfirmDialog from "../../components/ConfirmDialog";
+import { ChevronDown, ChevronUp, Scale } from "lucide-react";
 
 function HearingList() {
   const { user } = useAuth();
   const isAdvocate = user?.role === "advocate";
+  const navigate = useNavigate();
 
   const [hearings, setHearings] = useState([]);
   const [search, setSearch] = useState("");
@@ -19,6 +25,9 @@ function HearingList() {
   const [expandedHearingId, setExpandedHearingId] = useState(null);
   const [caseDetailsDict, setCaseDetailsDict] = useState({});
   const [caseLoadingDict, setCaseLoadingDict] = useState({});
+
+  // State for delete confirmation
+  const [hearingToDelete, setHearingToDelete] = useState(null);
 
   const fetchHearings = async (searchTerm = "") => {
     setLoading(true);
@@ -67,120 +76,42 @@ function HearingList() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this hearing?"))
-      return;
+  const handleDelete = (h) => {
+    setHearingToDelete(h);
+  };
+
+  const confirmDelete = async () => {
+    if (!hearingToDelete) return;
+    setError("");
     try {
-      await api.delete(`/hearings/${id}`);
+      await api.delete(`/hearings/${hearingToDelete.id}`);
+      setHearingToDelete(null);
       fetchHearings(search);
     } catch (err) {
+      setHearingToDelete(null);
       setError(err.response?.data?.message || "Failed to delete hearing.");
     }
   };
 
   return (
-    <div className="master-page entity-list-page">
-      <style>{`
-        .case-expand-btn {
-          background: none;
-          border: none;
-          color: #2563eb;
-          cursor: pointer;
-          font-size: 1rem;
-          padding: 0 0.5rem;
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-weight: 600;
-        }
-        .case-expand-btn:hover {
-          color: #1d4ed8;
-          text-decoration: underline;
-        }
-        .expand-chevron {
-          display: inline-block;
-          transition: transform 0.2s ease;
-          font-size: 0.75rem;
-        }
-        .expand-chevron.expanded {
-          transform: rotate(90deg);
-        }
-        .subform-row-container {
-          background-color: #f8fafc;
-          border-bottom: 1px solid #e2e8f0;
-        }
-        .case-detail-subform-wrapper {
-          padding: 1.5rem 2rem;
-        }
-        .case-detail-subform-wrapper h4 {
-          margin: 0 0 1rem 0;
-          font-size: 1.1rem;
-          color: #334155;
-          border-bottom: 1.5px solid #cbd5e1;
-          padding-bottom: 0.35rem;
-        }
-        .case-subform-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-          gap: 1rem;
-        }
-        .subform-field {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-        .subform-field label {
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: #64748b;
-          text-transform: uppercase;
-          letter-spacing: 0.025em;
-        }
-        .subform-field input {
-          padding: 0.5rem 0.75rem;
-          border: 1px solid #cbd5e1;
-          border-radius: 6px;
-          background-color: #f1f5f9;
-          color: #334155;
-          font-size: 0.95rem;
-          font-weight: 500;
-          cursor: not-allowed;
-        }
-        .subform-loading-spinner {
-          color: #64748b;
-          font-size: 0.95rem;
-          font-style: italic;
-          padding: 1rem;
-        }
-      `}</style>
-
-      <header className="master-header">
-        <h1 className="master-title">Hearing List</h1>
+    <div className="space-y-6">
+      <header className="flex items-center justify-between gap-4">
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <Scale className="h-8 w-8 text-indigo-650 shrink-0" />
+          Hearing List
+        </h1>
         {!isAdvocate && (
-          <Link to="/hearings/create" className="master-btn btn-create">
-            <span className="btn-text">+ Create Hearing</span>
-            <svg
-              className="btn-icon"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </Link>
+          <CreateButton
+            onClick={() => navigate("/hearings/create")}
+            label="Create Hearing"
+          />
         )}
       </header>
 
-      <form className="master-search" onSubmit={handleSearchSubmit}>
-        <div className="master-search-input-wrap">
+      <form className="flex gap-3" onSubmit={handleSearchSubmit}>
+        <div className="relative flex-1 flex">
           <svg
-            className="search-icon-svg"
+            className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="none"
@@ -194,7 +125,7 @@ function HearingList() {
           </svg>
           <input
             type="text"
-            className="master-search-input"
+            className="flex-1 w-full h-11 pl-11 pr-10 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none text-sm bg-slate-550/10 bg-slate-50 focus:bg-white"
             placeholder="Search by client, case, court, judge..."
             value={search}
             onChange={handleSearchChange}
@@ -202,7 +133,7 @@ function HearingList() {
           {search && (
             <button
               type="button"
-              className="search-clear-btn"
+              className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center h-7 w-7 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
               onClick={() => {
                 setSearch("");
                 fetchHearings("");
@@ -212,10 +143,13 @@ function HearingList() {
             </button>
           )}
         </div>
-        <button type="submit" className="master-btn">
-          <span className="btn-text">Search</span>
+        <button
+          type="submit"
+          className="h-11 px-5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] transition-all text-xs sm:text-sm font-semibold text-slate-750 inline-flex items-center gap-1.5 cursor-pointer bg-white"
+        >
+          <span className="hidden sm:inline">Search</span>
           <svg
-            className="btn-icon"
+            className="h-4 w-4"
             width="18"
             height="18"
             viewBox="0 0 24 24"
@@ -231,25 +165,48 @@ function HearingList() {
         </button>
       </form>
 
-      {error && <p className="master-error">{error}</p>}
+      {error && (
+        <div
+          className="p-4 text-sm font-semibold text-red-650 bg-red-50 border border-red-100 rounded-xl"
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
 
       {loading ? (
-        <p className="master-empty">Loading hearings...</p>
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 font-medium shadow-sm">
+          Loading hearings...
+        </div>
       ) : hearings.length === 0 ? (
-        <p className="master-empty">No hearings scheduled.</p>
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400 font-medium shadow-sm">
+          No hearings scheduled.
+        </div>
       ) : (
-        <div className="master-table-wrap entity-table-wrap">
-          <table className="master-table entity-table">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <table className="w-full border-collapse text-left text-sm">
             <thead>
-              <tr>
-                <th>Case Number</th>
-                <th>Hearing Date</th>
-                <th>Hearing Time</th>
-                <th>Advocate Name</th>
-                {!isAdvocate && <th className="master-actions-col">Actions</th>}
+              <tr className="border-b border-slate-250 bg-slate-50/75">
+                <th className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px]">
+                  Case Number
+                </th>
+                <th className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px]">
+                  Hearing Date
+                </th>
+                <th className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px]">
+                  Hearing Time
+                </th>
+                <th className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px]">
+                  Advocate Name
+                </th>
+                {!isAdvocate && (
+                  <th className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px] text-right w-[180px]">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {hearings.map((h) => {
                 const isExpanded = expandedHearingId === h.id;
                 const caseDetails = caseDetailsDict[h.caseId];
@@ -257,230 +214,187 @@ function HearingList() {
 
                 return (
                   <Fragment key={h.id}>
-                    <tr style={{ borderBottom: isExpanded ? "none" : "" }}>
-                      <td>
-                        <button
-                          type="button"
-                          className="case-expand-btn"
-                          onClick={() => toggleExpand(h.id, h.caseId)}
-                        >
-                          <span
-                            className={`expand-chevron ${isExpanded ? "expanded" : ""}`}
+                    <tr className="hover:bg-indigo-50/30 even:bg-slate-200/60 transition-colors">
+                      <td className="px-5 py-4 text-slate-700 font-semibold align-middle">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => toggleExpand(h.id, h.caseId)}
+                            className="p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer shrink-0 text-slate-400 hover:text-slate-650 inline-flex items-center gap-2"
                           >
-                            ▶
-                          </span>
-                          {h.caseNumber}
-                        </button>
+                            {isExpanded ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                            <span className="font-bold text-slate-900">
+                              {h.caseNumber}
+                            </span>
+                          </button>
+                        </div>
                       </td>
-                      <td>{formatDateDMY(h.date)}</td>
-                      <td>
+                      <td className="px-5 py-4 text-slate-700 font-semibold align-middle">
+                        {formatDateDMY(h.date)}
+                      </td>
+                      <td className="px-5 py-4 text-slate-700 font-semibold align-middle">
                         {h.time}
                       </td>
-                      <td>{h.advocateName || "—"}</td>
+                      <td className="px-5 py-4 text-slate-700 font-semibold align-middle">
+                        {h.advocateName || "—"}
+                      </td>
                       {!isAdvocate && (
-                        <td className="master-actions">
-                          <Link
-                            to={`/hearings/${h.id}/edit`}
-                            className="master-btn master-btn-sm btn-update"
-                            title="Update"
-                          >
-                            <span className="btn-text">Update</span>
-                            <svg
-                              className="btn-icon"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                              <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                            </svg>
-                          </Link>
-                          <button
-                            onClick={() => handleDelete(h.id)}
-                            className="master-btn master-btn-sm btn-delete"
-                            title="Delete"
-                          >
-                            <span className="btn-text">Delete</span>
-                            <svg
-                              className="btn-icon"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <polyline points="3 6 5 6 21 6" />
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                              <line x1="10" y1="11" x2="10" y2="17" />
-                              <line x1="14" y1="11" x2="14" y2="17" />
-                            </svg>
-                          </button>
+                        <td className="px-5 py-4 align-middle">
+                          <div className="flex gap-2 justify-end">
+                            <EditButton
+                              onClick={() => navigate(`/hearings/${h.id}/edit`)}
+                            />
+                            <DeleteButton onClick={() => handleDelete(h)} />
+                          </div>
                         </td>
                       )}
                     </tr>
                     {isExpanded && (
-                      <tr className="subform-row-container">
-                        <td colSpan={isAdvocate ? 4 : 5}>
-                          <div className="case-detail-subform-wrapper">
-                            <h4>Case Master Details ({h.caseNumber})</h4>
+                      <tr className="bg-indigo-50/10">
+                        <td
+                          colSpan={isAdvocate ? 4 : 5}
+                          className="px-8 py-5 border-t border-slate-100"
+                        >
+                          <div className="space-y-4 animate-[fadeIn_0.15s_ease-out]">
+                            <h4 className="text-sm font-bold text-indigo-900 border-b border-indigo-100/50 pb-2">
+                              Case Details ({h.caseNumber})
+                            </h4>
+
                             {caseLoading ? (
-                              <p className="subform-loading-spinner">
+                              <div className="text-xs font-medium text-slate-400 animate-pulse">
                                 Loading case details...
-                              </p>
+                              </div>
                             ) : caseDetails ? (
-                              <div className="case-subform-grid">
-                                <div className="subform-field">
-                                  <label>Case Type</label>
-                                  <input
-                                    type="text"
-                                    value={caseDetails.caseTypeName || "—"}
-                                    readOnly
-                                    disabled
-                                  />
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-4 text-xs">
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    Case Type
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {caseDetails.caseTypeName || "—"}
+                                  </span>
                                 </div>
-                                <div className="subform-field">
-                                  <label>Court Name</label>
-                                  <input
-                                    type="text"
-                                    value={caseDetails.courtName || "—"}
-                                    readOnly
-                                    disabled
-                                  />
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    Court Name
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {caseDetails.courtName || "—"}
+                                  </span>
                                 </div>
-                                <div className="subform-field">
-                                  <label>Petitioner</label>
-                                  <input
-                                    type="text"
-                                    value={caseDetails.petitioner || "—"}
-                                    readOnly
-                                    disabled
-                                  />
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    Petitioner
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {caseDetails.petitioner || "—"}
+                                  </span>
                                 </div>
-                                <div className="subform-field">
-                                  <label>Pet Advocate</label>
-                                  <input
-                                    type="text"
-                                    value={
-                                      caseDetails.petitionerAdvocate || "—"
-                                    }
-                                    readOnly
-                                    disabled
-                                  />
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    Pet Advocate
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {caseDetails.petitionerAdvocate || "—"}
+                                  </span>
                                 </div>
-                                <div className="subform-field">
-                                  <label>Respondent</label>
-                                  <input
-                                    type="text"
-                                    value={caseDetails.respondent || "—"}
-                                    readOnly
-                                    disabled
-                                  />
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    Respondent
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {caseDetails.respondent || "—"}
+                                  </span>
                                 </div>
-                                <div className="subform-field">
-                                  <label>Res Advocate</label>
-                                  <input
-                                    type="text"
-                                    value={
-                                      caseDetails.respondentAdvocate || "—"
-                                    }
-                                    readOnly
-                                    disabled
-                                  />
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    Res Advocate
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {caseDetails.respondentAdvocate || "—"}
+                                  </span>
                                 </div>
-                                <div className="subform-field">
-                                  <label>Filing Number</label>
-                                  <input
-                                    type="text"
-                                    value={caseDetails.filingNum || "—"}
-                                    readOnly
-                                    disabled
-                                  />
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    Filing Number
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {caseDetails.filingNum || "—"}
+                                  </span>
                                 </div>
-                                <div className="subform-field">
-                                  <label>Filing Date</label>
-                                  <input
-                                    type="text"
-                                    value={formatDateDMY(
-                                      caseDetails.filingDate,
-                                    )}
-                                    readOnly
-                                    disabled
-                                  />
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    Filing Date
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {formatDateDMY(caseDetails.filingDate)}
+                                  </span>
                                 </div>
-                                <div className="subform-field">
-                                  <label>Registration Number</label>
-                                  <input
-                                    type="text"
-                                    value={caseDetails.regNum || "—"}
-                                    readOnly
-                                    disabled
-                                  />
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    Registration Number
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {caseDetails.regNum || "—"}
+                                  </span>
                                 </div>
-                                <div className="subform-field">
-                                  <label>Registration Date</label>
-                                  <input
-                                    type="text"
-                                    value={formatDateDMY(
-                                      caseDetails.regDate,
-                                    )}
-                                    readOnly
-                                    disabled
-                                  />
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    Registration Date
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {formatDateDMY(caseDetails.regDate)}
+                                  </span>
                                 </div>
-                                <div className="subform-field">
-                                  <label>E-Filing Number</label>
-                                  <input
-                                    type="text"
-                                    value={caseDetails.efilingNum || "—"}
-                                    readOnly
-                                    disabled
-                                  />
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    E-Filing Number
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {caseDetails.efilingNum || "—"}
+                                  </span>
                                 </div>
-                                <div className="subform-field">
-                                  <label>E-Filing Date</label>
-                                  <input
-                                    type="text"
-                                    value={formatDateDMY(
-                                      caseDetails.efilingDate,
-                                    )}
-                                    readOnly
-                                    disabled
-                                  />
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    E-Filing Date
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {formatDateDMY(caseDetails.efilingDate)}
+                                  </span>
                                 </div>
-                                <div className="subform-field">
-                                  <label>CNR Number</label>
-                                  <input
-                                    type="text"
-                                    value={caseDetails.cnrNum || "—"}
-                                    readOnly
-                                    disabled
-                                  />
+                                <div>
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    CNR Number
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {caseDetails.cnrNum || "—"}
+                                  </span>
                                 </div>
-                                <div className="subform-field" style={{ gridColumn: "1 / -1" }}>
-                                  <label>Purpose of Hearing</label>
-                                  <input
-                                    type="text"
-                                    value={h.purposeText || "—"}
-                                    readOnly
-                                    disabled
-                                  />
+                                <div className="col-span-2 md:col-span-4">
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    Client Name(s)
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {h.clientName || "—"}
+                                  </span>
+                                </div>
+                                <div className="col-span-2 md:col-span-4">
+                                  <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                                    Purpose of Hearing
+                                  </span>
+                                  <span className="text-slate-700 font-semibold text-sm">
+                                    {h.purposeText || "—"}
+                                  </span>
                                 </div>
                               </div>
                             ) : (
-                              <p
-                                className="subform-loading-spinner"
-                                style={{ color: "#ef4444" }}
-                              >
+                              <div className="text-xs font-semibold text-red-500">
                                 Failed to load case details.
-                              </p>
+                              </div>
                             )}
                           </div>
                         </td>
@@ -493,6 +407,18 @@ function HearingList() {
           </table>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={!!hearingToDelete}
+        title="Confirm Delete"
+        message={
+          hearingToDelete
+            ? `Are you sure you want to delete the hearing scheduled for case ${hearingToDelete.caseNumber}?`
+            : ""
+        }
+        onConfirm={confirmDelete}
+        onCancel={() => setHearingToDelete(null)}
+      />
     </div>
   );
 }

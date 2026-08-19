@@ -155,7 +155,7 @@ export async function updateHearing(id, body, user) {
   if (!hearing) throw new NotFoundError("Hearing not found.");
 
   // Get all related row IDs (for all clients/advocates on this logical hearing)
-  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.clientId, hearing.caseId, hearing.hearingDate, hearing.time);
+  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.caseId, hearing.hearingDate, hearing.time);
   const existingIds = relatedRows.map(r => r.id);
 
   // Future check: date & time must be in the future
@@ -254,7 +254,7 @@ export async function deleteHearing(id) {
   if (!hearing) throw new NotFoundError("Hearing not found.");
 
   // Get all related rows (same client, case, date, start time)
-  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.clientId, hearing.caseId, hearing.hearingDate, hearing.time);
+  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.caseId, hearing.hearingDate, hearing.time);
   const existingIds = relatedRows.map(r => r.id);
 
   await hearingRepository.softDeleteHearingRows(existingIds);
@@ -276,7 +276,7 @@ export async function getHearing(id) {
   if (!hearing) throw new NotFoundError("Hearing not found.");
 
   // Fetch all advocate IDs assigned to this logical hearing
-  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.clientId, hearing.caseId, hearing.hearingDate, hearing.time);
+  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.caseId, hearing.hearingDate, hearing.time);
   const advocateIds = relatedRows.map(r => r.advocateId);
   const clientIds = Array.from(new Set(relatedRows.map(r => r.clientId)));
 
