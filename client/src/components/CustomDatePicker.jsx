@@ -6,7 +6,7 @@ import dayjs from "../utils/datePicker";
  * Displays a text input formatted as DD/MM/YYYY which synchronizes with
  * an underlying native HTML5 date input (using ISO format YYYY-MM-DD).
  */
-export function CustomDatePicker({ id, value, onChange, min, max, required, disabled }) {
+export function CustomDatePicker({ id, value, onChange, min, max, required, disabled, className }) {
   const dateInputRef = useRef(null);
   const [inputValue, setInputValue] = useState("");
 
@@ -77,13 +77,13 @@ export function CustomDatePicker({ id, value, onChange, min, max, required, disa
     <div style={{ position: "relative", width: "100%", display: "flex", alignItems: "center" }}>
       <input
         type="text"
-        className="master-input-text"
+        className={className || "master-input-text"}
         value={inputValue}
         placeholder="DD/MM/YYYY"
         onChange={handleInputChange}
         onBlur={handleBlur}
         disabled={disabled}
-        style={{
+        style={className ? { paddingRight: "2.5rem" } : {
           width: "100%",
           height: "3rem",
           padding: "0 2.5rem 0 0.75rem",
