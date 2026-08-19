@@ -3,10 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { SubmitButton, CancelButton } from "../components/ActionButtons";
-import { KeyRound } from "lucide-react";
-import "../styles/MasterPage.css";
-import "../styles/AdvocateForm.css";
-import "../styles/EntityListPage.css";
+import { KeyRound, Eye, EyeOff } from "lucide-react";
 
 function ChangePassword() {
   const navigate = useNavigate();
@@ -61,28 +58,32 @@ function ChangePassword() {
   };
 
   return (
-    <div className="advocate-form-page">
-      <h1 className="advocate-form-title flex items-center justify-center gap-2">
-        <KeyRound className="h-8 w-8 text-indigo-650 shrink-0" />
-        Change Password
-      </h1>
+    <div className="max-w-md mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6 my-8">
+      <header className="border-b border-slate-100 pb-4">
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <KeyRound className="h-7 w-7 text-indigo-650 shrink-0" />
+          Change Password
+        </h1>
+      </header>
 
       {error && (
-        <p className="master-error" role="alert">
+        <div className="p-4 text-sm font-semibold text-red-650 bg-red-50 border border-red-100 rounded-xl" role="alert">
           {error}
-        </p>
+        </div>
       )}
 
       {success && (
-        <p className="entity-info" role="status">
+        <div className="p-4 text-sm font-semibold text-green-650 bg-green-50 border border-green-100 rounded-xl" role="status">
           {success}
-        </p>
+        </div>
       )}
 
-      <form className="advocate-form" onSubmit={handleSubmit}>
-        <div className="advocate-form-row advocate-form-row-wide">
-          <label htmlFor="current-password">Current Password</label>
-          <div className="password-input-container">
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="space-y-1.5">
+          <label htmlFor="current-password" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Current Password
+          </label>
+          <div className="relative">
             <input
               id="current-password"
               type={showCurrentPassword ? "text" : "password"}
@@ -90,31 +91,28 @@ function ChangePassword() {
               onChange={updateField("currentPassword")}
               required
               autoComplete="current-password"
+              className="w-full h-11 pl-4 pr-10 rounded-xl border border-slate-200 outline-none text-sm transition-all focus:ring-4 focus:bg-white focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50 text-slate-800"
             />
             <button
               type="button"
-              className="password-toggle-btn"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-650 transition-colors p-1 rounded-lg hover:bg-slate-100/50 cursor-pointer"
               onClick={() => setShowCurrentPassword(!showCurrentPassword)}
               aria-label={showCurrentPassword ? "Hide password" : "Show password"}
             >
               {showCurrentPassword ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
+                <EyeOff className="h-4 w-4" />
               ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
+                <Eye className="h-4 w-4" />
               )}
             </button>
           </div>
         </div>
 
-        <div className="advocate-form-row advocate-form-row-wide">
-          <label htmlFor="new-password">New Password</label>
-          <div className="password-input-container">
+        <div className="space-y-1.5">
+          <label htmlFor="new-password" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            New Password
+          </label>
+          <div className="relative">
             <input
               id="new-password"
               type={showNewPassword ? "text" : "password"}
@@ -122,31 +120,28 @@ function ChangePassword() {
               onChange={updateField("newPassword")}
               required
               autoComplete="new-password"
+              className="w-full h-11 pl-4 pr-10 rounded-xl border border-slate-200 outline-none text-sm transition-all focus:ring-4 focus:bg-white focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50 text-slate-800"
             />
             <button
               type="button"
-              className="password-toggle-btn"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-650 transition-colors p-1 rounded-lg hover:bg-slate-100/50 cursor-pointer"
               onClick={() => setShowNewPassword(!showNewPassword)}
               aria-label={showNewPassword ? "Hide password" : "Show password"}
             >
               {showNewPassword ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
+                <EyeOff className="h-4 w-4" />
               ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
+                <Eye className="h-4 w-4" />
               )}
             </button>
           </div>
         </div>
 
-        <div className="advocate-form-row advocate-form-row-wide">
-          <label htmlFor="confirm-new-password">Confirm New Password</label>
-          <div className="password-input-container">
+        <div className="space-y-1.5">
+          <label htmlFor="confirm-new-password" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+            Confirm New Password
+          </label>
+          <div className="relative">
             <input
               id="confirm-new-password"
               type={showConfirmPassword ? "text" : "password"}
@@ -154,31 +149,26 @@ function ChangePassword() {
               onChange={updateField("confirmPassword")}
               required
               autoComplete="new-password"
+              className="w-full h-11 pl-4 pr-10 rounded-xl border border-slate-200 outline-none text-sm transition-all focus:ring-4 focus:bg-white focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50 text-slate-800"
             />
             <button
               type="button"
-              className="password-toggle-btn"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-650 transition-colors p-1 rounded-lg hover:bg-slate-100/50 cursor-pointer"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               aria-label={showConfirmPassword ? "Hide password" : "Show password"}
             >
               {showConfirmPassword ? (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
+                <EyeOff className="h-4 w-4" />
               ) : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
+                <Eye className="h-4 w-4" />
               )}
             </button>
           </div>
         </div>
 
-        <div className="advocate-form-actions">
-          <SubmitButton isEdit={true} saving={saving} label="Update Password" />
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
           <CancelButton onClick={handleCancel} disabled={saving} />
+          <SubmitButton isEdit={true} saving={saving} disabled={saving} label="Update Password" />
         </div>
       </form>
     </div>
