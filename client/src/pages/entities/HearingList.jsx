@@ -11,6 +11,17 @@ import {
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { ChevronDown, ChevronUp, Scale } from "lucide-react";
 
+const formatTime12h = (timeStr) => {
+  if (!timeStr) return "—";
+  const parts = timeStr.split(":");
+  let hours = parseInt(parts[0], 10);
+  const minutes = parts[1];
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  return `${String(hours).padStart(2, "0")}:${minutes} ${ampm}`;
+};
+
 function HearingList() {
   const { user } = useAuth();
   const isAdvocate = user?.role === "advocate";
@@ -237,7 +248,7 @@ function HearingList() {
                         {formatDateDMY(h.date)}
                       </td>
                       <td className="px-5 py-4 text-slate-700 font-semibold align-middle">
-                        {h.time}
+                        {formatTime12h(h.time)}
                       </td>
                       <td className="px-5 py-4 text-slate-700 font-semibold align-middle">
                         {h.advocateName || "—"}
