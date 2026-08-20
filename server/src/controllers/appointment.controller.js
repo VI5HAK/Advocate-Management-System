@@ -18,12 +18,18 @@ function formatDate(value) {
   return String(value).slice(0, 10);
 }
 
+function getTimestampFromIST(dateStr, timeStr) {
+  const [yyyy, mm, dd] = dateStr.split('-').map(Number);
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  const utcDate = Date.UTC(yyyy, mm - 1, dd, hours, minutes);
+  return utcDate - 5.5 * 60 * 60 * 1000;
+}
+
 function isModificationAllowed(appointDate, appointStartTime) {
   if (!appointDate || !appointStartTime) return true;
   const dateStr = formatDate(appointDate);
   const timeStr = formatTime(appointStartTime);
-  const startStr = `${dateStr}T${timeStr}`;
-  const appointmentStart = new Date(startStr).getTime();
+  const appointmentStart = getTimestampFromIST(dateStr, timeStr);
   const current = Date.now();
   const diffMinutes = (current - appointmentStart) / (1000 * 60);
   return diffMinutes <= 15;
@@ -37,7 +43,7 @@ function getAppointmentStatus(row) {
   const timeStr = formatTime(row.Appoint_Start_Time || row.startTime);
   if (!dateStr || !timeStr) return "scheduled";
   
-  const appointmentStart = new Date(`${dateStr}T${timeStr}`).getTime();
+  const appointmentStart = getTimestampFromIST(dateStr, timeStr);
   const current = Date.now();
   if (current > appointmentStart + 15 * 60 * 1000) {
     return "completed";
@@ -92,21 +98,28 @@ export async function parseAppointmentBody(body, excludeAppointmentId = null) {
     return { error: "Filing date is required." };
   }
 
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  const todayStr = `${yyyy}-${mm}-${dd}`;
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+  const parts = formatter.formatToParts(new Date());
+  const partMap = {};
+  for (const part of parts) {
+    partMap[part.type] = part.value;
+  }
+  const todayStr = `${partMap.year}-${partMap.month}-${partMap.day}`;
 
   if (filingDate < todayStr) {
     return { error: "Appointment date must be today or a future date." };
   }
 
   if (!excludeAppointmentId && filingDate === todayStr) {
-    const now = new Date();
-    const currentHours = String(now.getHours()).padStart(2, '0');
-    const currentMinutes = String(now.getMinutes()).padStart(2, '0');
-    const currentTimeStr = `${currentHours}:${currentMinutes}`;
+    const currentTimeStr = `${partMap.hour}:${partMap.minute}`;
     if (startTime < currentTimeStr) {
       return { error: "Appointment start time cannot be in the past." };
     }

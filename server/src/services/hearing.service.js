@@ -1,6 +1,13 @@
 import * as hearingRepository from "../repositories/hearing.repository.js";
 import pool from "../config/db.js";
 
+function parseISTDateTime(date, time) {
+  const [yyyy, mm, dd] = date.split("-").map(Number);
+  const [hours, minutes] = time.split(":").map(Number);
+  const utcDate = Date.UTC(yyyy, mm - 1, dd, hours, minutes);
+  return new Date(utcDate - 5.5 * 60 * 60 * 1000);
+}
+
 export class NotFoundError extends Error {
   constructor(message) {
     super(message);
@@ -46,7 +53,7 @@ export async function createHearing(body, user) {
   }
 
   // Future check: date & time must be in the future
-  const selectedDateTime = new Date(`${date}T${time}:00`);
+  const selectedDateTime = parseISTDateTime(date, time);
   if (isNaN(selectedDateTime.getTime())) {
     throw new BadRequestError("Invalid date or time format.");
   }
@@ -159,7 +166,7 @@ export async function updateHearing(id, body, user) {
   const existingIds = relatedRows.map(r => r.id);
 
   // Future check: date & time must be in the future
-  const selectedDateTime = new Date(`${date}T${time}:00`);
+  const selectedDateTime = parseISTDateTime(date, time);
   if (isNaN(selectedDateTime.getTime())) {
     throw new BadRequestError("Invalid date or time format.");
   }

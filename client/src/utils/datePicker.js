@@ -42,6 +42,11 @@ export const dayjs = (dateInput) => {
     if (formatStr === "YYYY-MM-DD") {
       return `${yyyy}-${mm}-${dd}`;
     }
+    if (formatStr === "HH:mm") {
+      const hh = String(date.getHours()).padStart(2, "0");
+      const min = String(date.getMinutes()).padStart(2, "0");
+      return `${hh}:${min}`;
+    }
     return date.toString();
   };
 
