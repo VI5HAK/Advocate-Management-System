@@ -25,12 +25,16 @@ export const ADMIN_MENU_ITEMS = [
     label: "Reports",
     children: [
       {
+        id: "advocate-report",
+        label: "Advocate Report",
+        path: "/reports/advocate",
+      },
+      { id: "client-report", label: "Client Report", path: "/reports/client" },
+      {
         id: "appointment-report",
         label: "Appointment Report",
         path: "/reports/appointment",
       },
-      { id: "client-report", label: "Client Report", path: "/reports/client" },
-      { id: "case-report", label: "Case Report", path: "/reports/case" },
       {
         id: "hearing-report",
         label: "Completed Hearings",
