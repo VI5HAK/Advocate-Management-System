@@ -798,14 +798,14 @@ export async function getAppointmentReport(req, res, next) {
       SELECT
         ap.Appoint_ID AS id,
         cl.Client_Name AS clientName,
-        cs.Case_Num AS caseNumber,
+        COALESCE(cs.Case_Num, 'NO CASE') AS caseNumber,
         adv.Advocate_Name AS advocateName,
         ap.Appoint_Date AS date,
         ap.Appoint_Start_Time AS startTime,
         ap.Appoint_End_Time AS endTime
       FROM Appointment ap
       INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
-      INNER JOIN Case_Master cs ON ap.Appoint_Case_ID = cs.Case_ID
+      LEFT JOIN Case_Master cs ON ap.Appoint_Case_ID = cs.Case_ID
       LEFT JOIN Advocate_Master adv ON ap.Appoint_Advocate_ID = adv.Advocate_ID
       WHERE (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
         AND (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
@@ -851,17 +851,26 @@ export async function getClientReport(req, res, next) {
 
     let sql = `
       SELECT
-        ap.Appoint_ID AS id,
+        MIN(ap.Appoint_ID) AS id,
         cl.Client_Name AS clientName,
         COALESCE(cs.Case_Num, 'NO CASE') AS caseNumber,
-        adv.Advocate_Name AS advocateName,
+        (
+          SELECT GROUP_CONCAT(DISTINCT a2.Advocate_Name ORDER BY a2.Advocate_Name SEPARATOR ', ')
+          FROM Appointment ap2
+          INNER JOIN Advocate_Master a2 ON ap2.Appoint_Advocate_ID = a2.Advocate_ID
+          WHERE ap2.Appoint_Client_ID = ap.Appoint_Client_ID
+            AND ap2.Appoint_Case_ID <=> ap.Appoint_Case_ID
+            AND DATE(ap2.Appoint_Date) = DATE(ap.Appoint_Date)
+            AND TIME(ap2.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
+            AND TIME(ap2.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
+            AND (ap2.Appoint_Delete_Flag = FALSE OR ap2.Appoint_Delete_Flag = 0)
+        ) AS advocateName,
         ap.Appoint_Date AS date,
         ap.Appoint_Start_Time AS startTime,
         ap.Appoint_End_Time AS endTime
       FROM Appointment ap
       INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
       LEFT JOIN Case_Master cs ON ap.Appoint_Case_ID = cs.Case_ID
-      LEFT JOIN Advocate_Master adv ON ap.Appoint_Advocate_ID = adv.Advocate_ID
       WHERE (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
         AND (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
         AND ap.Appoint_Date BETWEEN ? AND ?
@@ -873,6 +882,7 @@ export async function getClientReport(req, res, next) {
       params.push(Number(clientId));
     }
 
+    sql += " GROUP BY ap.Appoint_Client_ID, ap.Appoint_Case_ID, cl.Client_Name, cs.Case_Num, ap.Appoint_Date, ap.Appoint_Start_Time, ap.Appoint_End_Time";
     sql += " ORDER BY ap.Appoint_Date ASC, ap.Appoint_Start_Time ASC";
 
     const [rows] = await pool.query(sql, params);
@@ -906,19 +916,28 @@ export async function getCaseReport(req, res, next) {
 
     let sql = `
       SELECT
-        ap.Appoint_ID AS id,
+        MIN(ap.Appoint_ID) AS id,
         cl.Client_Name AS clientName,
         COALESCE(cs.Case_Num, 'NO CASE') AS caseNumber,
         cs.Case_ID AS caseId,
-        adv.Advocate_Name AS advocateName,
+        (
+          SELECT GROUP_CONCAT(DISTINCT a2.Advocate_Name ORDER BY a2.Advocate_Name SEPARATOR ', ')
+          FROM Appointment ap2
+          INNER JOIN Advocate_Master a2 ON ap2.Appoint_Advocate_ID = a2.Advocate_ID
+          WHERE ap2.Appoint_Client_ID = ap.Appoint_Client_ID
+            AND ap2.Appoint_Case_ID <=> ap.Appoint_Case_ID
+            AND DATE(ap2.Appoint_Date) = DATE(ap.Appoint_Date)
+            AND TIME(ap2.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
+            AND TIME(ap2.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
+            AND (ap2.Appoint_Delete_Flag = FALSE OR ap2.Appoint_Delete_Flag = 0)
+        ) AS advocateName,
         ap.Appoint_Date AS date,
         ap.Appoint_Start_Time AS startTime,
         ap.Appoint_End_Time AS endTime,
-        ap.Appoint_Delete_Flag AS deleteFlag
+        MAX(ap.Appoint_Delete_Flag) AS deleteFlag
       FROM Appointment ap
       INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
       LEFT JOIN Case_Master cs ON ap.Appoint_Case_ID = cs.Case_ID
-      LEFT JOIN Advocate_Master adv ON ap.Appoint_Advocate_ID = adv.Advocate_ID
       WHERE (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
         AND ap.Appoint_Date BETWEEN ? AND ?
     `;
@@ -933,6 +952,7 @@ export async function getCaseReport(req, res, next) {
       }
     }
 
+    sql += " GROUP BY ap.Appoint_Client_ID, ap.Appoint_Case_ID, cl.Client_Name, cs.Case_Num, cs.Case_ID, ap.Appoint_Date, ap.Appoint_Start_Time, ap.Appoint_End_Time";
     sql += " ORDER BY caseNumber ASC, ap.Appoint_Date ASC, ap.Appoint_Start_Time ASC";
 
     const [rows] = await pool.query(sql, params);
