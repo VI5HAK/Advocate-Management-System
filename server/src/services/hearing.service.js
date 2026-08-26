@@ -301,9 +301,30 @@ export async function listHearings(search, user) {
   return hearingRepository.listHearings(search, advocateId);
 }
 
-export async function listCompletedHearings(search, user) {
+export async function listCompletedHearings(search, user, caseId = null) {
   const advocateId = user.role === "advocate" ? user.id : null;
-  return hearingRepository.listCompletedHearings(search, advocateId);
+  const hearings = await hearingRepository.listCompletedHearings(search, advocateId, caseId);
+
+  if (caseId) {
+    return hearings;
+  }
+
+  // Group by case to return a summary
+  const grouped = {};
+  for (const item of hearings) {
+    const caseKey = item.caseId || "no-case";
+    if (!grouped[caseKey]) {
+      grouped[caseKey] = {
+        caseId: item.caseId,
+        caseNumber: item.caseNumber || "NO CASE",
+        clientName: item.clientName || "—",
+        advocateName: item.advocateName || "—",
+        count: 0
+      };
+    }
+    grouped[caseKey].count += 1;
+  }
+  return Object.values(grouped);
 }
 
 export async function getHearing(id) {

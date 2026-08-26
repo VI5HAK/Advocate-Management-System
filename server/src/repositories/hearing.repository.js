@@ -189,7 +189,7 @@ export async function listHearings(search, advocateId = null) {
   return rows;
 }
 
-export async function listCompletedHearings(search, advocateId = null) {
+export async function listCompletedHearings(search, advocateId = null, caseId = null) {
   let query = `
     SELECT
       MIN(hm.Hearing_ID) AS id,
@@ -235,6 +235,11 @@ export async function listCompletedHearings(search, advocateId = null) {
       AND hm.Hearing_Date < CURDATE()
   `;
   const params = [];
+
+  if (caseId) {
+    query += ` AND hm.Case_ID = ?`;
+    params.push(Number(caseId));
+  }
 
   if (advocateId) {
     query += ` AND EXISTS (

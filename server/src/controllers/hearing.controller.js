@@ -49,7 +49,8 @@ export async function listHearings(req, res, next) {
 export async function listCompletedHearings(req, res, next) {
   try {
     const search = req.query.search?.trim() || "";
-    const hearings = await hearingService.listCompletedHearings(search, req.user);
+    const caseId = req.query.caseId ? Number(req.query.caseId) : null;
+    const hearings = await hearingService.listCompletedHearings(search, req.user, caseId);
     res.json(hearings);
   } catch (err) {
     next(err);
