@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/client";
 import { SubmitButton } from "./ActionButtons";
@@ -105,7 +106,7 @@ export function HearingNotesModal({ hearing, onClose }) {
     }
   };
 
-  return (
+  return createPortal(
     <div className="remarks-modal-overlay">
       <div className="remarks-modal">
         <header className="remarks-modal-header">
@@ -269,7 +270,8 @@ export function HearingNotesModal({ hearing, onClose }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

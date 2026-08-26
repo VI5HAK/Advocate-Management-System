@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import api from "../api/client";
 import { SubmitButton } from "./ActionButtons";
 import { formatDateDMY, formatRemarkDate } from "../utils/formatters";
@@ -50,7 +51,7 @@ export function RemarksModal({ appointment, onClose, readOnly = false }) {
     }
   };
 
-  return (
+  return createPortal(
     <div className="remarks-modal-overlay">
       <div className="remarks-modal">
         <header className="remarks-modal-header">
@@ -111,7 +112,8 @@ export function RemarksModal({ appointment, onClose, readOnly = false }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
