@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../../api/client";
-import { ChevronDown, Search, RotateCw } from "lucide-react";
+import { ChevronDown, Search, RotateCw, FileText } from "lucide-react";
 import { HelpButton } from "../../components/ActionButtons";
 import "../../styles/EntityListPage.css";
 
@@ -182,19 +182,19 @@ export function GroupedCompletedReport({ config }) {
                     <h2 className="font-bold text-slate-900 text-base sm:text-lg tracking-tight">
                       {group.caseNumber}
                     </h2>
-                    <div className="flex flex-wrap items-center gap-2 mt-1">
-                      <span className="inline-flex items-center text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 mt-1">
+                      <span className="inline-flex items-center text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-md w-fit">
                         Client: {group.clientName}
                       </span>
-                      {config.modalType === "notes" && (
-                        <span className="inline-flex items-center text-xs font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-md">
+                      {group.advocateName && (
+                        <span className="inline-flex items-center text-xs font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-md w-fit">
                           Advocate: {group.advocateName}
                         </span>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-semibold text-slate-500 bg-slate-100/80 border border-slate-200/40 px-2.5 py-1 rounded-lg">
+                    <span className="hidden sm:inline-flex text-xs font-semibold text-slate-500 bg-slate-100/80 border border-slate-200/40 px-2.5 py-1 rounded-lg">
                       {group.count}{" "}
                       {config.modalType === "notes" ? "hearing" : "appointment"}
                       {group.count > 1 ? "s" : ""}
@@ -221,15 +221,20 @@ export function GroupedCompletedReport({ config }) {
                         <table className="w-full border-collapse text-left text-sm">
                           <thead>
                             <tr className="border-b border-slate-200 bg-slate-50/75">
-                              {columns.map((col) => (
-                                <th
-                                  key={col.key}
-                                  className="px-5 py-3.5 font-bold text-slate-550 uppercase tracking-wider text-[10px] whitespace-nowrap"
-                                >
-                                  {col.label}
-                                </th>
-                              ))}
-                              <th className="px-5 py-3.5 font-bold text-slate-550 uppercase tracking-wider text-[10px] text-right w-[120px]">
+                              {columns.map((col) => {
+                                const isClientName = col.key === "clientName";
+                                const isNextHearing = col.key === "nextHearingDate";
+                                const isHiddenOnMobile = (config.modalType === "remarks" && isClientName) || (config.modalType === "notes" && isNextHearing);
+                                return (
+                                  <th
+                                    key={col.key}
+                                    className={`px-5 py-3.5 font-bold text-slate-550 uppercase tracking-wider text-[10px] whitespace-nowrap ${isHiddenOnMobile ? "hidden sm:table-cell" : ""}`}
+                                  >
+                                    {col.label}
+                                  </th>
+                                );
+                              })}
+                              <th className="px-5 py-3.5 font-bold text-slate-550 uppercase tracking-wider text-[10px] text-right w-[60px] sm:w-[120px]">
                                 Actions
                               </th>
                             </tr>
@@ -240,23 +245,30 @@ export function GroupedCompletedReport({ config }) {
                                 key={row.id}
                                 className="hover:bg-slate-50/30 even:bg-slate-50/15 transition-colors duration-150"
                               >
-                                {columns.map((col) => (
-                                  <td
-                                    key={col.key}
-                                    className="px-5 py-4 text-slate-700 font-medium align-middle"
-                                  >
-                                    {col.render
-                                      ? col.render(row[col.key], row)
-                                      : row[col.key] || "—"}
-                                  </td>
-                                ))}
-                                <td className="px-5 py-4 text-right align-middle">
+                                {columns.map((col) => {
+                                  const isClientName = col.key === "clientName";
+                                  const isNextHearing = col.key === "nextHearingDate";
+                                  const isHiddenOnMobile = (config.modalType === "remarks" && isClientName) || (config.modalType === "notes" && isNextHearing);
+                                  return (
+                                    <td
+                                      key={col.key}
+                                      className={`px-5 py-4 text-slate-700 font-medium align-middle ${isHiddenOnMobile ? "hidden sm:table-cell" : ""}`}
+                                    >
+                                      {col.render
+                                        ? col.render(row[col.key], row)
+                                        : row[col.key] || "—"}
+                                    </td>
+                                  );
+                                })}
+                                <td className="px-5 py-4 text-right align-middle w-[60px] sm:w-[120px]">
                                   <button
                                     type="button"
-                                    className="inline-flex items-center justify-center gap-1 h-8 px-3.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-sm shadow-indigo-100/40 cursor-pointer"
+                                    className="inline-flex items-center justify-center gap-1 h-8 w-8 sm:w-auto sm:px-3.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-sm shadow-indigo-100/40 cursor-pointer"
                                     onClick={() => setSelectedItem(row)}
+                                    title={actionLabel}
                                   >
-                                    {actionLabel}
+                                    <FileText className="h-4 w-4 sm:hidden" />
+                                    <span className="hidden sm:inline">{actionLabel}</span>
                                   </button>
                                 </td>
                               </tr>
