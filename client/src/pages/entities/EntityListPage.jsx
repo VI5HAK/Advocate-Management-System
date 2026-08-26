@@ -7,6 +7,7 @@ import {
   CreateButton,
   EditButton,
   DeleteButton,
+  HelpButton,
 } from "../../components/ActionButtons";
 import RemarksModal from "../../components/RemarksModal";
 import {
@@ -273,6 +274,7 @@ function EntityListPage({ config, readOnly = false }) {
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
           <IconComponent className="h-8 w-8 text-indigo-650 shrink-0" />
           {title}
+          <HelpButton title={title} />
         </h1>
         {!readOnly && (
           <CreateButton onClick={handleCreate} label={createButtonLabel} />

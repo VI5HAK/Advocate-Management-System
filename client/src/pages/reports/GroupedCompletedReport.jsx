@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import api from "../../api/client";
 import { ChevronDown, Search, RotateCw } from "lucide-react";
+import { HelpButton } from "../../components/ActionButtons";
 import "../../styles/EntityListPage.css";
 
 export function GroupedCompletedReport({ config }) {
@@ -93,6 +94,7 @@ export function GroupedCompletedReport({ config }) {
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
             <IconComponent className="h-8 w-8 text-indigo-600 shrink-0" />
             {title}
+            <HelpButton title={title} />
           </h1>
           <p className="text-sm font-medium text-slate-500">{subtitle}</p>
         </div>

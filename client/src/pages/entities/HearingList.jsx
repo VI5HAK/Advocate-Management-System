@@ -7,6 +7,7 @@ import {
   CreateButton,
   EditButton,
   DeleteButton,
+  HelpButton,
 } from "../../components/ActionButtons";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { ChevronDown, ChevronUp, Scale } from "lucide-react";
@@ -110,6 +111,7 @@ function HearingList() {
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
           <Scale className="h-8 w-8 text-indigo-650 shrink-0" />
           Hearing List
+          <HelpButton title="Hearing List" />
         </h1>
         {!isAdvocate && (
           <CreateButton

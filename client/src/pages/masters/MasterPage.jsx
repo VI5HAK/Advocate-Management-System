@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import api from "../../api/client";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import { CreateButton, EditButton, DeleteButton, SubmitButton, CancelButton } from "../../components/ActionButtons";
+import { CreateButton, EditButton, DeleteButton, SubmitButton, CancelButton, HelpButton } from "../../components/ActionButtons";
 import "../../styles/MasterPage.css";
 import { uppercaseAlphaAndSpaces, descriptionValidation } from "../../utils/validation";
 import { ShieldCheck, UserSquare2, Briefcase, Activity, Landmark, Gavel, MapPin, Database } from "lucide-react";
@@ -16,8 +16,6 @@ const ICON_MAP = {
   "locations": MapPin,
 };
 
-
-const helpPdfs = import.meta.glob("../../assets/*_Help.pdf", { eager: true, import: "default" });
 
 const RESOURCE_TO_PDF = {
   "roles": "Role_Help.pdf",
@@ -58,21 +56,6 @@ function MasterPage({ config }) {
   const [itemToDelete, setItemToDelete] = useState(null);
 
   const pdfName = RESOURCE_TO_PDF[resource];
-  const pdfUrl = pdfName ? helpPdfs[`../../assets/${pdfName}`] : null;
-
-  const handleHelpClick = () => {
-    if (!pdfUrl) {
-      alert(`Help document for "${title}" is not available yet.`);
-      return;
-    }
-    const link = document.createElement("a");
-    link.href = pdfUrl;
-    link.setAttribute("download", pdfName);
-    link.setAttribute("target", "_blank");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   const fetchItems = useCallback(
     async (search) => {
@@ -255,29 +238,7 @@ function MasterPage({ config }) {
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
           <IconComponent className="h-8 w-8 text-indigo-650 shrink-0" />
           {title}
-          <button
-            type="button"
-            className="p-1.5 rounded-full text-slate-400 hover:text-slate-650 hover:bg-slate-100 active:scale-95 transition-all inline-flex items-center justify-center cursor-pointer"
-            onClick={handleHelpClick}
-            title={`${title} Help`}
-            aria-label={`${title} Help`}
-          >
-            <svg
-              className="h-5 w-5"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-          </button>
+          <HelpButton title={title} pdfName={pdfName} />
         </h1>
         <CreateButton onClick={openCreateForm} label={createButtonLabel} />
       </header>

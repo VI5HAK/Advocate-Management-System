@@ -3,6 +3,7 @@ import api from "../../api/client";
 import { CustomDatePicker } from "../../components/CustomDatePicker";
 import RemarksModal from "../../components/RemarksModal";
 import { SearchableSelect } from "../../components/SearchableSelect";
+import { HelpButton } from "../../components/ActionButtons";
 
 export function GenericReportPage({ config }) {
   const IconComponent = config.icon;
@@ -118,6 +119,7 @@ export function GenericReportPage({ config }) {
               <IconComponent className="h-8 w-8 shrink-0" />
             </div>
             {title}
+            <HelpButton title={title} />
           </h1>
           <p className="text-sm text-slate-500 mt-1.5">{subtitle}</p>
         </header>

@@ -10,6 +10,7 @@ import {
   DeleteButton,
   SubmitButton,
   CancelButton,
+  HelpButton,
 } from "../../components/ActionButtons";
 import "../../styles/MasterPage.css";
 import {
@@ -17,10 +18,7 @@ import {
   descriptionValidation,
 } from "../../utils/validation";
 
-const helpPdfs = import.meta.glob("../../assets/*_Help.pdf", {
-  eager: true,
-  import: "default",
-});
+
 
 function CourtMaster() {
   const [view, setView] = useState("list");
@@ -41,22 +39,7 @@ function CourtMaster() {
   const [saving, setSaving] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
-  const pdfName = "Court_Help.pdf";
-  const pdfUrl = helpPdfs[`../../assets/${pdfName}`];
 
-  const handleHelpClick = () => {
-    if (!pdfUrl) {
-      alert('Help document for "Court Master" is not available yet.');
-      return;
-    }
-    const link = document.createElement("a");
-    link.href = pdfUrl;
-    link.setAttribute("download", pdfName);
-    link.setAttribute("target", "_blank");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   const fetchItems = useCallback(async (search) => {
     setLoading(true);
@@ -320,29 +303,7 @@ function CourtMaster() {
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
           <Landmark className="h-8 w-8 text-indigo-650 shrink-0" />
           Court Master
-          <button
-            type="button"
-            className="p-1.5 rounded-full text-slate-400 hover:text-slate-650 hover:bg-slate-100 active:scale-95 transition-all inline-flex items-center justify-center cursor-pointer"
-            onClick={handleHelpClick}
-            title="Court Master Help"
-            aria-label="Court Master Help"
-          >
-            <svg
-              className="h-5 w-5"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-          </button>
+          <HelpButton title="Court Master" pdfName="Court_Help.pdf" />
         </h1>
         <CreateButton onClick={openCreateForm} label="Create Court" />
       </header>

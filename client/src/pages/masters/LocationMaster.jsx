@@ -8,6 +8,7 @@ import {
   DeleteButton,
   SubmitButton,
   CancelButton,
+  HelpButton,
 } from "../../components/ActionButtons";
 import { uppercaseAlphaAndSpaces } from "../../utils/validation";
 import { MapPin } from "lucide-react";
@@ -321,7 +322,7 @@ function LocationMaster() {
     return (
       <div className="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6">
         <header className="border-b border-slate-100 pb-4">
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             {editingItem
               ? `Update ${form.type === "state" ? "State" : form.type === "district" ? "District" : "Taluk"}`
               : "Create New Location"}
@@ -499,6 +500,7 @@ function LocationMaster() {
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
           <MapPin className="h-8 w-8 text-indigo-650 shrink-0" />
           Location Master
+          <HelpButton title="Location Master" />
         </h1>
         <CreateButton onClick={openCreateForm} label="Create New" />
       </header>

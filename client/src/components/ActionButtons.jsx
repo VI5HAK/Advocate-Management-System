@@ -98,3 +98,63 @@ export function CancelButton({ onClick, label = "Cancel", disabled, ...props }) 
     </button>
   );
 }
+
+// 6. HelpButton (Used next to titles in all pages)
+const helpPdfs = import.meta.glob("../assets/*.pdf", { eager: true, import: "default" });
+
+const getPdfUrl = (pdfName) => {
+  if (!pdfName) return null;
+  const targetKey = `../assets/${pdfName}`.toLowerCase();
+  for (const key of Object.keys(helpPdfs)) {
+    if (key.toLowerCase() === targetKey) {
+      return helpPdfs[key];
+    }
+  }
+  return null;
+};
+
+export function HelpButton({ title, pdfName }) {
+  const resolvedPdfName = pdfName || `${title.replace(/\s+/g, "")}_Help.pdf`;
+  const pdfUrl = getPdfUrl(resolvedPdfName);
+
+  const handleHelpClick = () => {
+    if (!pdfUrl) {
+      alert(`Help document for "${title}" is not available yet (expected file: ${resolvedPdfName}).`);
+      return;
+    }
+    const link = document.createElement("a");
+    link.href = pdfUrl;
+    link.setAttribute("download", resolvedPdfName);
+    link.setAttribute("target", "_blank");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <button
+      type="button"
+      className="p-1.5 rounded-full text-slate-400 hover:text-slate-650 hover:bg-slate-100 active:scale-95 transition-all inline-flex items-center justify-center cursor-pointer"
+      onClick={handleHelpClick}
+      title={`${title} Help`}
+      aria-label={`${title} Help`}
+    >
+      <svg
+        className="h-5 w-5"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    </button>
+  );
+}
+

@@ -12,6 +12,7 @@ import {
   LayoutDashboard
 } from "lucide-react";
 import { motion } from "motion/react";
+import { HelpButton } from "../components/ActionButtons";
 
 const STAT_LABELS = {
   advocates: "Advocates",
@@ -109,6 +110,7 @@ function Dashboard() {
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
           <LayoutDashboard className="h-8 w-8 text-indigo-650 shrink-0" />
           Dashboard
+          <HelpButton title="Dashboard" />
         </h1>
         <p className="text-sm font-medium text-slate-550 mt-1">
           Welcome to the Advocate Management System home screen.

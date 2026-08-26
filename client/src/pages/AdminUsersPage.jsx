@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 import ConfirmDialog from "../components/ConfirmDialog";
-import { CreateButton, SubmitButton, CancelButton, DeleteButton } from "../components/ActionButtons";
+import { CreateButton, SubmitButton, CancelButton, DeleteButton, HelpButton } from "../components/ActionButtons";
 import { UserCog } from "lucide-react";
 import "../styles/MasterPage.css";
 import "../styles/AdvocateForm.css";
@@ -204,9 +204,10 @@ function AdminUsersPage() {
   return (
     <div className="master-page">
       <header className="master-header">
-        <h1 className="master-title">
+        <h1 className="master-title flex items-center gap-2">
           <UserCog className="h-8 w-8 text-indigo-650 shrink-0" />
           Admin Users
+          <HelpButton title="Admin Users" />
         </h1>
         <CreateButton onClick={openCreateForm} label="Create Admin" />
       </header>
