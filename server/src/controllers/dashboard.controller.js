@@ -43,7 +43,8 @@ export async function getSummary(req, res, next) {
           SELECT COUNT(DISTINCT hm.Client_ID, hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time) AS count
           FROM HEARING_MASTER hm
           WHERE (hm.Hearing_Delete_Flag = FALSE OR hm.Hearing_Delete_Flag = 0)
-            AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE > NOW()
+            /* AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE > NOW() */
+            AND hm.Hearing_Date >= CURDATE()
         `;
       } else {
         sql = `

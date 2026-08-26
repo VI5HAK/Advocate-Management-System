@@ -77,7 +77,8 @@ export async function checkActiveHearing(caseId, excludeHearingIds = []) {
     SELECT Hearing_ID FROM HEARING_MASTER
     WHERE Case_ID = ?
       AND ${activeCondition()}
-      AND TIMESTAMP(Hearing_Date, Hearing_Time) + INTERVAL 15 MINUTE > NOW()
+      /* AND TIMESTAMP(Hearing_Date, Hearing_Time) + INTERVAL 15 MINUTE > NOW() */
+      AND Hearing_Date >= CURDATE()
   `;
   const params = [caseId];
   if (excludeHearingIds.length > 0) {
@@ -151,7 +152,8 @@ export async function listHearings(search, advocateId = null) {
       ) AS advocateName
     FROM HEARING_MASTER hm
     WHERE ${activeCondition("hm.")}
-      AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE > NOW()
+      /* AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE > NOW() */
+      AND hm.Hearing_Date >= CURDATE()
   `;
   const params = [];
   
@@ -229,7 +231,8 @@ export async function listCompletedHearings(search, advocateId = null) {
       ) AS nextHearingDate
     FROM HEARING_MASTER hm
     WHERE ${activeCondition("hm.")}
-      AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE <= NOW()
+      /* AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE <= NOW() */
+      AND hm.Hearing_Date < CURDATE()
   `;
   const params = [];
 

@@ -35,6 +35,7 @@ export async function createHearing(body, user) {
     judgeId,
     hearingPurpose
   } = body;
+  const timeVal = time || "00:00:00";
 
   if (!clientIds || !Array.isArray(clientIds) || clientIds.length === 0) {
     throw new BadRequestError("At least one client must be selected.");
@@ -45,20 +46,31 @@ export async function createHearing(body, user) {
   if (!advocateIds || !Array.isArray(advocateIds) || advocateIds.length === 0) {
     throw new BadRequestError("At least one advocate must be selected.");
   }
+  /*
   if (!date || !time) {
     throw new BadRequestError("Date and time are required.");
+  }
+  */
+  if (!date) {
+    throw new BadRequestError("Date is required.");
   }
   if (!courtId || !judgeId) {
     throw new BadRequestError("Court and Judge are required.");
   }
 
   // Future check: date & time must be in the future
+  /*
   const selectedDateTime = parseISTDateTime(date, time);
   if (isNaN(selectedDateTime.getTime())) {
     throw new BadRequestError("Invalid date or time format.");
   }
   if (selectedDateTime.getTime() <= Date.now()) {
     throw new BadRequestError("Hearing can only be created after the current date and time.");
+  }
+  */
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  if (date < todayStr) {
+    throw new BadRequestError("Hearing date must be today or a future date.");
   }
 
   // Check unique active hearing for Case_ID
@@ -68,11 +80,13 @@ export async function createHearing(body, user) {
   }
 
   // Check advocate overlaps
+  /*
   const overlapping = await hearingRepository.checkAdvocateOverlaps(advocateIds, date, time);
   if (overlapping.length > 0) {
     const names = overlapping.map(o => o.Advocate_Name).join(", ");
     throw new BadRequestError(`Advocate(s) ${names} has/have an overlapping hearing scheduled during this time.`);
   }
+  */
 
   // Resolve Names
   const [caseRows] = await pool.query("SELECT Case_Num FROM Case_Master WHERE Case_ID = ?", [caseId]);
@@ -110,7 +124,7 @@ export async function createHearing(body, user) {
           caseName,
           purposeText: hearingPurpose,
           hearingDate: date,
-          time,
+          time: timeVal,
           courtName,
           judgeName,
           createdBy
@@ -140,6 +154,7 @@ export async function updateHearing(id, body, user) {
     judgeId,
     hearingPurpose
   } = body;
+  const timeVal = time || "00:00:00";
 
   if (!clientIds || !Array.isArray(clientIds) || clientIds.length === 0) {
     throw new BadRequestError("At least one client must be selected.");
@@ -150,8 +165,13 @@ export async function updateHearing(id, body, user) {
   if (!advocateIds || !Array.isArray(advocateIds) || advocateIds.length === 0) {
     throw new BadRequestError("At least one advocate must be selected.");
   }
+  /*
   if (!date || !time) {
     throw new BadRequestError("Date and time are required.");
+  }
+  */
+  if (!date) {
+    throw new BadRequestError("Date is required.");
   }
   if (!courtId || !judgeId) {
     throw new BadRequestError("Court and Judge are required.");
@@ -166,12 +186,18 @@ export async function updateHearing(id, body, user) {
   const existingIds = relatedRows.map(r => r.id);
 
   // Future check: date & time must be in the future
+  /*
   const selectedDateTime = parseISTDateTime(date, time);
   if (isNaN(selectedDateTime.getTime())) {
     throw new BadRequestError("Invalid date or time format.");
   }
   if (selectedDateTime.getTime() <= Date.now()) {
     throw new BadRequestError("Hearing can only be created after the current date and time.");
+  }
+  */
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  if (date < todayStr) {
+    throw new BadRequestError("Hearing date must be today or a future date.");
   }
 
   // Check unique active hearing for Case_ID (excluding current hearing rows)
@@ -181,11 +207,13 @@ export async function updateHearing(id, body, user) {
   }
 
   // Check advocate overlaps (excluding current hearing rows)
+  /*
   const overlapping = await hearingRepository.checkAdvocateOverlaps(advocateIds, date, time, existingIds);
   if (overlapping.length > 0) {
     const names = overlapping.map(o => o.Advocate_Name).join(", ");
     throw new BadRequestError(`Advocate(s) ${names} has/have an overlapping hearing scheduled during this time.`);
   }
+  */
 
   // Resolve Names
   const [caseRows] = await pool.query("SELECT Case_Num FROM Case_Master WHERE Case_ID = ?", [caseId]);
@@ -224,7 +252,7 @@ export async function updateHearing(id, body, user) {
           caseName,
           purposeText: hearingPurpose,
           hearingDate: date,
-          time,
+          time: timeVal,
           courtName,
           judgeName,
           createdBy: hearing.createdBy

@@ -51,7 +51,7 @@ export const GROUPED_REPORTS_CONFIG = {
         label: "Next Hearing Date",
         render: (val) => val ? formatDateDMY(val) : "—"
       },
-      { key: "time", label: "Time" },
+      // { key: "time", label: "Time" },
       { key: "purposeText", label: "Purpose" }
     ],
     actionLabel: "Notes",

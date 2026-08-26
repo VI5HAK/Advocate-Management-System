@@ -12,7 +12,7 @@ import { Scale } from "lucide-react";
 const EMPTY_FORM = {
   caseId: "",
   date: "",
-  time: "",
+  time: "00:00",
   courtId: "",
   judgeId: "",
   hearingPurpose: "",
@@ -117,7 +117,7 @@ function HearingForm() {
           setForm({
             caseId: data.caseId != null ? String(data.caseId) : "",
             date: data.date ? data.date.slice(0, 10) : "",
-            time: data.time ? data.time.slice(0, 5) : "",
+            time: data.time ? data.time.slice(0, 5) : "00:00",
             courtId: data.courtId != null ? String(data.courtId) : "",
             judgeId: data.judgeId != null ? String(data.judgeId) : "",
             hearingPurpose: toInputValue(data.hearingPurpose),
@@ -205,7 +205,7 @@ function HearingForm() {
       return setError("Hearing date must be today or a future date.");
     }
 
-    if (!form.time) return setError("Hearing time is required.");
+    // if (!form.time) return setError("Hearing time is required.");
 
     const payload = {
       clientIds: selectedClientIds,
@@ -363,6 +363,7 @@ function HearingForm() {
             />
           </div>
 
+          {/*
           <div className="space-y-1.5">
             <label htmlFor="hearing-time" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
               Hearing Time
@@ -380,6 +381,7 @@ function HearingForm() {
               )}
             </div>
           </div>
+          */}
         </div>
 
         <div className="space-y-1.5">

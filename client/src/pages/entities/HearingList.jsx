@@ -206,9 +206,11 @@ function HearingList() {
                 <th className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px]">
                   Hearing Date
                 </th>
+                {/*
                 <th className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px]">
                   Hearing Time
                 </th>
+                */}
                 <th className="px-5 py-4 font-bold text-slate-550 uppercase tracking-wider text-[11px]">
                   Advocate Name
                 </th>
@@ -249,9 +251,11 @@ function HearingList() {
                       <td className="px-5 py-4 text-slate-700 font-semibold align-middle">
                         {formatDateDMY(h.date)}
                       </td>
+                      {/*
                       <td className="px-5 py-4 text-slate-700 font-semibold align-middle">
                         {formatTime12h(h.time)}
                       </td>
+                      */}
                       <td className="px-5 py-4 text-slate-700 font-semibold align-middle">
                         {h.advocateName || "—"}
                       </td>
@@ -269,7 +273,7 @@ function HearingList() {
                     {isExpanded && (
                       <tr className="bg-indigo-50/10">
                         <td
-                          colSpan={isAdvocate ? 4 : 5}
+                        colSpan={isAdvocate ? 3 : 4}
                           className="px-8 py-5 border-t border-slate-100"
                         >
                           <div className="space-y-4 animate-[fadeIn_0.15s_ease-out]">
