@@ -547,8 +547,8 @@ export async function getAppointmentRemarks(req, res, next) {
   const { appointmentId } = req.params;
   try {
     // Verify appointment exists
-    const [apptRows] = await pool.query(
-      `SELECT Appoint_ID, Appoint_Case_ID, Appoint_Date
+        const [apptRows] = await pool.query(
+      `SELECT Appoint_ID, Appoint_Case_ID, Appoint_Date, Appoint_Start_Time
        FROM Appointment
        WHERE Appoint_ID = ? AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
       [appointmentId]
@@ -596,19 +596,27 @@ export async function getAppointmentRemarks(req, res, next) {
         canAddRemark = false;
         validationMessage = "Remarks can only be entered once the appointment date has come into effect.";
       } else {
-        // Check if there is another newer appointment for the same case that has come into effect
-        const [newerRows] = await pool.query(
-          `SELECT DISTINCT Appoint_Date
+        // Fetch all appointments for the case to check if a newer one has come into effect
+        const [allAppts] = await pool.query(
+          `SELECT Appoint_ID, Appoint_Date, Appoint_Start_Time
            FROM Appointment
            WHERE Appoint_Case_ID = ?
-             AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)
-             AND Appoint_Date > ?
-             AND Appoint_Date <= CURDATE()
-           LIMIT 1`,
-          [appt.Appoint_Case_ID, appt.Appoint_Date]
+             AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
+          [appt.Appoint_Case_ID]
         );
 
-        if (newerRows.length > 0) {
+        const apptTimeStr = formatTime(appt.Appoint_Start_Time || "00:00");
+        const newerInEffect = allAppts.some(other => {
+          if (other.Appoint_ID === appt.Appoint_ID) return false;
+          const otherDateStr = formatDate(other.Appoint_Date);
+          const otherTimeStr = formatTime(other.Appoint_Start_Time || "00:00");
+          const isNewer = otherDateStr > apptDateStr || (otherDateStr === apptDateStr && otherTimeStr > apptTimeStr);
+          if (!isNewer) return false;
+          const status = getAppointmentStatus(other);
+          return status === "completed";
+        });
+
+        if (newerInEffect) {
           canAddRemark = false;
           validationMessage = "Remarks can no longer be entered for this appointment as a newer appointment has come into effect.";
         } else {
@@ -695,7 +703,7 @@ export async function addAppointmentRemark(req, res, next) {
 
     // Verify appointment exists
     const [apptRows] = await pool.query(
-      `SELECT Appoint_ID, Appoint_Date, Appoint_Case_ID
+      `SELECT Appoint_ID, Appoint_Date, Appoint_Case_ID, Appoint_Start_Time
        FROM Appointment
        WHERE Appoint_ID = ? AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
       [appointmentId]
@@ -723,19 +731,27 @@ export async function addAppointmentRemark(req, res, next) {
       });
     }
 
-    // Check if there is another newer appointment for the same case that has come into effect
-    const [newerRows] = await pool.query(
-      `SELECT DISTINCT Appoint_Date
+    // Fetch all appointments for the case to check if a newer one has come into effect
+    const [allAppts] = await pool.query(
+      `SELECT Appoint_ID, Appoint_Date, Appoint_Start_Time
        FROM Appointment
        WHERE Appoint_Case_ID = ?
-         AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)
-         AND Appoint_Date > ?
-         AND Appoint_Date <= CURDATE()
-       LIMIT 1`,
-      [appt.Appoint_Case_ID, appt.Appoint_Date]
+         AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
+      [appt.Appoint_Case_ID]
     );
 
-    if (newerRows.length > 0) {
+    const apptTimeStr = formatTime(appt.Appoint_Start_Time || "00:00");
+    const newerInEffect = allAppts.some(other => {
+      if (other.Appoint_ID === appt.Appoint_ID) return false;
+      const otherDateStr = formatDate(other.Appoint_Date);
+      const otherTimeStr = formatTime(other.Appoint_Start_Time || "00:00");
+      const isNewer = otherDateStr > apptDateStr || (otherDateStr === apptDateStr && otherTimeStr > apptTimeStr);
+      if (!isNewer) return false;
+      const status = getAppointmentStatus(other);
+      return status === "completed";
+    });
+
+    if (newerInEffect) {
       return res.status(400).json({
         message: "Remarks can no longer be entered for this appointment as a newer appointment has come into effect."
       });
