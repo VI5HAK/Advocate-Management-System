@@ -39,21 +39,23 @@ export async function create(hearing, connection = pool) {
 export async function getById(id) {
   const [rows] = await pool.query(
     `SELECT
-      Hearing_ID AS id,
-      Client_ID AS clientId,
-      Case_ID AS caseId,
-      Advocate_ID AS advocateId,
-      Client_Name AS clientName,
-      Case_Name AS caseName,
-      Purpose_Text AS purposeText,
-      Hearing_Date AS hearingDate,
-      Hearing_Time AS time,
-      Court_Name AS courtName,
-      Judge_Name AS judgeName,
-      Hearing_Created_By AS createdBy,
-      Hearing_Delete_Flag AS deleteFlag
-     FROM HEARING_MASTER
-     WHERE Hearing_ID = ? AND ${activeCondition()}`,
+      hm.Hearing_ID AS id,
+      hm.Client_ID AS clientId,
+      hm.Case_ID AS caseId,
+      hm.Advocate_ID AS advocateId,
+      COALESCE(cl.Client_Name, hm.Client_Name) AS clientName,
+      COALESCE(cs.Case_Num, hm.Case_Name) AS caseName,
+      hm.Purpose_Text AS purposeText,
+      hm.Hearing_Date AS hearingDate,
+      hm.Hearing_Time AS time,
+      hm.Court_Name AS courtName,
+      hm.Judge_Name AS judgeName,
+      hm.Hearing_Created_By AS createdBy,
+      hm.Hearing_Delete_Flag AS deleteFlag
+     FROM HEARING_MASTER hm
+     LEFT JOIN Case_Master cs ON hm.Case_ID = cs.Case_ID
+     LEFT JOIN Client_Master cl ON hm.Client_ID = cl.Client_ID
+     WHERE hm.Hearing_ID = ? AND ${activeCondition("hm.")}`,
     [id]
   );
   return rows[0] || null;
@@ -128,14 +130,15 @@ export async function listHearings(search, advocateId = null) {
       MIN(hm.Client_ID) AS clientId,
       hm.Case_ID AS caseId,
       (
-        SELECT GROUP_CONCAT(DISTINCT hm_c.Client_Name ORDER BY hm_c.Client_Name SEPARATOR ', ')
+        SELECT GROUP_CONCAT(DISTINCT COALESCE(cl.Client_Name, hm_c.Client_Name) ORDER BY COALESCE(cl.Client_Name, hm_c.Client_Name) SEPARATOR ', ')
         FROM HEARING_MASTER hm_c
+        LEFT JOIN Client_Master cl ON hm_c.Client_ID = cl.Client_ID
         WHERE hm_c.Case_ID = hm.Case_ID
           AND DATE(hm_c.Hearing_Date) = DATE(hm.Hearing_Date)
           AND TIME(hm_c.Hearing_Time) = TIME(hm.Hearing_Time)
           AND ${activeCondition("hm_c.")}
       ) AS clientName,
-      hm.Case_Name AS caseNumber,
+      COALESCE(cs.Case_Num, hm.Case_Name) AS caseNumber,
       hm.Purpose_Text AS purposeText,
       DATE_FORMAT(hm.Hearing_Date, '%Y-%m-%d') AS date,
       TIME_FORMAT(hm.Hearing_Time, '%H:%i') AS time,
@@ -151,6 +154,7 @@ export async function listHearings(search, advocateId = null) {
           AND ${activeCondition("hm2.")}
       ) AS advocateName
     FROM HEARING_MASTER hm
+    LEFT JOIN Case_Master cs ON hm.Case_ID = cs.Case_ID
     WHERE ${activeCondition("hm.")}
       /* AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE > NOW() */
       AND hm.Hearing_Date >= CURDATE()
@@ -172,7 +176,7 @@ export async function listHearings(search, advocateId = null) {
   if (search) {
     query += ` AND (
       hm.Client_Name LIKE ?
-      OR hm.Case_Name LIKE ?
+      OR COALESCE(cs.Case_Num, hm.Case_Name) LIKE ?
       OR hm.Court_Name LIKE ?
       OR hm.Judge_Name LIKE ?
     )`;
@@ -181,7 +185,7 @@ export async function listHearings(search, advocateId = null) {
   }
 
   query += `
-    GROUP BY hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time, hm.Case_Name, hm.Purpose_Text, hm.Court_Name, hm.Judge_Name
+    GROUP BY hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time, cs.Case_Num, hm.Case_Name, hm.Purpose_Text, hm.Court_Name, hm.Judge_Name
     ORDER BY hm.Hearing_Date ASC, hm.Hearing_Time ASC
   `;
 
@@ -196,14 +200,15 @@ export async function listCompletedHearings(search, advocateId = null, caseId = 
       MIN(hm.Client_ID) AS clientId,
       hm.Case_ID AS caseId,
       (
-        SELECT GROUP_CONCAT(DISTINCT hm_c.Client_Name ORDER BY hm_c.Client_Name SEPARATOR ', ')
+        SELECT GROUP_CONCAT(DISTINCT COALESCE(cl.Client_Name, hm_c.Client_Name) ORDER BY COALESCE(cl.Client_Name, hm_c.Client_Name) SEPARATOR ', ')
         FROM HEARING_MASTER hm_c
+        LEFT JOIN Client_Master cl ON hm_c.Client_ID = cl.Client_ID
         WHERE hm_c.Case_ID = hm.Case_ID
           AND DATE(hm_c.Hearing_Date) = DATE(hm.Hearing_Date)
           AND TIME(hm_c.Hearing_Time) = TIME(hm.Hearing_Time)
           AND ${activeCondition("hm_c.")}
       ) AS clientName,
-      hm.Case_Name AS caseNumber,
+      COALESCE(cs.Case_Num, hm.Case_Name) AS caseNumber,
       hm.Purpose_Text AS purposeText,
       DATE_FORMAT(hm.Hearing_Date, '%Y-%m-%d') AS date,
       TIME_FORMAT(hm.Hearing_Time, '%H:%i') AS time,
@@ -230,6 +235,7 @@ export async function listCompletedHearings(search, advocateId = null, caseId = 
         LIMIT 1
       ) AS nextHearingDate
     FROM HEARING_MASTER hm
+    LEFT JOIN Case_Master cs ON hm.Case_ID = cs.Case_ID
     WHERE ${activeCondition("hm.")}
       /* AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE <= NOW() */
       AND hm.Hearing_Date < CURDATE()
@@ -256,7 +262,7 @@ export async function listCompletedHearings(search, advocateId = null, caseId = 
   if (search) {
     query += ` AND (
       hm.Client_Name LIKE ?
-      OR hm.Case_Name LIKE ?
+      OR COALESCE(cs.Case_Num, hm.Case_Name) LIKE ?
       OR hm.Court_Name LIKE ?
       OR hm.Judge_Name LIKE ?
     )`;
@@ -265,7 +271,7 @@ export async function listCompletedHearings(search, advocateId = null, caseId = 
   }
 
   query += `
-    GROUP BY hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time, hm.Case_Name, hm.Purpose_Text, hm.Court_Name, hm.Judge_Name
+    GROUP BY hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time, cs.Case_Num, hm.Case_Name, hm.Purpose_Text, hm.Court_Name, hm.Judge_Name
     ORDER BY hm.Hearing_Date ASC, hm.Hearing_Time ASC
   `;
 
