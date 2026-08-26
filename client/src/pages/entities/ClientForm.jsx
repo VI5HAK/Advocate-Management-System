@@ -169,8 +169,10 @@ function ClientForm() {
     return (
       <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6 animate-pulse">
         <header className="border-b border-slate-100 pb-4">
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <Users className="h-7 w-7 text-indigo-650 shrink-0" />
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+              <Users className="h-7 w-7 shrink-0" />
+            </div>
             {isEdit ? "Update Client" : "Create Client"}
           </h1>
         </header>
@@ -184,8 +186,10 @@ function ClientForm() {
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6">
       <header className="border-b border-slate-100 pb-4">
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-          <Users className="h-7 w-7 text-indigo-650 shrink-0" />
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+            <Users className="h-7 w-7 shrink-0" />
+          </div>
           {isEdit ? "Update Client" : "Create Client"}
         </h1>
       </header>

@@ -107,8 +107,10 @@ function Dashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-          <LayoutDashboard className="h-8 w-8 text-indigo-650 shrink-0" />
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+            <LayoutDashboard className="h-8 w-8 shrink-0" />
+          </div>
           Dashboard
           <HelpButton title="Dashboard" />
         </h1>

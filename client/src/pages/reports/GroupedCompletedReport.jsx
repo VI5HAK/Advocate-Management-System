@@ -89,8 +89,10 @@ export function GroupedCompletedReport({ config }) {
       {/* Header section */}
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200/60 pb-5">
         <div className="space-y-1.5">
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <IconComponent className="h-8 w-8 text-indigo-600 shrink-0" />
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+              <IconComponent className="h-8 w-8 shrink-0" />
+            </div>
             {title}
             <HelpButton title={title} />
           </h1>

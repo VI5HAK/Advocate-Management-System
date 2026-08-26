@@ -108,8 +108,10 @@ function HearingList() {
   return (
     <div className="space-y-6">
       <header className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-          <Scale className="h-8 w-8 text-indigo-650 shrink-0" />
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+            <Scale className="h-8 w-8 shrink-0" />
+          </div>
           Hearing List
           <HelpButton title="Hearing List" />
         </h1>

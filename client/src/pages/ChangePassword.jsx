@@ -60,8 +60,10 @@ function ChangePassword() {
   return (
     <div className="max-w-md mx-auto bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-6 my-8">
       <header className="border-b border-slate-100 pb-4">
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-          <KeyRound className="h-7 w-7 text-indigo-650 shrink-0" />
+        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+            <KeyRound className="h-7 w-7 shrink-0" />
+          </div>
           Change Password
         </h1>
       </header>

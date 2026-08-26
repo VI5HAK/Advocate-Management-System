@@ -99,8 +99,10 @@ function AdminUsersPage() {
   if (view === "form") {
     return (
       <div className="advocate-form-page">
-        <h1 className="advocate-form-title flex items-center justify-center gap-2">
-          <UserCog className="h-8 w-8 text-indigo-650 shrink-0" />
+        <h1 className="advocate-form-title flex items-center justify-center gap-3">
+          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+            <UserCog className="h-8 w-8 shrink-0" />
+          </div>
           Create Admin
         </h1>
 
@@ -204,8 +206,10 @@ function AdminUsersPage() {
   return (
     <div className="master-page">
       <header className="master-header">
-        <h1 className="master-title flex items-center gap-2">
-          <UserCog className="h-8 w-8 text-indigo-650 shrink-0" />
+        <h1 className="master-title flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+            <UserCog className="h-8 w-8 shrink-0" />
+          </div>
           Admin Users
           <HelpButton title="Admin Users" />
         </h1>
