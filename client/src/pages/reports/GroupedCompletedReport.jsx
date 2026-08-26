@@ -19,12 +19,16 @@ export function GroupedCompletedReport({ config }) {
     autoExpand,
   } = config;
 
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState([]); // This will hold case summaries
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedCases, setExpandedCases] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
+
+  // New state to cache detailed rows per case
+  const [caseDetails, setCaseDetails] = useState({});
+  const [loadingDetails, setLoadingDetails] = useState({});
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -32,57 +36,51 @@ export function GroupedCompletedReport({ config }) {
     try {
       const { data } = await api.get(apiPath);
       setItems(data || []);
-
-      // Auto-expand cases if configured
-      const initialExpanded = {};
-      if (autoExpand) {
-        data.forEach((item) => {
-          const caseKey = item.caseId || "no-case";
-          initialExpanded[caseKey] = true;
-        });
-      }
-      setExpandedCases(initialExpanded);
+      // Reset expanded states and loaded details on refresh
+      setExpandedCases({});
+      setCaseDetails({});
+      setLoadingDetails({});
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || `Failed to fetch report data.`);
     } finally {
       setLoading(false);
     }
-  }, [apiPath, autoExpand]);
+  }, [apiPath]);
 
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);
 
-  const toggleCase = (caseId) => {
+  const toggleCase = async (caseId) => {
+    const isExpanding = !expandedCases[caseId];
     setExpandedCases((prev) => ({
       ...prev,
-      [caseId]: !prev[caseId],
+      [caseId]: isExpanding,
     }));
+
+    if (isExpanding && !caseDetails[caseId]) {
+      setLoadingDetails((prev) => ({ ...prev, [caseId]: true }));
+      try {
+        const { data } = await api.get(`${apiPath}?caseId=${caseId}`);
+        setCaseDetails((prev) => ({
+          ...prev,
+          [caseId]: data || [],
+        }));
+      } catch (err) {
+        console.error(`Failed to fetch details for case: ${caseId}`, err);
+      } finally {
+        setLoadingDetails((prev) => ({ ...prev, [caseId]: false }));
+      }
+    }
   };
 
-  // Group items by Case ID
-  const grouped = items.reduce((acc, item) => {
-    const caseKey = item.caseId || "no-case";
-    if (!acc[caseKey]) {
-      acc[caseKey] = {
-        caseId: item.caseId,
-        caseNumber: item.caseNumber || "NO CASE",
-        clientName: item.clientName || "—",
-        advocateName: item.advocateName || "—",
-        rows: [],
-      };
-    }
-    acc[caseKey].rows.push(item);
-    return acc;
-  }, {});
-
-  // Convert grouped to array and filter by search term
-  const groupedArray = Object.values(grouped).filter((group) => {
+  // Convert summaries to array and filter by search term
+  const filteredSummaries = items.filter((group) => {
     const term = searchTerm.toLowerCase();
     return (
-      group.caseNumber.toLowerCase().includes(term) ||
-      group.clientName.toLowerCase().includes(term)
+      (group.caseNumber || "NO CASE").toLowerCase().includes(term) ||
+      (group.clientName || "—").toLowerCase().includes(term)
     );
   });
 
@@ -150,7 +148,7 @@ export function GroupedCompletedReport({ config }) {
             Retry
           </button>
         </div>
-      ) : groupedArray.length === 0 ? (
+      ) : filteredSummaries.length === 0 ? (
         <div className="bg-white/80 rounded-2xl border border-slate-200/60 p-16 text-center shadow-sm flex flex-col items-center justify-center gap-4 backdrop-blur-sm text-slate-400">
           <div className="p-4 bg-slate-50 border border-slate-150 text-slate-400 rounded-2xl">
             <IconComponent className="h-10 w-10 text-slate-400" />
@@ -162,17 +160,20 @@ export function GroupedCompletedReport({ config }) {
         </div>
       ) : (
         <div className="space-y-4">
-          {groupedArray.map((group) => {
-            const isExpanded = expandedCases[group.caseId || "no-case"] !== false;
+          {filteredSummaries.map((group) => {
+            const key = group.caseId || "no-case";
+            const isExpanded = expandedCases[key] === true;
+            const rows = caseDetails[key] || [];
+            const isLoading = loadingDetails[key] === true;
             return (
               <div
-                key={group.caseId || "no-case"}
+                key={key}
                 className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden transition-all duration-350 hover:shadow-md hover:border-slate-300/60"
               >
                 <button
                   type="button"
                   className="w-full text-left p-5 flex items-center justify-between cursor-pointer select-none bg-slate-50/40 hover:bg-slate-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/10"
-                  onClick={() => toggleCase(group.caseId || "no-case")}
+                  onClick={() => toggleCase(key)}
                   aria-expanded={isExpanded}
                 >
                   <div className="flex flex-col gap-1">
@@ -192,9 +193,9 @@ export function GroupedCompletedReport({ config }) {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-semibold text-slate-500 bg-slate-100/80 border border-slate-200/40 px-2.5 py-1 rounded-lg">
-                      {group.rows.length}{" "}
+                      {group.count}{" "}
                       {config.modalType === "notes" ? "hearing" : "appointment"}
-                      {group.rows.length > 1 ? "s" : ""}
+                      {group.count > 1 ? "s" : ""}
                     </span>
                     <div
                       className={`p-1.5 rounded-lg bg-white border border-slate-150 shadow-sm text-slate-400 transition-transform duration-200 ${
@@ -208,53 +209,60 @@ export function GroupedCompletedReport({ config }) {
 
                 {isExpanded && (
                   <div className="border-t border-slate-200/60 bg-white">
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse text-left text-sm">
-                        <thead>
-                          <tr className="border-b border-slate-200 bg-slate-50/75">
-                            {columns.map((col) => (
-                              <th
-                                key={col.key}
-                                className="px-5 py-3.5 font-bold text-slate-550 uppercase tracking-wider text-[10px] whitespace-nowrap"
-                              >
-                                {col.label}
-                              </th>
-                            ))}
-                            <th className="px-5 py-3.5 font-bold text-slate-550 uppercase tracking-wider text-[10px] text-right w-[120px]">
-                              Actions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {group.rows.map((row) => (
-                            <tr
-                              key={row.id}
-                              className="hover:bg-slate-50/30 even:bg-slate-50/15 transition-colors duration-150"
-                            >
+                    {isLoading ? (
+                      <div className="p-8 text-center text-slate-500 flex items-center justify-center gap-3">
+                        <div className="w-5 h-5 border-2 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                        <span>Loading details...</span>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse text-left text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-200 bg-slate-50/75">
                               {columns.map((col) => (
-                                <td
+                                <th
                                   key={col.key}
-                                  className="px-5 py-4 text-slate-700 font-medium align-middle"
+                                  className="px-5 py-3.5 font-bold text-slate-550 uppercase tracking-wider text-[10px] whitespace-nowrap"
                                 >
-                                  {col.render
-                                    ? col.render(row[col.key], row)
-                                    : row[col.key] || "—"}
-                                </td>
+                                  {col.label}
+                                </th>
                               ))}
-                              <td className="px-5 py-4 text-right align-middle">
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center justify-center gap-1 h-8 px-3.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-sm shadow-indigo-100/40 cursor-pointer"
-                                  onClick={() => setSelectedItem(row)}
-                                >
-                                  {actionLabel}
-                                </button>
-                              </td>
+                              <th className="px-5 py-3.5 font-bold text-slate-550 uppercase tracking-wider text-[10px] text-right w-[120px]">
+                                Actions
+                              </th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {rows.map((row) => (
+                              <tr
+                                key={row.id}
+                                className="hover:bg-slate-50/30 even:bg-slate-50/15 transition-colors duration-150"
+                              >
+                                {columns.map((col) => (
+                                  <td
+                                    key={col.key}
+                                    className="px-5 py-4 text-slate-700 font-medium align-middle"
+                                  >
+                                    {col.render
+                                      ? col.render(row[col.key], row)
+                                      : row[col.key] || "—"}
+                                  </td>
+                                ))}
+                                <td className="px-5 py-4 text-right align-middle">
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center justify-center gap-1 h-8 px-3.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-sm shadow-indigo-100/40 cursor-pointer"
+                                    onClick={() => setSelectedItem(row)}
+                                  >
+                                    {actionLabel}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -266,9 +274,26 @@ export function GroupedCompletedReport({ config }) {
       {selectedItem && ModalComponent && (
         <ModalComponent
           {...{ [modalProp]: selectedItem }}
-          onClose={() => {
+          onClose={async () => {
+            const caseKey = selectedItem.caseId || "no-case";
             setSelectedItem(null);
-            fetchItems(); // Refetch to ensure changes (remarks/notes count or dates) reflect immediately
+            
+            // Refetch summaries list
+            await fetchItems();
+            
+            // Refetch details for the specific case to keep UI updated
+            setLoadingDetails((prev) => ({ ...prev, [caseKey]: true }));
+            try {
+              const { data } = await api.get(`${apiPath}?caseId=${caseKey}`);
+              setCaseDetails((prev) => ({
+                ...prev,
+                [caseKey]: data || [],
+              }));
+            } catch (err) {
+              console.error("Failed to reload details:", err);
+            } finally {
+              setLoadingDetails((prev) => ({ ...prev, [caseKey]: false }));
+            }
           }}
         />
       )}

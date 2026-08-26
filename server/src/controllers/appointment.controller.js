@@ -979,6 +979,7 @@ export async function getCaseReport(req, res, next) {
 export async function listCompletedAppointments(req, res, next) {
   try {
     const search = req.query.search?.trim() || "";
+    const caseIdParam = req.query.caseId;
     let sql = `
       SELECT
         MIN(ap.Appoint_ID) AS id,
@@ -1006,6 +1007,11 @@ export async function listCompletedAppointments(req, res, next) {
         AND (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
     `;
     const params = [];
+
+    if (caseIdParam !== undefined && caseIdParam !== null && caseIdParam !== "") {
+      sql += ` AND ap.Appoint_Case_ID = ?`;
+      params.push(Number(caseIdParam));
+    }
 
     if (req.user?.role === "advocate") {
       sql += ` AND EXISTS (
@@ -1049,7 +1055,27 @@ export async function listCompletedAppointments(req, res, next) {
       };
     });
     const filtered = mapped.filter((item) => item.status === "completed");
-    res.json(filtered);
+
+    if (caseIdParam !== undefined && caseIdParam !== null && caseIdParam !== "") {
+      return res.json(filtered);
+    }
+
+    // Return summary grouped by case
+    const grouped = {};
+    for (const item of filtered) {
+      const caseKey = item.caseId || "no-case";
+      if (!grouped[caseKey]) {
+        grouped[caseKey] = {
+          caseId: item.caseId,
+          caseNumber: item.caseNumber || "NO CASE",
+          clientName: item.clientName || "—",
+          advocateName: item.advocateName || "—",
+          count: 0
+        };
+      }
+      grouped[caseKey].count += 1;
+    }
+    res.json(Object.values(grouped));
   } catch (err) {
     next(err);
   }

@@ -19,7 +19,17 @@ export const ADMIN_MENU_ITEMS = [
   { id: "client", label: "Client", path: "/client" },
   { id: "case", label: "Case", path: "/case" },
   { id: "appointments", label: "Appointments", path: "/appointments" },
+  {
+    id: "completed-appointments",
+    label: "Completed Appointments",
+    path: "/completed-appointments",
+  },
   { id: "hearings", label: "Hearings", path: "/hearings" },
+  {
+    id: "hearing-report",
+    label: "Completed Hearings",
+    path: "/reports/hearing",
+  },
   {
     id: "reports",
     label: "Reports",
@@ -35,11 +45,6 @@ export const ADMIN_MENU_ITEMS = [
         label: "Appointment Report",
         path: "/reports/appointment",
       },
-      {
-        id: "hearing-report",
-        label: "Completed Hearings",
-        path: "/reports/hearing",
-      },
     ],
   },
 ];
@@ -47,12 +52,12 @@ export const ADMIN_MENU_ITEMS = [
 export const ADVOCATE_MENU_ITEMS = [
   { id: "home", label: "Home", path: "/" },
   { id: "appointments", label: "Appointments", path: "/appointments" },
-  { id: "hearings", label: "Hearings", path: "/hearings" },
   {
     id: "completed-appointments",
     label: "Completed Appointments",
     path: "/completed-appointments",
   },
+  { id: "hearings", label: "Hearings", path: "/hearings" },
   {
     id: "hearing-report",
     label: "Completed Hearings",
