@@ -6,72 +6,99 @@ const activeCondition = (alias = "") =>
 export async function create(hearing, connection = pool) {
   const [result] = await connection.query(
     `INSERT INTO HEARING_MASTER (
-      Client_ID,
       Case_ID,
-      Advocate_ID,
-      Client_Name,
-      Case_Name,
+      Court_ID,
+      Judge_ID,
       Purpose_Text,
       Hearing_Date,
       Hearing_Time,
-      Court_Name,
-      Judge_Name,
       Hearing_Created_By,
       Hearing_Created_Date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE())`,
     [
-      hearing.clientId,
       hearing.caseId,
-      hearing.advocateId,
-      hearing.clientName,
-      hearing.caseName,
+      hearing.courtId,
+      hearing.judgeId,
       hearing.purposeText,
       hearing.hearingDate,
       hearing.time,
-      hearing.courtName,
-      hearing.judgeName,
       hearing.createdBy
     ]
   );
   return result.insertId;
 }
 
+export async function addHearingClients(hearingId, clientIds, connection = pool) {
+  for (const clientId of clientIds) {
+    await connection.query(
+      `INSERT INTO Hearing_Clients (Hearing_ID, Client_ID) VALUES (?, ?)`,
+      [hearingId, clientId]
+    );
+  }
+}
+
+export async function addHearingAdvocates(hearingId, advocateIds, connection = pool) {
+  for (const advocateId of advocateIds) {
+    await connection.query(
+      `INSERT INTO Hearing_Advocates (Hearing_ID, Advocate_ID) VALUES (?, ?)`,
+      [hearingId, advocateId]
+    );
+  }
+}
+
+export async function deleteHearingClients(hearingId, connection = pool) {
+  await connection.query(
+    `DELETE FROM Hearing_Clients WHERE Hearing_ID = ?`,
+    [hearingId]
+  );
+}
+
+export async function deleteHearingAdvocates(hearingId, connection = pool) {
+  await connection.query(
+    `DELETE FROM Hearing_Advocates WHERE Hearing_ID = ?`,
+    [hearingId]
+  );
+}
+
 export async function getById(id) {
   const [rows] = await pool.query(
     `SELECT
       hm.Hearing_ID AS id,
-      hm.Client_ID AS clientId,
       hm.Case_ID AS caseId,
-      hm.Advocate_ID AS advocateId,
-      COALESCE(cl.Client_Name, hm.Client_Name) AS clientName,
-      COALESCE(cs.Case_Num, hm.Case_Name) AS caseName,
+      cs.Case_Num AS caseName,
+      hm.Court_ID AS courtId,
+      cm.Court_Name AS courtName,
+      hm.Judge_ID AS judgeId,
+      jm.Judge_Name AS judgeName,
       hm.Purpose_Text AS purposeText,
       hm.Hearing_Date AS hearingDate,
       hm.Hearing_Time AS time,
-      hm.Court_Name AS courtName,
-      hm.Judge_Name AS judgeName,
       hm.Hearing_Created_By AS createdBy,
       hm.Hearing_Delete_Flag AS deleteFlag
      FROM HEARING_MASTER hm
      LEFT JOIN Case_Master cs ON hm.Case_ID = cs.Case_ID
-     LEFT JOIN Client_Master cl ON hm.Client_ID = cl.Client_ID
+     LEFT JOIN Court_Master cm ON hm.Court_ID = cm.Court_ID
+     LEFT JOIN JUDGE_MASTER jm ON hm.Judge_ID = jm.Judge_ID
      WHERE hm.Hearing_ID = ? AND ${activeCondition("hm.")}`,
     [id]
   );
   return rows[0] || null;
 }
 
-export async function getRelatedHearingRows(caseId, date, time) {
+export async function getHearingClientIds(hearingId) {
   const [rows] = await pool.query(
-    `SELECT Hearing_ID AS id, Client_ID AS clientId, Advocate_ID AS advocateId
-     FROM HEARING_MASTER
-     WHERE Case_ID = ?
-       AND DATE(Hearing_Date) = DATE(?)
-       AND TIME(Hearing_Time) = TIME(?)
-       AND ${activeCondition()}`,
-    [caseId, date, time]
+    `SELECT Client_ID AS clientId FROM Hearing_Clients WHERE Hearing_ID = ?`,
+    [hearingId]
   );
-  return rows;
+  return rows.map(r => r.clientId);
+}
+
+export async function getHearingAdvocateIds(hearingId) {
+  const [rows] = await pool.query(
+    `SELECT Advocate_ID AS advocateId FROM Hearing_Advocates WHERE Hearing_ID = ?`,
+    [hearingId]
+  );
+  return rows.map(r => r.advocateId);
 }
 
 export async function checkActiveHearing(caseId, excludeHearingIds = []) {
@@ -79,7 +106,6 @@ export async function checkActiveHearing(caseId, excludeHearingIds = []) {
     SELECT Hearing_ID FROM HEARING_MASTER
     WHERE Case_ID = ?
       AND ${activeCondition()}
-      /* AND TIMESTAMP(Hearing_Date, Hearing_Time) + INTERVAL 15 MINUTE > NOW() */
       AND Hearing_Date >= CURDATE()
   `;
   const params = [caseId];
@@ -93,10 +119,11 @@ export async function checkActiveHearing(caseId, excludeHearingIds = []) {
 
 export async function checkAdvocateOverlaps(advocateIds, date, time, excludeHearingIds = []) {
   let query = `
-    SELECT DISTINCT hm.Advocate_ID, am.Advocate_Name
+    SELECT DISTINCT ha.Advocate_ID, am.Advocate_Name
     FROM HEARING_MASTER hm
-    INNER JOIN Advocate_Master am ON hm.Advocate_ID = am.Advocate_ID
-    WHERE hm.Advocate_ID IN (?)
+    INNER JOIN Hearing_Advocates ha ON hm.Hearing_ID = ha.Hearing_ID
+    INNER JOIN Advocate_Master am ON ha.Advocate_ID = am.Advocate_ID
+    WHERE ha.Advocate_ID IN (?)
       AND ABS(TIMESTAMPDIFF(MINUTE, TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time), TIMESTAMP(?, ?))) < 15
       AND ${activeCondition("hm.")}
   `;
@@ -126,68 +153,63 @@ export async function softDeleteHearingRows(ids, connection = pool) {
 export async function listHearings(search, advocateId = null) {
   let query = `
     SELECT
-      MIN(hm.Hearing_ID) AS id,
-      MIN(hm.Client_ID) AS clientId,
-      hm.Case_ID AS caseId,
+      hm.Hearing_ID AS id,
       (
-        SELECT GROUP_CONCAT(DISTINCT COALESCE(cl.Client_Name, hm_c.Client_Name) ORDER BY COALESCE(cl.Client_Name, hm_c.Client_Name) SEPARATOR ', ')
-        FROM HEARING_MASTER hm_c
-        LEFT JOIN Client_Master cl ON hm_c.Client_ID = cl.Client_ID
-        WHERE hm_c.Case_ID = hm.Case_ID
-          AND DATE(hm_c.Hearing_Date) = DATE(hm.Hearing_Date)
-          AND TIME(hm_c.Hearing_Time) = TIME(hm.Hearing_Time)
-          AND ${activeCondition("hm_c.")}
+        SELECT GROUP_CONCAT(DISTINCT cl.Client_Name ORDER BY cl.Client_Name SEPARATOR ', ')
+        FROM Hearing_Clients hc
+        INNER JOIN Client_Master cl ON hc.Client_ID = cl.Client_ID
+        WHERE hc.Hearing_ID = hm.Hearing_ID
+          AND (cl.Client_Delete_Flag = FALSE OR cl.Client_Delete_Flag = 0)
       ) AS clientName,
-      COALESCE(cs.Case_Num, hm.Case_Name) AS caseNumber,
+      cs.Case_Num AS caseNumber,
+      hm.Case_ID AS caseId,
       hm.Purpose_Text AS purposeText,
       DATE_FORMAT(hm.Hearing_Date, '%Y-%m-%d') AS date,
       TIME_FORMAT(hm.Hearing_Time, '%H:%i') AS time,
-      hm.Court_Name AS courtName,
-      hm.Judge_Name AS judgeName,
+      cm.Court_Name AS courtName,
+      jm.Judge_Name AS judgeName,
       (
         SELECT GROUP_CONCAT(DISTINCT a.Advocate_Name ORDER BY a.Advocate_Name SEPARATOR ', ')
-        FROM HEARING_MASTER hm2
-        INNER JOIN Advocate_Master a ON hm2.Advocate_ID = a.Advocate_ID
-        WHERE hm2.Case_ID = hm.Case_ID
-          AND DATE(hm2.Hearing_Date) = DATE(hm.Hearing_Date)
-          AND TIME(hm2.Hearing_Time) = TIME(hm.Hearing_Time)
-          AND ${activeCondition("hm2.")}
+        FROM Hearing_Advocates ha
+        INNER JOIN Advocate_Master a ON ha.Advocate_ID = a.Advocate_ID
+        WHERE ha.Hearing_ID = hm.Hearing_ID
+          AND (a.Advocate_Delete_Flag = FALSE OR a.Advocate_Delete_Flag = 0)
       ) AS advocateName
     FROM HEARING_MASTER hm
     LEFT JOIN Case_Master cs ON hm.Case_ID = cs.Case_ID
+    LEFT JOIN Court_Master cm ON hm.Court_ID = cm.Court_ID
+    LEFT JOIN JUDGE_MASTER jm ON hm.Judge_ID = jm.Judge_ID
     WHERE ${activeCondition("hm.")}
-      /* AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE > NOW() */
       AND hm.Hearing_Date >= CURDATE()
   `;
   const params = [];
   
   if (advocateId) {
     query += ` AND EXISTS (
-      SELECT 1 FROM HEARING_MASTER hm3
-      WHERE hm3.Case_ID = hm.Case_ID
-        AND DATE(hm3.Hearing_Date) = DATE(hm.Hearing_Date)
-        AND TIME(hm3.Hearing_Time) = TIME(hm.Hearing_Time)
-        AND hm3.Advocate_ID = ?
-        AND ${activeCondition("hm3.")}
+      SELECT 1 FROM Hearing_Advocates ha
+      WHERE ha.Hearing_ID = hm.Hearing_ID
+        AND ha.Advocate_ID = ?
     )`;
     params.push(advocateId);
   }
 
   if (search) {
     query += ` AND (
-      hm.Client_Name LIKE ?
-      OR COALESCE(cs.Case_Num, hm.Case_Name) LIKE ?
-      OR hm.Court_Name LIKE ?
-      OR hm.Judge_Name LIKE ?
+      cs.Case_Num LIKE ?
+      OR cm.Court_Name LIKE ?
+      OR jm.Judge_Name LIKE ?
+      OR EXISTS (
+        SELECT 1 FROM Hearing_Clients hc
+        INNER JOIN Client_Master cl ON hc.Client_ID = cl.Client_ID
+        WHERE hc.Hearing_ID = hm.Hearing_ID
+          AND cl.Client_Name LIKE ?
+      )
     )`;
     const term = `%${search}%`;
     params.push(term, term, term, term);
   }
 
-  query += `
-    GROUP BY hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time, cs.Case_Num, hm.Case_Name, hm.Purpose_Text, hm.Court_Name, hm.Judge_Name
-    ORDER BY hm.Hearing_Date ASC, hm.Hearing_Time ASC
-  `;
+  query += ` ORDER BY hm.Hearing_Date ASC, hm.Hearing_Time ASC`;
 
   const [rows] = await pool.query(query, params);
   return rows;
@@ -196,48 +218,41 @@ export async function listHearings(search, advocateId = null) {
 export async function listCompletedHearings(search, advocateId = null, caseId = null) {
   let query = `
     SELECT
-      MIN(hm.Hearing_ID) AS id,
-      MIN(hm.Client_ID) AS clientId,
-      hm.Case_ID AS caseId,
+      hm.Hearing_ID AS id,
       (
-        SELECT GROUP_CONCAT(DISTINCT COALESCE(cl.Client_Name, hm_c.Client_Name) ORDER BY COALESCE(cl.Client_Name, hm_c.Client_Name) SEPARATOR ', ')
-        FROM HEARING_MASTER hm_c
-        LEFT JOIN Client_Master cl ON hm_c.Client_ID = cl.Client_ID
-        WHERE hm_c.Case_ID = hm.Case_ID
-          AND DATE(hm_c.Hearing_Date) = DATE(hm.Hearing_Date)
-          AND TIME(hm_c.Hearing_Time) = TIME(hm.Hearing_Time)
-          AND ${activeCondition("hm_c.")}
+        SELECT GROUP_CONCAT(DISTINCT cl.Client_Name ORDER BY cl.Client_Name SEPARATOR ', ')
+        FROM Hearing_Clients hc
+        INNER JOIN Client_Master cl ON hc.Client_ID = cl.Client_ID
+        WHERE hc.Hearing_ID = hm.Hearing_ID
+          AND (cl.Client_Delete_Flag = FALSE OR cl.Client_Delete_Flag = 0)
       ) AS clientName,
-      COALESCE(cs.Case_Num, hm.Case_Name) AS caseNumber,
+      cs.Case_Num AS caseNumber,
+      hm.Case_ID AS caseId,
       hm.Purpose_Text AS purposeText,
       DATE_FORMAT(hm.Hearing_Date, '%Y-%m-%d') AS date,
       TIME_FORMAT(hm.Hearing_Time, '%H:%i') AS time,
-      hm.Court_Name AS courtName,
-      hm.Judge_Name AS judgeName,
+      cm.Court_Name AS courtName,
+      jm.Judge_Name AS judgeName,
       (
         SELECT GROUP_CONCAT(DISTINCT a.Advocate_Name ORDER BY a.Advocate_Name SEPARATOR ', ')
-        FROM HEARING_MASTER hm2
-        INNER JOIN Advocate_Master a ON hm2.Advocate_ID = a.Advocate_ID
-        WHERE hm2.Case_ID = hm.Case_ID
-          AND DATE(hm2.Hearing_Date) = DATE(hm.Hearing_Date)
-          AND TIME(hm2.Hearing_Time) = TIME(hm.Hearing_Time)
-          AND ${activeCondition("hm2.")}
+        FROM Hearing_Advocates ha
+        INNER JOIN Advocate_Master a ON ha.Advocate_ID = a.Advocate_ID
+        WHERE ha.Hearing_ID = hm.Hearing_ID
+          AND (a.Advocate_Delete_Flag = FALSE OR a.Advocate_Delete_Flag = 0)
       ) AS advocateName,
       (
         SELECT DATE_FORMAT(hn.Next_Hearing_Date, '%Y-%m-%d')
         FROM HEARING_NOTES_MASTER hn
-        INNER JOIN HEARING_MASTER hm4 ON hn.Hearing_ID = hm4.Hearing_ID
-        WHERE hm4.Case_ID = hm.Case_ID
-          AND DATE(hm4.Hearing_Date) = DATE(hm.Hearing_Date)
-          AND TIME(hm4.Hearing_Time) = TIME(hm.Hearing_Time)
+        WHERE hn.Hearing_ID = hm.Hearing_ID
           AND hn.Next_Hearing_Date IS NOT NULL
         ORDER BY hn.HN_ID DESC
         LIMIT 1
       ) AS nextHearingDate
     FROM HEARING_MASTER hm
     LEFT JOIN Case_Master cs ON hm.Case_ID = cs.Case_ID
+    LEFT JOIN Court_Master cm ON hm.Court_ID = cm.Court_ID
+    LEFT JOIN JUDGE_MASTER jm ON hm.Judge_ID = jm.Judge_ID
     WHERE ${activeCondition("hm.")}
-      /* AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE <= NOW() */
       AND hm.Hearing_Date < CURDATE()
   `;
   const params = [];
@@ -249,31 +264,30 @@ export async function listCompletedHearings(search, advocateId = null, caseId = 
 
   if (advocateId) {
     query += ` AND EXISTS (
-      SELECT 1 FROM HEARING_MASTER hm3
-      WHERE hm3.Case_ID = hm.Case_ID
-        AND DATE(hm3.Hearing_Date) = DATE(hm.Hearing_Date)
-        AND TIME(hm3.Hearing_Time) = TIME(hm.Hearing_Time)
-        AND hm3.Advocate_ID = ?
-        AND ${activeCondition("hm3.")}
+      SELECT 1 FROM Hearing_Advocates ha
+      WHERE ha.Hearing_ID = hm.Hearing_ID
+        AND ha.Advocate_ID = ?
     )`;
     params.push(advocateId);
   }
 
   if (search) {
     query += ` AND (
-      hm.Client_Name LIKE ?
-      OR COALESCE(cs.Case_Num, hm.Case_Name) LIKE ?
-      OR hm.Court_Name LIKE ?
-      OR hm.Judge_Name LIKE ?
+      cs.Case_Num LIKE ?
+      OR cm.Court_Name LIKE ?
+      OR jm.Judge_Name LIKE ?
+      OR EXISTS (
+        SELECT 1 FROM Hearing_Clients hc
+        INNER JOIN Client_Master cl ON hc.Client_ID = cl.Client_ID
+        WHERE hc.Hearing_ID = hm.Hearing_ID
+          AND cl.Client_Name LIKE ?
+      )
     )`;
     const term = `%${search}%`;
     params.push(term, term, term, term);
   }
 
-  query += `
-    GROUP BY hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time, cs.Case_Num, hm.Case_Name, hm.Purpose_Text, hm.Court_Name, hm.Judge_Name
-    ORDER BY hm.Hearing_Date ASC, hm.Hearing_Time ASC
-  `;
+  query += ` ORDER BY hm.Hearing_Date ASC, hm.Hearing_Time ASC`;
 
   const [rows] = await pool.query(query, params);
   return rows;

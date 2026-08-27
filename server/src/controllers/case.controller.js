@@ -130,7 +130,6 @@ async function parseCaseBody(body) {
       caseNumber,
       caseTypeId,
       courtId,
-      advocateIds[0],
       trimOrNull(body.petitioner),
       trimOrNull(body.petitionerAdvocate),
       trimOrNull(body.respondent),
@@ -154,7 +153,6 @@ const CASE_SELECT = `
     cs.Case_Case_Type_ID AS caseTypeId,
     ct.Case_Type_Name AS caseTypeName,
     cs.Case_Court_ID AS courtId,
-    cs.Case_Advocate_ID AS advocateId,
     cs.Case_Petitioner AS petitioner,
     cs.Case_Petitioner_Advocate AS petitionerAdvocate,
     cs.Case_Respodent AS respondent,
@@ -167,53 +165,7 @@ const CASE_SELECT = `
     DATE_FORMAT(cs.Case_Efiling_Date, '%Y-%m-%d') AS efilingDate,
     cs.Case_Efiling_Num AS efilingNum,
     cs.Case_Court_Name AS courtName,
-    d.District_Name AS districtName,
-    (
-      SELECT ap.Appoint_Client_ID
-      FROM Appointment ap
-      WHERE ap.Appoint_Case_ID = cs.Case_ID
-        AND ap.Appoint_Created_By = '${SYSTEM_CASE_LINK}'
-        AND (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
-      ORDER BY ap.Appoint_ID DESC
-      LIMIT 1
-    ) AS clientId
-  FROM Case_Master cs
-  LEFT JOIN Case_Type_Master ct ON cs.Case_Case_Type_ID = ct.Case_Type_ID
-  LEFT JOIN Court_Master cm ON cs.Case_Court_ID = cm.Court_ID
-  LEFT JOIN DISTRICTS d ON cm.District_ID = d.District_ID
-  WHERE cs.Case_ID = ?
-    AND (cs.Case_Delete_Flag = FALSE OR cs.Case_Delete_Flag = 0)
-`;
-
-const CASE_SELECT_LEGACY_FALLBACK = `
-  SELECT
-    cs.Case_ID AS id,
-    cs.Case_Num AS caseNumber,
-    cs.Case_Case_Type_ID AS caseTypeId,
-    ct.Case_Type_Name AS caseTypeName,
-    cs.Case_Court_ID AS courtId,
-    cs.Case_Advocate_ID AS advocateId,
-    cs.Case_Petitioner AS petitioner,
-    cs.Case_Petitioner_Advocate AS petitionerAdvocate,
-    cs.Case_Respodent AS respondent,
-    cs.Case_Respondent_Advocate AS respondentAdvocate,
-    DATE_FORMAT(cs.Case_Filing_Date, '%Y-%m-%d') AS filingDate,
-    cs.Case_Filing_Num AS filingNum,
-    DATE_FORMAT(cs.Case_Reg_Date, '%Y-%m-%d') AS regDate,
-    cs.Case_Reg_Num AS regNum,
-    cs.Case_CNR_Num AS cnrNum,
-    DATE_FORMAT(cs.Case_Efiling_Date, '%Y-%m-%d') AS efilingDate,
-    cs.Case_Efiling_Num AS efilingNum,
-    cs.Case_Court_Name AS courtName,
-    d.District_Name AS districtName,
-    (
-      SELECT ap.Appoint_Client_ID
-      FROM Appointment ap
-      WHERE ap.Appoint_Case_ID = cs.Case_ID
-        AND (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
-      ORDER BY ap.Appoint_Date DESC, ap.Appoint_ID DESC
-      LIMIT 1
-    ) AS clientId
+    d.District_Name AS districtName
   FROM Case_Master cs
   LEFT JOIN Case_Type_Master ct ON cs.Case_Case_Type_ID = ct.Case_Type_ID
   LEFT JOIN Court_Master cm ON cs.Case_Court_ID = cm.Court_ID
@@ -228,45 +180,22 @@ export async function getCase(req, res, next) {
     if (rows.length === 0) {
       return res.status(404).json({ message: "Case not found." });
     }
-    
-    let mainCase = rows[0];
-    if (mainCase.clientId === null) {
-      const [legacyRows] = await pool.query(CASE_SELECT_LEGACY_FALLBACK, [req.params.id]);
-      if (legacyRows.length > 0) {
-        mainCase = legacyRows[0];
-      }
-    }
+    const mainCase = rows[0];
 
     const [clientRows] = await pool.query(
-      `SELECT DISTINCT Appoint_Client_ID AS clientId
-       FROM Appointment
-       WHERE Appoint_Case_ID = ?
-         AND Appoint_Created_By = ?
-         AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
-      [req.params.id, SYSTEM_CASE_LINK]
+      `SELECT Client_ID AS clientId FROM Case_Clients WHERE Case_ID = ?`,
+      [req.params.id]
     );
-    let clientIds = clientRows.map(r => r.clientId);
-    if (clientIds.length === 0 && mainCase.clientId !== null) {
-      clientIds = [mainCase.clientId];
-    }
 
     const [advRows] = await pool.query(
-      `SELECT DISTINCT Appoint_Advocate_ID AS advocateId
-       FROM Appointment
-       WHERE Appoint_Case_ID = ?
-         AND Appoint_Created_By = ?
-         AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
-      [req.params.id, SYSTEM_CASE_LINK]
+      `SELECT Advocate_ID AS advocateId FROM Case_Advocates WHERE Case_ID = ?`,
+      [req.params.id]
     );
-    let advocateIds = advRows.map(r => r.advocateId);
-    if (advocateIds.length === 0 && mainCase.advocateId !== null) {
-      advocateIds = [mainCase.advocateId];
-    }
 
     res.json({
       ...mainCase,
-      clientIds,
-      advocateIds,
+      clientIds: clientRows.map(r => r.clientId),
+      advocateIds: advRows.map(r => r.advocateId),
     });
   } catch (err) {
     next(err);
@@ -285,7 +214,6 @@ export async function createCase(req, res, next) {
         Case_Num,
         Case_Case_Type_ID,
         Case_Court_ID,
-        Case_Advocate_ID,
         Case_Petitioner,
         Case_Petitioner_Advocate,
         Case_Respodent,
@@ -299,26 +227,23 @@ export async function createCase(req, res, next) {
         Case_Efiling_Num,
         Case_Court_Name,
         Case_Created_Date
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
       parsed.caseValues,
     );
 
     const caseId = result.insertId;
 
-    const maxLen = Math.max(parsed.clientIds.length, parsed.advocateIds.length);
-    for (let i = 0; i < maxLen; i++) {
-      const cId = parsed.clientIds[i] ?? parsed.clientIds[0];
-      const aId = parsed.advocateIds[i] ?? parsed.advocateIds[0];
+    for (const cId of parsed.clientIds) {
       await pool.query(
-        `INSERT INTO Appointment (
-          Appoint_Client_ID,
-          Appoint_Case_ID,
-          Appoint_Advocate_ID,
-          Appoint_Date,
-          Appoint_Created_By,
-          Appoint_Created_Date
-        ) VALUES (?, ?, ?, CURDATE(), ?, CURDATE())`,
-        [cId, caseId, aId, SYSTEM_CASE_LINK],
+        `INSERT INTO Case_Clients (Case_ID, Client_ID) VALUES (?, ?)`,
+        [caseId, cId]
+      );
+    }
+
+    for (const aId of parsed.advocateIds) {
+      await pool.query(
+        `INSERT INTO Case_Advocates (Case_ID, Advocate_ID) VALUES (?, ?)`,
+        [caseId, aId]
       );
     }
 
@@ -340,7 +265,6 @@ export async function updateCase(req, res, next) {
         Case_Num = ?,
         Case_Case_Type_ID = ?,
         Case_Court_ID = ?,
-        Case_Advocate_ID = ?,
         Case_Petitioner = ?,
         Case_Petitioner_Advocate = ?,
         Case_Respodent = ?,
@@ -363,27 +287,20 @@ export async function updateCase(req, res, next) {
       return res.status(404).json({ message: "Case not found." });
     }
 
-    await pool.query(
-      `DELETE FROM Appointment
-       WHERE Appoint_Case_ID = ?
-         AND Appoint_Created_By = ?`,
-      [req.params.id, SYSTEM_CASE_LINK],
-    );
+    await pool.query(`DELETE FROM Case_Clients WHERE Case_ID = ?`, [req.params.id]);
+    await pool.query(`DELETE FROM Case_Advocates WHERE Case_ID = ?`, [req.params.id]);
 
-    const maxLen = Math.max(parsed.clientIds.length, parsed.advocateIds.length);
-    for (let i = 0; i < maxLen; i++) {
-      const cId = parsed.clientIds[i] ?? parsed.clientIds[0];
-      const aId = parsed.advocateIds[i] ?? parsed.advocateIds[0];
+    for (const cId of parsed.clientIds) {
       await pool.query(
-        `INSERT INTO Appointment (
-          Appoint_Client_ID,
-          Appoint_Case_ID,
-          Appoint_Advocate_ID,
-          Appoint_Date,
-          Appoint_Created_By,
-          Appoint_Created_Date
-        ) VALUES (?, ?, ?, CURDATE(), ?, CURDATE())`,
-        [cId, req.params.id, aId, SYSTEM_CASE_LINK],
+        `INSERT INTO Case_Clients (Case_ID, Client_ID) VALUES (?, ?)`,
+        [req.params.id, cId]
+      );
+    }
+
+    for (const aId of parsed.advocateIds) {
+      await pool.query(
+        `INSERT INTO Case_Advocates (Case_ID, Advocate_ID) VALUES (?, ?)`,
+        [req.params.id, aId]
       );
     }
 
@@ -408,47 +325,25 @@ export async function listCases(req, res, next) {
         cs.Case_CNR_Num AS cnrNum,
         (
           SELECT GROUP_CONCAT(DISTINCT cl.Client_Name ORDER BY cl.Client_Name SEPARATOR ', ')
-          FROM Appointment ap
-          INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
-          WHERE ap.Appoint_Case_ID = cs.Case_ID
-            AND ap.Appoint_Created_By = '${SYSTEM_CASE_LINK}'
-            AND (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
+          FROM Case_Clients cc
+          INNER JOIN Client_Master cl ON cc.Client_ID = cl.Client_ID
+          WHERE cc.Case_ID = cs.Case_ID
             AND (cl.Client_Delete_Flag = FALSE OR cl.Client_Delete_Flag = 0)
         ) AS clientName,
         (
-          SELECT COUNT(DISTINCT cl.Client_ID)
-          FROM Appointment ap
-          INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
-          WHERE ap.Appoint_Case_ID = cs.Case_ID
-            AND ap.Appoint_Created_By = '${SYSTEM_CASE_LINK}'
-            AND (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
+          SELECT COUNT(DISTINCT cc.Client_ID)
+          FROM Case_Clients cc
+          INNER JOIN Client_Master cl ON cc.Client_ID = cl.Client_ID
+          WHERE cc.Case_ID = cs.Case_ID
             AND (cl.Client_Delete_Flag = FALSE OR cl.Client_Delete_Flag = 0)
         ) AS clientCount,
         (
-          SELECT cl.Client_Name
-          FROM Appointment ap
-          INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
-          WHERE ap.Appoint_Case_ID = cs.Case_ID
-            AND (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
-            AND (cl.Client_Delete_Flag = FALSE OR cl.Client_Delete_Flag = 0)
-          ORDER BY ap.Appoint_Date DESC, ap.Appoint_ID DESC
-          LIMIT 1
-        ) AS legacyClientName,
-        (
           SELECT GROUP_CONCAT(DISTINCT adv.Advocate_Name ORDER BY adv.Advocate_Name SEPARATOR ', ')
-          FROM Appointment ap
-          INNER JOIN Advocate_Master adv ON ap.Appoint_Advocate_ID = adv.Advocate_ID
-          WHERE ap.Appoint_Case_ID = cs.Case_ID
-            AND ap.Appoint_Created_By = '${SYSTEM_CASE_LINK}'
-            AND (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
+          FROM Case_Advocates ca
+          INNER JOIN Advocate_Master adv ON ca.Advocate_ID = adv.Advocate_ID
+          WHERE ca.Case_ID = cs.Case_ID
             AND (adv.Advocate_Delete_Flag = FALSE OR adv.Advocate_Delete_Flag = 0)
-        ) AS advocateName,
-        (
-          SELECT adv.Advocate_Name
-          FROM Advocate_Master adv
-          WHERE adv.Advocate_ID = cs.Case_Advocate_ID
-            AND (adv.Advocate_Delete_Flag = FALSE OR adv.Advocate_Delete_Flag = 0)
-        ) AS legacyAdvocateName
+        ) AS advocateName
       FROM Case_Master cs
     `;
     const params = [];
@@ -456,10 +351,9 @@ export async function listCases(req, res, next) {
 
     if (filterClientId && !Number.isNaN(filterClientId)) {
       whereClauses.push(`EXISTS (
-        SELECT 1 FROM Appointment ap2
-        WHERE ap2.Appoint_Case_ID = cs.Case_ID
-          AND ap2.Appoint_Client_ID = ?
-          AND (ap2.Appoint_Delete_Flag = FALSE OR ap2.Appoint_Delete_Flag = 0)
+        SELECT 1 FROM Case_Clients cc
+        WHERE cc.Case_ID = cs.Case_ID
+          AND cc.Client_ID = ?
       )`);
       params.push(filterClientId);
     }
@@ -469,14 +363,14 @@ export async function listCases(req, res, next) {
         cs.Case_Num LIKE ?
         OR COALESCE(cs.Case_Petitioner, '') LIKE ?
         OR COALESCE(cs.Case_Respodent, '') LIKE ?
-        OR COALESCE((
-          SELECT GROUP_CONCAT(cl.Client_Name)
-          FROM Appointment ap
-          INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
-          WHERE ap.Appoint_Case_ID = cs.Case_ID
-            AND (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
+        OR EXISTS (
+          SELECT 1 
+          FROM Case_Clients cc
+          INNER JOIN Client_Master cl ON cc.Client_ID = cl.Client_ID
+          WHERE cc.Case_ID = cs.Case_ID
+            AND cl.Client_Name LIKE ?
             AND (cl.Client_Delete_Flag = FALSE OR cl.Client_Delete_Flag = 0)
-        ), '') LIKE ?
+        )
       )`);
       const term = `%${search}%`;
       params.push(term, term, term, term);
@@ -486,24 +380,11 @@ export async function listCases(req, res, next) {
 
     const [rows] = await pool.query(sql, params);
     const rowsWithClient = rows.map((row) => {
-      let clientName = row.clientName;
-      let clientCount = row.clientCount || 0;
-
-      if (!clientName && row.legacyClientName) {
-        clientName = row.legacyClientName;
-        clientCount = 1;
-      }
-
-      let advocateName = row.advocateName;
-      if (!advocateName && row.legacyAdvocateName) {
-        advocateName = row.legacyAdvocateName;
-      }
-
       return {
         ...row,
-        clientName: clientName ?? "—",
-        clientCount: clientCount,
-        advocateName: advocateName ?? "—",
+        clientName: row.clientName ?? "—",
+        clientCount: row.clientCount || 0,
+        advocateName: row.advocateName ?? "—",
       };
     });
 
@@ -517,14 +398,13 @@ export async function deleteCase(req, res, next) {
   try {
     const caseId = req.params.id;
 
-    // Check if the case has an appointment scheduled (active non-system-link appointment)
+    // Check if the case has an appointment scheduled (active appointment)
     const [apptRows] = await pool.query(
       `SELECT 1 FROM Appointment
        WHERE Appoint_Case_ID = ?
-         AND (Appoint_Created_By IS NULL OR Appoint_Created_By != ?)
          AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)
        LIMIT 1`,
-      [caseId, SYSTEM_CASE_LINK],
+      [caseId],
     );
 
     if (apptRows.length > 0) {

@@ -180,30 +180,20 @@ export async function parseAppointmentBody(body, excludeAppointmentId = null) {
   let excludeQuery = "";
   const excludeParams = [];
   if (excludeAppointmentId) {
-    excludeQuery = `
-      AND NOT EXISTS (
-        SELECT 1 FROM Appointment ap_ex
-        WHERE ap_ex.Appoint_ID = ?
-          AND ap.Appoint_Client_ID = ap_ex.Appoint_Client_ID
-          AND ap.Appoint_Case_ID <=> ap_ex.Appoint_Case_ID
-          AND DATE(ap.Appoint_Date) = DATE(ap_ex.Appoint_Date)
-          AND TIME(ap.Appoint_Start_Time) <=> TIME(ap_ex.Appoint_Start_Time)
-          AND TIME(ap.Appoint_End_Time) <=> TIME(ap_ex.Appoint_End_Time)
-      )
-    `;
+    excludeQuery = ` AND ap.Appoint_ID != ?`;
     excludeParams.push(excludeAppointmentId);
   }
 
   const [overlapping] = await pool.query(
     `SELECT DISTINCT am.Advocate_Name
      FROM Appointment ap
-     INNER JOIN Advocate_Master am ON ap.Appoint_Advocate_ID = am.Advocate_ID
-     WHERE ap.Appoint_Advocate_ID IN (?)
+     INNER JOIN Appointment_Advocates aa ON ap.Appoint_ID = aa.Appoint_ID
+     INNER JOIN Advocate_Master am ON aa.Advocate_ID = am.Advocate_ID
+     WHERE aa.Advocate_ID IN (?)
        AND DATE(ap.Appoint_Date) = DATE(?)
        AND TIME(ap.Appoint_Start_Time) < TIME(?)
        AND TIME(ap.Appoint_End_Time) > TIME(?)
        AND (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
-       AND (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
        ${excludeQuery}`,
     [advocateIds, filingDate, endTime, startTime, ...excludeParams]
   );
@@ -228,13 +218,11 @@ const APPOINTMENT_SELECT = `
     ap.Appoint_ID AS id,
     ap.Appoint_Client_ID AS clientId,
     ap.Appoint_Case_ID AS caseId,
-    ap.Appoint_Advocate_ID AS advocateId,
     DATE_FORMAT(ap.Appoint_Date, '%Y-%m-%d') AS filingDate,
     ap.Appoint_Start_Time AS startTime,
     ap.Appoint_End_Time AS endTime
   FROM Appointment ap
   WHERE ap.Appoint_ID = ?
-    AND (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
     AND (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
 `;
 
@@ -247,15 +235,10 @@ export async function getAppointment(req, res, next) {
     const row = rows[0];
 
     const [advRows] = await pool.query(
-      `SELECT DISTINCT Appoint_Advocate_ID AS advocateId
-       FROM Appointment
-       WHERE Appoint_Client_ID = ?
-         AND Appoint_Case_ID <=> ?
-         AND DATE(Appoint_Date) = DATE(?)
-         AND TIME(Appoint_Start_Time) <=> TIME(?)
-         AND TIME(Appoint_End_Time) <=> TIME(?)
-         AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
-      [row.clientId, row.caseId, row.filingDate, row.startTime, row.endTime]
+      `SELECT Advocate_ID AS advocateId
+       FROM Appointment_Advocates
+       WHERE Appoint_ID = ?`,
+      [row.id]
     );
 
     res.json({
@@ -278,33 +261,33 @@ export async function createAppointment(req, res, next) {
       return res.status(400).json({ message: parsed.error });
     }
 
-    let firstInsertId = null;
+    const [result] = await pool.query(
+      `INSERT INTO Appointment (
+        Appoint_Client_ID,
+        Appoint_Case_ID,
+        Appoint_Date,
+        Appoint_Start_Time,
+        Appoint_End_Time,
+        Appoint_Created_Date
+      ) VALUES (?, ?, ?, ?, ?, CURDATE())`,
+      [
+        parsed.clientId,
+        parsed.caseId,
+        parsed.filingDate,
+        parsed.startTime,
+        parsed.endTime,
+      ],
+    );
+    const appointmentId = result.insertId;
+
     for (const advId of parsed.advocateIds) {
-      const [result] = await pool.query(
-        `INSERT INTO Appointment (
-          Appoint_Client_ID,
-          Appoint_Case_ID,
-          Appoint_Advocate_ID,
-          Appoint_Date,
-          Appoint_Start_Time,
-          Appoint_End_Time,
-          Appoint_Created_Date
-        ) VALUES (?, ?, ?, ?, ?, ?, CURDATE())`,
-        [
-          parsed.clientId,
-          parsed.caseId,
-          advId,
-          parsed.filingDate,
-          parsed.startTime,
-          parsed.endTime,
-        ],
+      await pool.query(
+        `INSERT INTO Appointment_Advocates (Appoint_ID, Advocate_ID) VALUES (?, ?)`,
+        [appointmentId, advId]
       );
-      if (!firstInsertId) firstInsertId = result.insertId;
     }
 
-    res
-      .status(201)
-      .json({ id: firstInsertId, message: "Appointment created." });
+    res.status(201).json({ id: appointmentId, message: "Appointment created." });
   } catch (err) {
     next(err);
   }
@@ -319,7 +302,7 @@ export async function updateAppointment(req, res, next) {
 
     const [existingRows] = await pool.query(
       `SELECT Appoint_ID, Appoint_Date, Appoint_Start_Time
-       FROM Appointment WHERE Appoint_ID = ?`,
+       FROM Appointment WHERE Appoint_ID = ? AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
       [req.params.id]
     );
 
@@ -334,64 +317,36 @@ export async function updateAppointment(req, res, next) {
       });
     }
 
-    // Find all old Appoint_ID records for this appointment
-    const [existingIdsRows] = await pool.query(
-      `SELECT a2.Appoint_ID
-       FROM Appointment a1
-       INNER JOIN Appointment a2 ON 
-         a2.Appoint_Client_ID = a1.Appoint_Client_ID
-         AND a2.Appoint_Case_ID <=> a1.Appoint_Case_ID
-         AND DATE(a2.Appoint_Date) = DATE(a1.Appoint_Date)
-         AND TIME(a2.Appoint_Start_Time) <=> TIME(a1.Appoint_Start_Time)
-         AND TIME(a2.Appoint_End_Time) <=> TIME(a1.Appoint_End_Time)
-       WHERE a1.Appoint_ID = ?
-         AND (a2.Appoint_Created_By IS NULL OR a2.Appoint_Created_By != 'SYSTEM_CASE_LINK')`,
+    await pool.query(
+      `UPDATE Appointment SET
+        Appoint_Client_ID = ?,
+        Appoint_Case_ID = ?,
+        Appoint_Date = ?,
+        Appoint_Start_Time = ?,
+        Appoint_End_Time = ?,
+        Appoint_Modified_By = ?,
+        Appoint_Modified_Date = CURDATE()
+      WHERE Appoint_ID = ?`,
+      [
+        parsed.clientId,
+        parsed.caseId,
+        parsed.filingDate,
+        parsed.startTime,
+        parsed.endTime,
+        req.user.email || req.user.fullName || "admin",
+        req.params.id
+      ]
+    );
+
+    await pool.query(
+      `DELETE FROM Appointment_Advocates WHERE Appoint_ID = ?`,
       [req.params.id]
     );
-    const oldIds = existingIdsRows.map(r => r.Appoint_ID);
 
-    // Insert new appointment records
-    let firstInsertId = null;
     for (const advId of parsed.advocateIds) {
-      const [result] = await pool.query(
-        `INSERT INTO Appointment (
-          Appoint_Client_ID,
-          Appoint_Case_ID,
-          Appoint_Advocate_ID,
-          Appoint_Date,
-          Appoint_Start_Time,
-          Appoint_End_Time,
-          Appoint_Created_Date,
-          Appoint_Modified_Date
-        ) VALUES (?, ?, ?, ?, ?, ?, CURDATE(), CURDATE())`,
-        [
-          parsed.clientId,
-          parsed.caseId,
-          advId,
-          parsed.filingDate,
-          parsed.startTime,
-          parsed.endTime,
-        ],
-      );
-      if (!firstInsertId) firstInsertId = result.insertId;
-    }
-
-    // Move existing remarks to point to the new firstInsertId
-    if (oldIds.length > 0 && firstInsertId) {
       await pool.query(
-        `UPDATE Appointment_Remarks
-         SET Appoint_ID = ?
-         WHERE Appoint_ID IN (?)`,
-        [firstInsertId, oldIds]
-      );
-    }
-
-    // Now delete the old appointment records
-    if (oldIds.length > 0) {
-      await pool.query(
-        `DELETE FROM Appointment
-         WHERE Appoint_ID IN (?)`,
-        [oldIds]
+        `INSERT INTO Appointment_Advocates (Appoint_ID, Advocate_ID) VALUES (?, ?)`,
+        [req.params.id, advId]
       );
     }
 
@@ -406,29 +361,20 @@ export async function listAppointments(req, res, next) {
     const search = req.query.search?.trim() || "";
     let sql = `
       SELECT
-        MIN(ap.Appoint_ID) AS id,
+        ap.Appoint_ID AS id,
         cl.Client_Name AS clientName,
         COALESCE(cs.Case_Num, 'NO CASE') AS caseNumber,
         (
           SELECT GROUP_CONCAT(DISTINCT a2.Advocate_Name ORDER BY a2.Advocate_Name SEPARATOR ', ')
-          FROM Appointment ap2
-          INNER JOIN Advocate_Master a2 ON ap2.Appoint_Advocate_ID = a2.Advocate_ID
-          WHERE ap2.Appoint_Client_ID = ap.Appoint_Client_ID
-            AND ap2.Appoint_Case_ID <=> ap.Appoint_Case_ID
-            AND DATE(ap2.Appoint_Date) = DATE(ap.Appoint_Date)
-            AND TIME(ap2.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
-            AND TIME(ap2.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
-            AND (ap2.Appoint_Delete_Flag = FALSE OR ap2.Appoint_Delete_Flag = 0)
+          FROM Appointment_Advocates aa
+          INNER JOIN Advocate_Master a2 ON aa.Advocate_ID = a2.Advocate_ID
+          WHERE aa.Appoint_ID = ap.Appoint_ID
+            AND (a2.Advocate_Delete_Flag = FALSE OR a2.Advocate_Delete_Flag = 0)
         ) AS advocateName,
         (
-          SELECT COUNT(DISTINCT ap2.Appoint_Advocate_ID)
-          FROM Appointment ap2
-          WHERE ap2.Appoint_Client_ID = ap.Appoint_Client_ID
-            AND ap2.Appoint_Case_ID <=> ap.Appoint_Case_ID
-            AND DATE(ap2.Appoint_Date) = DATE(ap.Appoint_Date)
-            AND TIME(ap2.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
-            AND TIME(ap2.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
-            AND (ap2.Appoint_Delete_Flag = FALSE OR ap2.Appoint_Delete_Flag = 0)
+          SELECT COUNT(DISTINCT aa.Advocate_ID)
+          FROM Appointment_Advocates aa
+          WHERE aa.Appoint_ID = ap.Appoint_ID
         ) AS advocateCount,
         ap.Appoint_Date AS date,
         ap.Appoint_Start_Time AS startTime,
@@ -437,20 +383,14 @@ export async function listAppointments(req, res, next) {
       INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
       LEFT JOIN Case_Master cs ON ap.Appoint_Case_ID = cs.Case_ID
       WHERE (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
-        AND (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
     `;
     const params = [];
 
     if (req.user?.role === "advocate") {
       sql += ` AND EXISTS (
-        SELECT 1 FROM Appointment ap3
-        WHERE ap3.Appoint_Client_ID = ap.Appoint_Client_ID
-          AND ap3.Appoint_Case_ID <=> ap.Appoint_Case_ID
-          AND DATE(ap3.Appoint_Date) = DATE(ap.Appoint_Date)
-          AND TIME(ap3.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
-          AND TIME(ap3.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
-          AND ap3.Appoint_Advocate_ID = ?
-          AND (ap3.Appoint_Delete_Flag = FALSE OR ap3.Appoint_Delete_Flag = 0)
+        SELECT 1 FROM Appointment_Advocates aa3
+        WHERE aa3.Appoint_ID = ap.Appoint_ID
+          AND aa3.Advocate_ID = ?
       )`;
       params.push(req.user.advocateId || req.user.id);
     }
@@ -460,15 +400,11 @@ export async function listAppointments(req, res, next) {
         cl.Client_Name LIKE ?
         OR COALESCE(cs.Case_Num, 'NO CASE') LIKE ?
         OR EXISTS (
-          SELECT 1 FROM Appointment ap4
-          INNER JOIN Advocate_Master adv4 ON ap4.Appoint_Advocate_ID = adv4.Advocate_ID
-          WHERE ap4.Appoint_Client_ID = ap.Appoint_Client_ID
-            AND ap4.Appoint_Case_ID <=> ap.Appoint_Case_ID
-            AND DATE(ap4.Appoint_Date) = DATE(ap.Appoint_Date)
-            AND TIME(ap4.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
-            AND TIME(ap4.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
+          SELECT 1 FROM Appointment_Advocates aa4
+          INNER JOIN Advocate_Master adv4 ON aa4.Advocate_ID = adv4.Advocate_ID
+          WHERE aa4.Appoint_ID = ap.Appoint_ID
             AND adv4.Advocate_Name LIKE ?
-            AND (ap4.Appoint_Delete_Flag = FALSE OR ap4.Appoint_Delete_Flag = 0)
+            AND (adv4.Advocate_Delete_Flag = FALSE OR adv4.Advocate_Delete_Flag = 0)
         )
         OR CAST(ap.Appoint_Date AS CHAR) LIKE ?
         OR CAST(ap.Appoint_Start_Time AS CHAR) LIKE ?
@@ -478,7 +414,6 @@ export async function listAppointments(req, res, next) {
       params.push(term, term, term, term, term, term);
     }
 
-    sql += " GROUP BY ap.Appoint_Client_ID, ap.Appoint_Case_ID, cl.Client_Name, cs.Case_Num, ap.Appoint_Date, ap.Appoint_Start_Time, ap.Appoint_End_Time";
     sql += " ORDER BY date ASC, startTime ASC";
 
     const [rows] = await pool.query(sql, params);
@@ -507,7 +442,7 @@ export async function deleteAppointment(req, res, next) {
     const [apptRows] = await pool.query(
       `SELECT Appoint_ID, Appoint_Date, Appoint_Start_Time
        FROM Appointment
-       WHERE Appoint_ID = ?`,
+       WHERE Appoint_ID = ? AND (Appoint_Delete_Flag = FALSE OR Appoint_Delete_Flag = 0)`,
       [req.params.id]
     );
 
@@ -523,17 +458,7 @@ export async function deleteAppointment(req, res, next) {
     }
 
     await pool.query(
-      `UPDATE Appointment a1
-       INNER JOIN Appointment a2 ON 
-         a2.Appoint_Client_ID = a1.Appoint_Client_ID
-         AND a2.Appoint_Case_ID <=> a1.Appoint_Case_ID
-         AND DATE(a2.Appoint_Date) = DATE(a1.Appoint_Date)
-         AND TIME(a2.Appoint_Start_Time) <=> TIME(a1.Appoint_Start_Time)
-         AND TIME(a2.Appoint_End_Time) <=> TIME(a1.Appoint_End_Time)
-       SET a2.Appoint_Delete_Flag = TRUE
-       WHERE a1.Appoint_ID = ?
-         AND (a2.Appoint_Created_By IS NULL OR a2.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
-         AND (a2.Appoint_Delete_Flag = FALSE OR a2.Appoint_Delete_Flag = 0)`,
+      `UPDATE Appointment SET Appoint_Delete_Flag = TRUE WHERE Appoint_ID = ?`,
       [req.params.id],
     );
 
@@ -542,6 +467,7 @@ export async function deleteAppointment(req, res, next) {
     next(err);
   }
 }
+
 
 export async function getAppointmentRemarks(req, res, next) {
   const { appointmentId } = req.params;
@@ -563,18 +489,8 @@ export async function getAppointmentRemarks(req, res, next) {
     if (req.user.role === "advocate") {
       const advocateId = req.user.advocateId || req.user.id;
       const [authRows] = await pool.query(
-        `SELECT a2.Appoint_ID
-         FROM Appointment a1
-         INNER JOIN Appointment a2 ON 
-           a2.Appoint_Client_ID = a1.Appoint_Client_ID
-           AND a2.Appoint_Case_ID <=> a1.Appoint_Case_ID
-           AND DATE(a2.Appoint_Date) = DATE(a1.Appoint_Date)
-           AND TIME(a2.Appoint_Start_Time) <=> TIME(a1.Appoint_Start_Time)
-           AND TIME(a2.Appoint_End_Time) <=> TIME(a1.Appoint_End_Time)
-         WHERE a1.Appoint_ID = ?
-           AND a2.Appoint_Advocate_ID = ?
-           AND (a1.Appoint_Delete_Flag = FALSE OR a1.Appoint_Delete_Flag = 0)
-           AND (a2.Appoint_Delete_Flag = FALSE OR a2.Appoint_Delete_Flag = 0)`,
+        `SELECT 1 FROM Appointment_Advocates
+         WHERE Appoint_ID = ? AND Advocate_ID = ?`,
         [appointmentId, advocateId]
       );
       if (authRows.length === 0) {
@@ -759,18 +675,8 @@ export async function addAppointmentRemark(req, res, next) {
 
     const advocateId = req.user.advocateId || req.user.id;
     const [authRows] = await pool.query(
-      `SELECT a2.Appoint_ID
-       FROM Appointment a1
-       INNER JOIN Appointment a2 ON 
-         a2.Appoint_Client_ID = a1.Appoint_Client_ID
-         AND a2.Appoint_Case_ID <=> a1.Appoint_Case_ID
-         AND DATE(a2.Appoint_Date) = DATE(a1.Appoint_Date)
-         AND TIME(a2.Appoint_Start_Time) <=> TIME(a1.Appoint_Start_Time)
-         AND TIME(a2.Appoint_End_Time) <=> TIME(a1.Appoint_End_Time)
-       WHERE a1.Appoint_ID = ?
-         AND a2.Appoint_Advocate_ID = ?
-         AND (a1.Appoint_Delete_Flag = FALSE OR a1.Appoint_Delete_Flag = 0)
-         AND (a2.Appoint_Delete_Flag = FALSE OR a2.Appoint_Delete_Flag = 0)`,
+      `SELECT 1 FROM Appointment_Advocates
+       WHERE Appoint_ID = ? AND Advocate_ID = ?`,
       [appointmentId, advocateId]
     );
     if (authRows.length === 0) {
@@ -815,22 +721,29 @@ export async function getAppointmentReport(req, res, next) {
         ap.Appoint_ID AS id,
         cl.Client_Name AS clientName,
         COALESCE(cs.Case_Num, 'NO CASE') AS caseNumber,
-        adv.Advocate_Name AS advocateName,
+        (
+          SELECT GROUP_CONCAT(DISTINCT a2.Advocate_Name ORDER BY a2.Advocate_Name SEPARATOR ', ')
+          FROM Appointment_Advocates aa
+          INNER JOIN Advocate_Master a2 ON aa.Advocate_ID = a2.Advocate_ID
+          WHERE aa.Appoint_ID = ap.Appoint_ID
+            AND (a2.Advocate_Delete_Flag = FALSE OR a2.Advocate_Delete_Flag = 0)
+        ) AS advocateName,
         ap.Appoint_Date AS date,
         ap.Appoint_Start_Time AS startTime,
         ap.Appoint_End_Time AS endTime
       FROM Appointment ap
       INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
       LEFT JOIN Case_Master cs ON ap.Appoint_Case_ID = cs.Case_ID
-      LEFT JOIN Advocate_Master adv ON ap.Appoint_Advocate_ID = adv.Advocate_ID
       WHERE (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
-        AND (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
         AND ap.Appoint_Date BETWEEN ? AND ?
     `;
     const params = [startDate, endDate];
 
     if (advocateId && advocateId !== "all") {
-      sql += " AND ap.Appoint_Advocate_ID = ?";
+      sql += ` AND EXISTS (
+        SELECT 1 FROM Appointment_Advocates aa
+        WHERE aa.Appoint_ID = ap.Appoint_ID AND aa.Advocate_ID = ?
+      )`;
       params.push(Number(advocateId));
     }
 
@@ -867,19 +780,15 @@ export async function getClientReport(req, res, next) {
 
     let sql = `
       SELECT
-        MIN(ap.Appoint_ID) AS id,
+        ap.Appoint_ID AS id,
         cl.Client_Name AS clientName,
         COALESCE(cs.Case_Num, 'NO CASE') AS caseNumber,
         (
           SELECT GROUP_CONCAT(DISTINCT a2.Advocate_Name ORDER BY a2.Advocate_Name SEPARATOR ', ')
-          FROM Appointment ap2
-          INNER JOIN Advocate_Master a2 ON ap2.Appoint_Advocate_ID = a2.Advocate_ID
-          WHERE ap2.Appoint_Client_ID = ap.Appoint_Client_ID
-            AND ap2.Appoint_Case_ID <=> ap.Appoint_Case_ID
-            AND DATE(ap2.Appoint_Date) = DATE(ap.Appoint_Date)
-            AND TIME(ap2.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
-            AND TIME(ap2.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
-            AND (ap2.Appoint_Delete_Flag = FALSE OR ap2.Appoint_Delete_Flag = 0)
+          FROM Appointment_Advocates aa
+          INNER JOIN Advocate_Master a2 ON aa.Advocate_ID = a2.Advocate_ID
+          WHERE aa.Appoint_ID = ap.Appoint_ID
+            AND (a2.Advocate_Delete_Flag = FALSE OR a2.Advocate_Delete_Flag = 0)
         ) AS advocateName,
         ap.Appoint_Date AS date,
         ap.Appoint_Start_Time AS startTime,
@@ -888,7 +797,6 @@ export async function getClientReport(req, res, next) {
       INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
       LEFT JOIN Case_Master cs ON ap.Appoint_Case_ID = cs.Case_ID
       WHERE (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
-        AND (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
         AND ap.Appoint_Date BETWEEN ? AND ?
     `;
     const params = [startDate, endDate];
@@ -898,7 +806,6 @@ export async function getClientReport(req, res, next) {
       params.push(Number(clientId));
     }
 
-    sql += " GROUP BY ap.Appoint_Client_ID, ap.Appoint_Case_ID, cl.Client_Name, cs.Case_Num, ap.Appoint_Date, ap.Appoint_Start_Time, ap.Appoint_End_Time";
     sql += " ORDER BY ap.Appoint_Date ASC, ap.Appoint_Start_Time ASC";
 
     const [rows] = await pool.query(sql, params);
@@ -932,30 +839,25 @@ export async function getCaseReport(req, res, next) {
 
     let sql = `
       SELECT
-        MIN(ap.Appoint_ID) AS id,
+        ap.Appoint_ID AS id,
         cl.Client_Name AS clientName,
         COALESCE(cs.Case_Num, 'NO CASE') AS caseNumber,
         cs.Case_ID AS caseId,
         (
           SELECT GROUP_CONCAT(DISTINCT a2.Advocate_Name ORDER BY a2.Advocate_Name SEPARATOR ', ')
-          FROM Appointment ap2
-          INNER JOIN Advocate_Master a2 ON ap2.Appoint_Advocate_ID = a2.Advocate_ID
-          WHERE ap2.Appoint_Client_ID = ap.Appoint_Client_ID
-            AND ap2.Appoint_Case_ID <=> ap.Appoint_Case_ID
-            AND DATE(ap2.Appoint_Date) = DATE(ap.Appoint_Date)
-            AND TIME(ap2.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
-            AND TIME(ap2.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
-            AND (ap2.Appoint_Delete_Flag = FALSE OR ap2.Appoint_Delete_Flag = 0)
+          FROM Appointment_Advocates aa
+          INNER JOIN Advocate_Master a2 ON aa.Advocate_ID = a2.Advocate_ID
+          WHERE aa.Appoint_ID = ap.Appoint_ID
+            AND (a2.Advocate_Delete_Flag = FALSE OR a2.Advocate_Delete_Flag = 0)
         ) AS advocateName,
         ap.Appoint_Date AS date,
         ap.Appoint_Start_Time AS startTime,
         ap.Appoint_End_Time AS endTime,
-        MAX(ap.Appoint_Delete_Flag) AS deleteFlag
+        ap.Appoint_Delete_Flag AS deleteFlag
       FROM Appointment ap
       INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
       LEFT JOIN Case_Master cs ON ap.Appoint_Case_ID = cs.Case_ID
-      WHERE (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
-        AND ap.Appoint_Date BETWEEN ? AND ?
+      WHERE ap.Appoint_Date BETWEEN ? AND ?
     `;
     const params = [startDate, endDate];
 
@@ -968,7 +870,6 @@ export async function getCaseReport(req, res, next) {
       }
     }
 
-    sql += " GROUP BY ap.Appoint_Client_ID, ap.Appoint_Case_ID, cl.Client_Name, cs.Case_Num, cs.Case_ID, ap.Appoint_Date, ap.Appoint_Start_Time, ap.Appoint_End_Time";
     sql += " ORDER BY caseNumber ASC, ap.Appoint_Date ASC, ap.Appoint_Start_Time ASC";
 
     const [rows] = await pool.query(sql, params);
@@ -998,20 +899,16 @@ export async function listCompletedAppointments(req, res, next) {
     const caseIdParam = req.query.caseId;
     let sql = `
       SELECT
-        MIN(ap.Appoint_ID) AS id,
+        ap.Appoint_ID AS id,
         cl.Client_Name AS clientName,
         cs.Case_Num AS caseNumber,
         cs.Case_ID AS caseId,
         (
           SELECT GROUP_CONCAT(DISTINCT a2.Advocate_Name ORDER BY a2.Advocate_Name SEPARATOR ', ')
-          FROM Appointment ap2
-          INNER JOIN Advocate_Master a2 ON ap2.Appoint_Advocate_ID = a2.Advocate_ID
-          WHERE ap2.Appoint_Client_ID = ap.Appoint_Client_ID
-            AND ap2.Appoint_Case_ID <=> ap.Appoint_Case_ID
-            AND DATE(ap2.Appoint_Date) = DATE(ap.Appoint_Date)
-            AND TIME(ap2.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
-            AND TIME(ap2.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
-            AND (ap2.Appoint_Delete_Flag = FALSE OR ap2.Appoint_Delete_Flag = 0)
+          FROM Appointment_Advocates aa
+          INNER JOIN Advocate_Master a2 ON aa.Advocate_ID = a2.Advocate_ID
+          WHERE aa.Appoint_ID = ap.Appoint_ID
+            AND (a2.Advocate_Delete_Flag = FALSE OR a2.Advocate_Delete_Flag = 0)
         ) AS advocateName,
         ap.Appoint_Date AS date,
         ap.Appoint_Start_Time AS startTime,
@@ -1020,7 +917,6 @@ export async function listCompletedAppointments(req, res, next) {
       INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
       INNER JOIN Case_Master cs ON ap.Appoint_Case_ID = cs.Case_ID
       WHERE (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
-        AND (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != '${SYSTEM_CASE_LINK}')
     `;
     const params = [];
 
@@ -1031,14 +927,9 @@ export async function listCompletedAppointments(req, res, next) {
 
     if (req.user?.role === "advocate") {
       sql += ` AND EXISTS (
-        SELECT 1 FROM Appointment ap3
-        WHERE ap3.Appoint_Client_ID = ap.Appoint_Client_ID
-          AND ap3.Appoint_Case_ID <=> ap.Appoint_Case_ID
-          AND DATE(ap3.Appoint_Date) = DATE(ap.Appoint_Date)
-          AND TIME(ap3.Appoint_Start_Time) <=> TIME(ap.Appoint_Start_Time)
-          AND TIME(ap3.Appoint_End_Time) <=> TIME(ap.Appoint_End_Time)
-          AND ap3.Appoint_Advocate_ID = ?
-          AND (ap3.Appoint_Delete_Flag = FALSE OR ap3.Appoint_Delete_Flag = 0)
+        SELECT 1 FROM Appointment_Advocates aa3
+        WHERE aa3.Appoint_ID = ap.Appoint_ID
+          AND aa3.Advocate_ID = ?
       )`;
       params.push(req.user.advocateId || req.user.id);
     }
@@ -1053,7 +944,6 @@ export async function listCompletedAppointments(req, res, next) {
       params.push(term, term, term);
     }
 
-    sql += " GROUP BY ap.Appoint_Client_ID, ap.Appoint_Case_ID, cl.Client_Name, cs.Case_Num, cs.Case_ID, ap.Appoint_Date, ap.Appoint_Start_Time, ap.Appoint_End_Time";
     sql += " ORDER BY date DESC, startTime DESC";
 
     const [rows] = await pool.query(sql, params);

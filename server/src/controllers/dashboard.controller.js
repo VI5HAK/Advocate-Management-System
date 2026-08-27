@@ -28,22 +28,20 @@ export async function getSummary(req, res, next) {
       let sql;
       if (key === "appointments") {
         sql = `
-          SELECT COUNT(DISTINCT ap.Appoint_Client_ID, ap.Appoint_Case_ID, ap.Appoint_Date, ap.Appoint_Start_Time, ap.Appoint_End_Time) AS count
+          SELECT COUNT(*) AS count
           FROM Appointment ap
           INNER JOIN Client_Master cl ON ap.Appoint_Client_ID = cl.Client_ID
           LEFT JOIN Case_Master cs ON ap.Appoint_Case_ID = cs.Case_ID
           WHERE (ap.Appoint_Delete_Flag = FALSE OR ap.Appoint_Delete_Flag = 0)
             AND (cl.Client_Delete_Flag = FALSE OR cl.Client_Delete_Flag = 0)
             AND (cs.Case_ID IS NULL OR cs.Case_Delete_Flag = FALSE OR cs.Case_Delete_Flag = 0)
-            AND (ap.Appoint_Created_By IS NULL OR ap.Appoint_Created_By != 'SYSTEM_CASE_LINK')
             AND TIMESTAMP(ap.Appoint_Date, ap.Appoint_Start_Time) + INTERVAL 15 MINUTE > NOW()
         `;
       } else if (key === "hearings") {
         sql = `
-          SELECT COUNT(DISTINCT hm.Client_ID, hm.Case_ID, hm.Hearing_Date, hm.Hearing_Time) AS count
+          SELECT COUNT(*) AS count
           FROM HEARING_MASTER hm
           WHERE (hm.Hearing_Delete_Flag = FALSE OR hm.Hearing_Delete_Flag = 0)
-            /* AND TIMESTAMP(hm.Hearing_Date, hm.Hearing_Time) + INTERVAL 15 MINUTE > NOW() */
             AND hm.Hearing_Date >= CURDATE()
         `;
       } else {

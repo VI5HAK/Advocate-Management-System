@@ -1,13 +1,6 @@
 import * as hearingRepository from "../repositories/hearing.repository.js";
 import pool from "../config/db.js";
 
-function parseISTDateTime(date, time) {
-  const [yyyy, mm, dd] = date.split("-").map(Number);
-  const [hours, minutes] = time.split(":").map(Number);
-  const utcDate = Date.UTC(yyyy, mm - 1, dd, hours, minutes);
-  return new Date(utcDate - 5.5 * 60 * 60 * 1000);
-}
-
 export class NotFoundError extends Error {
   constructor(message) {
     super(message);
@@ -46,11 +39,6 @@ export async function createHearing(body, user) {
   if (!advocateIds || !Array.isArray(advocateIds) || advocateIds.length === 0) {
     throw new BadRequestError("At least one advocate must be selected.");
   }
-  /*
-  if (!date || !time) {
-    throw new BadRequestError("Date and time are required.");
-  }
-  */
   if (!date) {
     throw new BadRequestError("Date is required.");
   }
@@ -58,16 +46,6 @@ export async function createHearing(body, user) {
     throw new BadRequestError("Court and Judge are required.");
   }
 
-  // Future check: date & time must be in the future
-  /*
-  const selectedDateTime = parseISTDateTime(date, time);
-  if (isNaN(selectedDateTime.getTime())) {
-    throw new BadRequestError("Invalid date or time format.");
-  }
-  if (selectedDateTime.getTime() <= Date.now()) {
-    throw new BadRequestError("Hearing can only be created after the current date and time.");
-  }
-  */
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
   if (date < todayStr) {
     throw new BadRequestError("Hearing date must be today or a future date.");
@@ -79,62 +57,43 @@ export async function createHearing(body, user) {
     throw new BadRequestError("There is already a scheduled/active hearing for this Case.");
   }
 
-  // Check advocate overlaps
-  /*
-  const overlapping = await hearingRepository.checkAdvocateOverlaps(advocateIds, date, time);
-  if (overlapping.length > 0) {
-    const names = overlapping.map(o => o.Advocate_Name).join(", ");
-    throw new BadRequestError(`Advocate(s) ${names} has/have an overlapping hearing scheduled during this time.`);
-  }
-  */
-
-  // Resolve Names
+  // Resolve Names and verify existence
   const [caseRows] = await pool.query("SELECT Case_Num FROM Case_Master WHERE Case_ID = ?", [caseId]);
   if (caseRows.length === 0) throw new BadRequestError("Invalid case selected.");
-  const caseName = caseRows[0].Case_Num;
 
   const [courtRows] = await pool.query("SELECT Court_Name FROM Court_Master WHERE Court_ID = ?", [courtId]);
   if (courtRows.length === 0) throw new BadRequestError("Invalid court selected.");
-  const courtName = courtRows[0].Court_Name;
 
   const [judgeRows] = await pool.query("SELECT Judge_Name FROM JUDGE_MASTER WHERE Judge_ID = ?", [judgeId]);
   if (judgeRows.length === 0) throw new BadRequestError("Invalid judge selected.");
-  const judgeName = judgeRows[0].Judge_Name;
 
-  const [clientRows] = await pool.query("SELECT Client_ID, Client_Name FROM Client_Master WHERE Client_ID IN (?)", [clientIds]);
+  const [clientRows] = await pool.query("SELECT Client_ID FROM Client_Master WHERE Client_ID IN (?)", [clientIds]);
   if (clientRows.length === 0) throw new BadRequestError("Invalid client(s) selected.");
 
-  const [advocateRows] = await pool.query("SELECT Advocate_ID, Advocate_Name FROM Advocate_Master WHERE Advocate_ID IN (?)", [advocateIds]);
+  const [advocateRows] = await pool.query("SELECT Advocate_ID FROM Advocate_Master WHERE Advocate_ID IN (?)", [advocateIds]);
   if (advocateRows.length === 0) throw new BadRequestError("Invalid advocate(s) selected.");
 
   const createdBy = user.email || user.fullName || "admin";
-  let firstInsertId = null;
 
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    for (const clientRow of clientRows) {
-      for (const advocateRow of advocateRows) {
-        const insertId = await hearingRepository.create({
-          clientId: clientRow.Client_ID,
-          caseId,
-          advocateId: advocateRow.Advocate_ID,
-          clientName: clientRow.Client_Name,
-          caseName,
-          purposeText: hearingPurpose,
-          hearingDate: date,
-          time: timeVal,
-          courtName,
-          judgeName,
-          createdBy
-        }, connection);
-        if (!firstInsertId) firstInsertId = insertId;
-      }
-    }
+    const hearingId = await hearingRepository.create({
+      caseId,
+      courtId,
+      judgeId,
+      purposeText: hearingPurpose,
+      hearingDate: date,
+      time: timeVal,
+      createdBy
+    }, connection);
+
+    await hearingRepository.addHearingClients(hearingId, clientIds, connection);
+    await hearingRepository.addHearingAdvocates(hearingId, advocateIds, connection);
 
     await connection.commit();
-    return { id: firstInsertId, message: "Hearing created." };
+    return { id: hearingId, message: "Hearing created." };
   } catch (err) {
     await connection.rollback();
     throw err;
@@ -165,11 +124,6 @@ export async function updateHearing(id, body, user) {
   if (!advocateIds || !Array.isArray(advocateIds) || advocateIds.length === 0) {
     throw new BadRequestError("At least one advocate must be selected.");
   }
-  /*
-  if (!date || !time) {
-    throw new BadRequestError("Date and time are required.");
-  }
-  */
   if (!date) {
     throw new BadRequestError("Date is required.");
   }
@@ -181,98 +135,67 @@ export async function updateHearing(id, body, user) {
   const hearing = await hearingRepository.getById(id);
   if (!hearing) throw new NotFoundError("Hearing not found.");
 
-  // Get all related row IDs (for all clients/advocates on this logical hearing)
-  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.caseId, hearing.hearingDate, hearing.time);
-  const existingIds = relatedRows.map(r => r.id);
-
-  // Future check: date & time must be in the future
-  /*
-  const selectedDateTime = parseISTDateTime(date, time);
-  if (isNaN(selectedDateTime.getTime())) {
-    throw new BadRequestError("Invalid date or time format.");
-  }
-  if (selectedDateTime.getTime() <= Date.now()) {
-    throw new BadRequestError("Hearing can only be created after the current date and time.");
-  }
-  */
   const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
   if (date < todayStr) {
     throw new BadRequestError("Hearing date must be today or a future date.");
   }
 
-  // Check unique active hearing for Case_ID (excluding current hearing rows)
-  const hasActive = await hearingRepository.checkActiveHearing(caseId, existingIds);
+  // Check unique active hearing for Case_ID (excluding current hearing row)
+  const hasActive = await hearingRepository.checkActiveHearing(caseId, [id]);
   if (hasActive) {
     throw new BadRequestError("There is already a scheduled/active hearing for this Case.");
   }
 
-  // Check advocate overlaps (excluding current hearing rows)
-  /*
-  const overlapping = await hearingRepository.checkAdvocateOverlaps(advocateIds, date, time, existingIds);
-  if (overlapping.length > 0) {
-    const names = overlapping.map(o => o.Advocate_Name).join(", ");
-    throw new BadRequestError(`Advocate(s) ${names} has/have an overlapping hearing scheduled during this time.`);
-  }
-  */
-
-  // Resolve Names
+  // Verify selections exist
   const [caseRows] = await pool.query("SELECT Case_Num FROM Case_Master WHERE Case_ID = ?", [caseId]);
   if (caseRows.length === 0) throw new BadRequestError("Invalid case selected.");
-  const caseName = caseRows[0].Case_Num;
 
   const [courtRows] = await pool.query("SELECT Court_Name FROM Court_Master WHERE Court_ID = ?", [courtId]);
   if (courtRows.length === 0) throw new BadRequestError("Invalid court selected.");
-  const courtName = courtRows[0].Court_Name;
 
   const [judgeRows] = await pool.query("SELECT Judge_Name FROM JUDGE_MASTER WHERE Judge_ID = ?", [judgeId]);
   if (judgeRows.length === 0) throw new BadRequestError("Invalid judge selected.");
-  const judgeName = judgeRows[0].Judge_Name;
 
-  const [clientRows] = await pool.query("SELECT Client_ID, Client_Name FROM Client_Master WHERE Client_ID IN (?)", [clientIds]);
+  const [clientRows] = await pool.query("SELECT Client_ID FROM Client_Master WHERE Client_ID IN (?)", [clientIds]);
   if (clientRows.length === 0) throw new BadRequestError("Invalid client(s) selected.");
 
-  const [advocateRows] = await pool.query("SELECT Advocate_ID, Advocate_Name FROM Advocate_Master WHERE Advocate_ID IN (?)", [advocateIds]);
+  const [advocateRows] = await pool.query("SELECT Advocate_ID FROM Advocate_Master WHERE Advocate_ID IN (?)", [advocateIds]);
   if (advocateRows.length === 0) throw new BadRequestError("Invalid advocate(s) selected.");
 
   const modifiedBy = user.email || user.fullName || "admin";
-  let firstNewInsertId = null;
 
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    // Insert new rows
-    for (const clientRow of clientRows) {
-      for (const advocateRow of advocateRows) {
-        const insertId = await hearingRepository.create({
-          clientId: clientRow.Client_ID,
-          caseId,
-          advocateId: advocateRow.Advocate_ID,
-          clientName: clientRow.Client_Name,
-          caseName,
-          purposeText: hearingPurpose,
-          hearingDate: date,
-          time: timeVal,
-          courtName,
-          judgeName,
-          createdBy: hearing.createdBy
-        }, connection);
-        
-        // Audit update info on new row
-        await connection.query(
-          `UPDATE HEARING_MASTER SET Hearing_Modified_By = ?, Hearing_Modified_Date = CURDATE() WHERE Hearing_ID = ?`,
-          [modifiedBy, insertId]
-        );
+    await connection.query(
+      `UPDATE HEARING_MASTER SET
+        Case_ID = ?,
+        Court_ID = ?,
+        Judge_ID = ?,
+        Purpose_Text = ?,
+        Hearing_Date = ?,
+        Hearing_Time = ?,
+        Hearing_Modified_By = ?,
+        Hearing_Modified_Date = CURDATE()
+      WHERE Hearing_ID = ?`,
+      [
+        caseId,
+        courtId,
+        judgeId,
+        hearingPurpose,
+        date,
+        timeVal,
+        modifiedBy,
+        id
+      ]
+    );
 
-        if (!firstNewInsertId) firstNewInsertId = insertId;
-      }
-    }
+    await hearingRepository.deleteHearingClients(id, connection);
+    await hearingRepository.deleteHearingAdvocates(id, connection);
 
-    // Re-associate past notes to the new hearing
-    await hearingRepository.reassociateNotes(existingIds, firstNewInsertId, connection);
-
-    // Delete old rows
-    await hearingRepository.deleteHearingRows(existingIds, connection);
+    await hearingRepository.addHearingClients(id, clientIds, connection);
+    await hearingRepository.addHearingAdvocates(id, advocateIds, connection);
 
     await connection.commit();
     return { message: "Hearing updated." };
@@ -288,21 +211,17 @@ export async function deleteHearing(id) {
   const hearing = await hearingRepository.getById(id);
   if (!hearing) throw new NotFoundError("Hearing not found.");
 
-  // Get all related rows (same client, case, date, start time)
-  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.caseId, hearing.hearingDate, hearing.time);
-  const existingIds = relatedRows.map(r => r.id);
-
-  await hearingRepository.softDeleteHearingRows(existingIds);
+  await hearingRepository.softDeleteHearingRows([id]);
   return { message: "Deleted successfully." };
 }
 
 export async function listHearings(search, user) {
-  const advocateId = user.role === "advocate" ? user.id : null;
+  const advocateId = user.role === "advocate" ? (user.advocateId || user.id) : null;
   return hearingRepository.listHearings(search, advocateId);
 }
 
 export async function listCompletedHearings(search, user, caseId = null) {
-  const advocateId = user.role === "advocate" ? user.id : null;
+  const advocateId = user.role === "advocate" ? (user.advocateId || user.id) : null;
   const hearings = await hearingRepository.listCompletedHearings(search, advocateId, caseId);
 
   if (caseId) {
@@ -331,25 +250,19 @@ export async function getHearing(id) {
   const hearing = await hearingRepository.getById(id);
   if (!hearing) throw new NotFoundError("Hearing not found.");
 
-  // Fetch all advocate IDs assigned to this logical hearing
-  const relatedRows = await hearingRepository.getRelatedHearingRows(hearing.caseId, hearing.hearingDate, hearing.time);
-  const advocateIds = relatedRows.map(r => r.advocateId);
-  const clientIds = Array.from(new Set(relatedRows.map(r => r.clientId)));
-
-  // Resolve Court and Judge IDs
-  const [courtRows] = await pool.query("SELECT Court_ID FROM Court_Master WHERE Court_Name = ?", [hearing.courtName]);
-  const [judgeRows] = await pool.query("SELECT Judge_ID FROM JUDGE_MASTER WHERE Judge_Name = ?", [hearing.judgeName]);
+  const clientIds = await hearingRepository.getHearingClientIds(id);
+  const advocateIds = await hearingRepository.getHearingAdvocateIds(id);
 
   return {
     id: hearing.id,
-    clientId: hearing.clientId,
+    clientId: clientIds[0] || "",
     clientIds,
     caseId: hearing.caseId,
     date: hearing.hearingDate,
     time: hearing.time,
     hearingPurpose: hearing.purposeText,
-    courtId: courtRows[0]?.Court_ID || "",
-    judgeId: judgeRows[0]?.Judge_ID || "",
+    courtId: hearing.courtId,
+    judgeId: hearing.judgeId,
     advocateIds
   };
 }
@@ -360,10 +273,9 @@ export async function getHearingNotes(hearingId) {
 
   const notes = await hearingRepository.getNotes(hearingId);
 
-  // Return comments structure similar to remarks
   return {
     remarks: notes,
-    canAddRemark: true, // both roles can view, let's determine who can add: checking in routes/controllers
+    canAddRemark: true,
     validationMessage: ""
   };
 }
