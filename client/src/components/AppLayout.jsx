@@ -142,11 +142,11 @@ function AppLayout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-sky-200 bg-gradient-to-tr from-sky-300/80 via-sky-200/60 to-indigo-200/50 p-6 md:p-8 relative">
+        <main className="flex-1 overflow-y-auto animate-gradient-bg p-6 md:p-8 relative">
           {/* Ambient background decoration container */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-            <div className="absolute top-1/4 right-0 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl" />
-            <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-purple-200/25 rounded-full blur-3xl" />
+            <div className="absolute top-1/4 right-0 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '0s' }} />
+            <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-sky-300/30 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '5s' }} />
           </div>
           
           <div className="mx-auto max-w-7xl relative z-10">

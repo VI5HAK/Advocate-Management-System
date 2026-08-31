@@ -37,12 +37,18 @@ function Login() {
   return (
     <div className="flex min-h-screen w-screen bg-slate-50 font-sans overflow-hidden lg:flex-row flex-col">
       {/* Form panel */}
-      <section className="flex-1 flex items-center justify-center bg-white p-8 sm:p-12 md:p-16 lg:p-20 relative z-10 lg:w-1/2">
+      <section className="flex-1 flex items-center justify-center animate-gradient-bg p-6 sm:p-12 md:p-16 lg:p-20 relative z-10 lg:w-1/2">
+        {/* Ambient background decoration */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-indigo-300/30 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '0s' }} />
+          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-sky-300/30 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '4s' }} />
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-md space-y-8"
+          className="w-full max-w-md space-y-8 relative z-10 bg-white/85 backdrop-blur-md p-8 sm:p-10 rounded-3xl border border-white/60 shadow-xl shadow-indigo-950/5"
         >
           <div className="space-y-2">
             <h1 id="login-heading" className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
