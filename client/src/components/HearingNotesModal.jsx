@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/client";
 import { SubmitButton } from "./ActionButtons";
+import DatePicker from "./ui/date-picker";
+import dayjs from "../utils/datePicker";
 import { formatDateDMY } from "../utils/formatters";
 
 export function HearingNotesModal({ hearing, onClose }) {
@@ -170,20 +172,12 @@ export function HearingNotesModal({ hearing, onClose }) {
                   <label htmlFor="next-hearing-date" style={{ fontSize: "0.95rem", fontWeight: "600", color: "#475569" }}>
                     Next Hearing Date
                   </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     id="next-hearing-date"
                     value={nextHearingDate}
-                    onChange={(e) => setNextHearingDate(e.target.value)}
+                    onChange={(val) => setNextHearingDate(val)}
+                    min={dayjs().format("YYYY-MM-DD")}
                     required
-                    style={{
-                      padding: "0.65rem 0.85rem",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "6px",
-                      fontSize: "0.95rem",
-                      color: "#334155",
-                      backgroundColor: "#ffffff"
-                    }}
                   />
                 </div>
                 <div style={{ flex: 2, display: "flex", flexDirection: "column", gap: "0.35rem" }}>
