@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/client";
 import { SubmitButton } from "./ActionButtons";
@@ -114,7 +115,7 @@ export function HearingNotesModal({ hearing, onClose }) {
         <header className="remarks-modal-header">
           <h2>Progress Notes for Case: {hearing.caseNumber}</h2>
           <button type="button" className="remarks-close-btn" onClick={onClose} aria-label="Close">
-            &times;
+            <X className="h-5 w-5 shrink-0" />
           </button>
         </header>
 
@@ -157,19 +158,10 @@ export function HearingNotesModal({ hearing, onClose }) {
           {error && <p className="master-error">{error}</p>}
 
           {!loading && isAdvocate && !hasNextHearing && (
-            <form onSubmit={handleNextHearingSubmit} className="next-hearing-inputs-form" style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "1rem",
-              marginBottom: "1.5rem",
-              padding: "1rem",
-              backgroundColor: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              borderRadius: "8px"
-            }}>
-              <div style={{ display: "flex", gap: "1.5rem" }}>
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-                  <label htmlFor="next-hearing-date" style={{ fontSize: "0.95rem", fontWeight: "600", color: "#475569" }}>
+            <form onSubmit={handleNextHearingSubmit} className="next-hearing-inputs-form flex flex-col gap-4 mb-6 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <label htmlFor="next-hearing-date" className="text-sm font-semibold text-slate-700">
                     Next Hearing Date
                   </label>
                   <DatePicker
@@ -180,8 +172,8 @@ export function HearingNotesModal({ hearing, onClose }) {
                     required
                   />
                 </div>
-                <div style={{ flex: 2, display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-                  <label htmlFor="next-hearing-purpose" style={{ fontSize: "0.95rem", fontWeight: "600", color: "#475569" }}>
+                <div className="flex-[2] flex flex-col gap-1.5">
+                  <label htmlFor="next-hearing-purpose" className="text-sm font-semibold text-slate-700">
                     Next Hearing Purpose
                   </label>
                   <input
@@ -191,18 +183,11 @@ export function HearingNotesModal({ hearing, onClose }) {
                     value={nextHearingPurpose}
                     onChange={(e) => setNextHearingPurpose(e.target.value)}
                     required
-                    style={{
-                      padding: "0.65rem 0.85rem",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "6px",
-                      fontSize: "0.95rem",
-                      color: "#334155",
-                      backgroundColor: "#ffffff"
-                    }}
+                    className="w-full h-11 px-3.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 bg-white outline-none focus:ring-4 focus:border-indigo-500 focus:ring-indigo-500/10 transition-all"
                   />
                 </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <div className="flex justify-end">
                 <SubmitButton
                   isEdit={false}
                   saving={saving}

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 import api from "../api/client";
 import { SubmitButton } from "./ActionButtons";
 import { formatDateDMY, formatRemarkDate } from "../utils/formatters";
@@ -57,7 +58,7 @@ export function RemarksModal({ appointment, onClose, readOnly = false }) {
         <header className="remarks-modal-header">
           <h2>Remarks for Case: {appointment.caseNumber}{appointment.clientName ? ` (Client: ${appointment.clientName})` : ""}</h2>
           <button type="button" className="remarks-close-btn" onClick={onClose} aria-label="Close">
-            &times;
+            <X className="h-5 w-5 shrink-0" />
           </button>
         </header>
 
