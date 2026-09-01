@@ -125,3 +125,31 @@ body {
   animation: ambient-pulse-slow 25s infinite ease-in-out;
 }
 
+/* Vibrant Smooth 200% Gradient Buttons */
+.btn-grad-create {
+  background-image: linear-gradient(to right, #34e89e 0%, #0f3443 51%, #34e89e 100%);
+  background-size: 200% auto;
+  transition: all 0.5s ease;
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(52, 232, 158, 0.3);
+}
+
+.btn-grad-create:hover {
+  background-position: right center;
+  box-shadow: 0 6px 22px rgba(52, 232, 158, 0.45);
+}
+
+.btn-grad-update {
+  background-image: linear-gradient(to right, #4f46e5 0%, #1e1b4b 51%, #4f46e5 100%);
+  background-size: 200% auto;
+  transition: all 0.5s ease;
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+}
+
+.btn-grad-update:hover {
+  background-position: right center;
+  box-shadow: 0 6px 22px rgba(79, 70, 229, 0.45);
+}
+
+

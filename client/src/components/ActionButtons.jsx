@@ -5,7 +5,7 @@ export function CreateButton({ onClick, label = "Create", disabled, ...props }) 
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-sm shadow-emerald-100/50 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+      className="inline-flex items-center justify-center gap-1.5 h-10 px-6 rounded-xl text-xs sm:text-sm font-bold text-white btn-grad-create active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer tracking-wide"
       onClick={onClick}
       disabled={disabled}
       {...props}
@@ -71,10 +71,8 @@ export function SubmitButton({ isEdit, saving, label, ...props }) {
   return (
     <button
       type="submit"
-      className={`inline-flex items-center justify-center h-10 px-5 rounded-xl text-xs sm:text-sm font-semibold text-white active:scale-[0.98] transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:pointer-events-none ${
-        isEdit 
-          ? "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100/50" 
-          : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100/50"
+      className={`inline-flex items-center justify-center h-10 px-6 rounded-xl text-xs sm:text-sm font-bold text-white active:scale-[0.97] cursor-pointer disabled:opacity-50 disabled:pointer-events-none tracking-wide ${
+        isEdit ? "btn-grad-update" : "btn-grad-create"
       }`}
       disabled={saving}
       {...props}
@@ -89,7 +87,7 @@ export function CancelButton({ onClick, label = "Cancel", disabled, ...props }) 
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center h-10 px-5 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:text-slate-900 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+      className="inline-flex items-center justify-center h-10 px-5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-slate-700 hover:bg-slate-800 active:bg-slate-900 border border-slate-600 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-sm hover:shadow"
       onClick={onClick}
       disabled={disabled}
       {...props}

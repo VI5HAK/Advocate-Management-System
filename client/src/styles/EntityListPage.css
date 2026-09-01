@@ -38,17 +38,26 @@
 }
 
 .remarks-close-btn {
-  background: none;
-  border: none;
-  font-size: 2.25rem;
-  color: #9ca3af;
+  background: #334155;
+  color: #ffffff;
+  border: 1px solid #475569;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
   cursor: pointer;
-  padding: 0;
   line-height: 1;
+  transition: all 0.15s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .remarks-close-btn:hover {
-  color: #4b5563;
+  background: #1e293b;
+  color: #ffffff;
+  border-color: #334155;
 }
 
 .remarks-modal-content {
