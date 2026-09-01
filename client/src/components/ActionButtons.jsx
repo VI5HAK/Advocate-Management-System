@@ -5,7 +5,7 @@ export function CreateButton({ onClick, label = "Create", disabled, ...props }) 
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center gap-1.5 h-10 px-6 rounded-xl text-xs sm:text-sm font-bold text-white btn-grad-create active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer tracking-wide"
+      className="inline-flex items-center justify-center gap-1.5 h-10 w-10 sm:w-auto p-0 sm:px-5 rounded-xl text-xs sm:text-sm font-bold text-white btn-grad-create active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer tracking-wide"
       onClick={onClick}
       disabled={disabled}
       {...props}
@@ -24,7 +24,7 @@ export function EditButton({ onClick, label = "Update", disabled, children, ...p
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-sm shadow-indigo-100/50 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+      className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-lg text-xs font-bold text-white btn-grad-update active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer tracking-wide"
       onClick={onClick}
       disabled={disabled}
       title={label}
@@ -48,7 +48,7 @@ export function DeleteButton({ onClick, label = "Delete", disabled, ...props }) 
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-lg text-xs font-semibold text-white bg-red-600 hover:bg-red-700 active:scale-[0.98] transition-all shadow-sm shadow-red-100/50 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+      className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-lg text-xs font-bold text-white btn-grad-delete active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer tracking-wide"
       onClick={onClick}
       disabled={disabled}
       title={label}

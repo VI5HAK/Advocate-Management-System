@@ -44,7 +44,7 @@ function SidebarLink({ item, className, onClick, icon: Icon }) {
         className={({ isActive }) =>
           `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
             isActive
-              ? "bg-indigo-600 text-white font-semibold shadow-md shadow-indigo-200/80 hover:bg-indigo-700"
+              ? "btn-grad-sidebar font-semibold shadow-md"
               : "text-slate-600 hover:bg-white hover:text-slate-950"
           }`
         }
@@ -113,7 +113,7 @@ function Sidebar({ isOpen, onClose }) {
                 type="button"
                 className={`flex w-full items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                   expanded[item.id]
-                    ? "text-indigo-600 hover:bg-white"
+                    ? "text-sky-600 hover:bg-white"
                     : "text-slate-600 hover:bg-white hover:text-slate-900"
                 }`}
                 onClick={() => toggleSection(item.id)}
@@ -125,7 +125,7 @@ function Sidebar({ isOpen, onClose }) {
                 </div>
                 <ChevronDown
                   className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${
-                    expanded[item.id] ? "rotate-180 text-indigo-600" : ""
+                    expanded[item.id] ? "rotate-180 text-sky-600" : ""
                   }`}
                 />
               </button>
@@ -147,14 +147,14 @@ function Sidebar({ isOpen, onClose }) {
                           to={child.path}
                           onClick={onClose}
                           className={() =>
-                            `flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors duration-200 ${
+                            `flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all duration-200 ${
                               isChildActive
-                                ? "bg-indigo-100 text-indigo-700 font-bold"
+                                ? "btn-grad-sidebar font-bold shadow-sm"
                                 : "text-slate-500 hover:bg-white hover:text-slate-800"
                             }`
                           }
                         >
-                          <div className={`h-1.5 w-1.5 rounded-full ${isChildActive ? "bg-indigo-600" : "bg-slate-350"}`} />
+                          <div className={`h-1.5 w-1.5 rounded-full ${isChildActive ? "bg-white" : "bg-slate-350"}`} />
                           {child.label}
                         </NavLink>
                       );

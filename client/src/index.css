@@ -127,29 +127,59 @@ body {
 
 /* Vibrant Smooth 200% Gradient Buttons */
 .btn-grad-create {
-  background-image: linear-gradient(to right, #34e89e 0%, #0f3443 51%, #34e89e 100%);
+  background-image: linear-gradient(to right, #6366f1 0%, #3730a3 51%, #6366f1 100%);
   background-size: 200% auto;
   transition: all 0.5s ease;
-  color: #ffffff;
-  box-shadow: 0 4px 15px rgba(52, 232, 158, 0.3);
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.45), 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 .btn-grad-create:hover {
   background-position: right center;
-  box-shadow: 0 6px 22px rgba(52, 232, 158, 0.45);
+  color: #ffffff !important;
+  box-shadow: 0 0 25px rgba(99, 102, 241, 0.75), 0 6px 22px rgba(99, 102, 241, 0.5);
 }
 
 .btn-grad-update {
-  background-image: linear-gradient(to right, #4f46e5 0%, #1e1b4b 51%, #4f46e5 100%);
+  background-image: linear-gradient(to right, #0575e6 0%, #021b79 51%, #0575e6 100%);
   background-size: 200% auto;
   transition: all 0.5s ease;
-  color: #ffffff;
-  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+  color: #ffffff !important;
+  box-shadow: none;
 }
 
 .btn-grad-update:hover {
   background-position: right center;
-  box-shadow: 0 6px 22px rgba(79, 70, 229, 0.45);
+  color: #ffffff !important;
+  box-shadow: none;
+}
+
+.btn-grad-delete {
+  background-image: linear-gradient(to right, #d31027 0%, #ea384d 51%, #d31027 100%);
+  background-size: 200% auto;
+  transition: all 0.5s ease;
+  color: #ffffff !important;
+  box-shadow: none;
+}
+
+.btn-grad-delete:hover {
+  background-position: right center;
+  color: #ffffff !important;
+  box-shadow: none;
+}
+
+.btn-grad-sidebar {
+  background-image: linear-gradient(to right, #00d2ff 0%, #3a7bd5 51%, #00d2ff 100%);
+  background-size: 200% auto;
+  transition: all 0.5s ease;
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(0, 210, 255, 0.35);
+}
+
+.btn-grad-sidebar:hover {
+  background-position: right center;
+  color: #ffffff !important;
+  text-decoration: none;
 }
 
 

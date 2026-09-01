@@ -185,7 +185,7 @@ export function GenericReportPage({ config }) {
             </button>
             <button
               type="submit"
-              className="inline-flex items-center justify-center h-10 px-5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-sm shadow-indigo-100/50 cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center justify-center h-10 px-6 rounded-xl text-xs sm:text-sm font-bold text-white btn-grad-create active:scale-[0.97] cursor-pointer disabled:opacity-50 disabled:pointer-events-none tracking-wide"
               disabled={loading}
             >
               {loading ? "Loading..." : "Submit"}
