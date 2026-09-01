@@ -107,12 +107,12 @@ function HearingList() {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
-            <Scale className="h-8 w-8 shrink-0" />
+      <header className="flex items-center justify-between gap-3 sm:gap-4">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="p-1.5 sm:p-2 rounded-xl bg-indigo-50 text-indigo-600 shrink-0">
+            <Scale className="h-6 w-6 sm:h-8 sm:w-8 shrink-0" />
           </div>
-          Hearing List
+          <span className="truncate">Hearing List</span>
           <HelpButton title="Hearing List" />
         </h1>
         {!isAdvocate && (

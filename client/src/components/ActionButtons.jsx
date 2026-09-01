@@ -1,17 +1,17 @@
 import React from "react";
 
 // 1. CreateButton (Used on listing headers to open a create form)
-export function CreateButton({ onClick, label = "Create", disabled, ...props }) {
+export function CreateButton({ onClick, label = "Create", disabled, className = "", ...props }) {
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center gap-1.5 h-10 w-10 sm:w-auto p-0 sm:px-5 rounded-xl text-xs sm:text-sm font-bold text-white btn-grad-create active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer tracking-wide"
+      className={`inline-flex items-center justify-center gap-1.5 h-10 w-10 sm:w-auto p-0 sm:px-5 rounded-xl text-xs sm:text-sm font-bold text-white btn-grad-create active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer tracking-wide shrink-0 ${className}`}
       onClick={onClick}
       disabled={disabled}
       {...props}
     >
       <span className="hidden sm:inline">{label}</span>
-      <svg className="h-5 w-5 sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg className="h-5 w-5 sm:h-4 sm:w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <line x1="12" y1="5" x2="12" y2="19" />
         <line x1="5" y1="12" x2="19" y2="12" />
       </svg>
@@ -20,11 +20,11 @@ export function CreateButton({ onClick, label = "Create", disabled, ...props }) 
 }
 
 // 2. EditButton / UpdateButton (Used inside tables/lists actions column)
-export function EditButton({ onClick, label = "Update", disabled, children, ...props }) {
+export function EditButton({ onClick, label = "Update", disabled, children, className = "", ...props }) {
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-lg text-xs font-bold text-white btn-grad-update active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer tracking-wide"
+      className={`inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-lg text-xs font-bold text-white btn-grad-update active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer tracking-wide shrink-0 ${className}`}
       onClick={onClick}
       disabled={disabled}
       title={label}
@@ -33,7 +33,7 @@ export function EditButton({ onClick, label = "Update", disabled, children, ...p
       {children ? children : (
         <>
           <span className="hidden sm:inline">{label}</span>
-          <svg className="h-4 w-4 sm:h-3.5 sm:w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg className="h-4 w-4 sm:h-3.5 sm:w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
             <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
           </svg>
@@ -44,18 +44,18 @@ export function EditButton({ onClick, label = "Update", disabled, children, ...p
 }
 
 // 3. DeleteButton (Used inside tables/lists actions column)
-export function DeleteButton({ onClick, label = "Delete", disabled, ...props }) {
+export function DeleteButton({ onClick, label = "Delete", disabled, className = "", ...props }) {
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-lg text-xs font-bold text-white btn-grad-delete active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer tracking-wide"
+      className={`inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-lg text-xs font-bold text-white btn-grad-delete active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none cursor-pointer tracking-wide shrink-0 ${className}`}
       onClick={onClick}
       disabled={disabled}
       title={label}
       {...props}
     >
       <span className="hidden sm:inline">{label}</span>
-      <svg className="h-4 w-4 sm:h-3.5 sm:w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg className="h-4 w-4 sm:h-3.5 sm:w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="3 6 5 6 21 6" />
         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
         <line x1="10" y1="11" x2="10" y2="17" />
@@ -66,14 +66,14 @@ export function DeleteButton({ onClick, label = "Delete", disabled, ...props }) 
 }
 
 // 4. SubmitButton / SaveButton (Used in forms to submit create or edit state)
-export function SubmitButton({ isEdit, saving, label, ...props }) {
+export function SubmitButton({ isEdit, saving, label, className = "", ...props }) {
   const defaultLabel = isEdit ? "Update" : "Submit";
   return (
     <button
       type="submit"
-      className={`inline-flex items-center justify-center h-10 px-6 rounded-xl text-xs sm:text-sm font-bold text-white active:scale-[0.97] cursor-pointer disabled:opacity-50 disabled:pointer-events-none tracking-wide ${
+      className={`inline-flex items-center justify-center h-10 px-6 rounded-xl text-xs sm:text-sm font-bold text-white active:scale-[0.97] cursor-pointer disabled:opacity-50 disabled:pointer-events-none tracking-wide shrink-0 ${
         isEdit ? "btn-grad-update" : "btn-grad-create"
-      }`}
+      } ${className}`}
       disabled={saving}
       {...props}
     >
@@ -83,11 +83,11 @@ export function SubmitButton({ isEdit, saving, label, ...props }) {
 }
 
 // 5. CancelButton (Used in forms to go back/cancel)
-export function CancelButton({ onClick, label = "Cancel", disabled, ...props }) {
+export function CancelButton({ onClick, label = "Cancel", disabled, className = "", ...props }) {
   return (
     <button
       type="button"
-      className="inline-flex items-center justify-center h-10 px-5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-slate-700 hover:bg-slate-800 active:bg-slate-900 border border-slate-600 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-sm hover:shadow"
+      className={`inline-flex items-center justify-center h-10 px-5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-slate-700 hover:bg-slate-800 active:bg-slate-900 border border-slate-600 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer shadow-sm hover:shadow shrink-0 ${className}`}
       onClick={onClick}
       disabled={disabled}
       {...props}
@@ -132,13 +132,13 @@ export function HelpButton({ title, pdfName }) {
   return (
     <button
       type="button"
-      className="p-1.5 rounded-full text-slate-400 hover:text-slate-650 hover:bg-slate-100 active:scale-95 transition-all inline-flex items-center justify-center cursor-pointer"
+      className="p-1.5 rounded-full text-slate-400 hover:text-slate-650 hover:bg-slate-100 active:scale-95 transition-all inline-flex items-center justify-center cursor-pointer shrink-0"
       onClick={handleHelpClick}
       title={`${title} Help`}
       aria-label={`${title} Help`}
     >
       <svg
-        className="h-5 w-5"
+        className="h-5 w-5 shrink-0"
         width="20"
         height="20"
         viewBox="0 0 24 24"
