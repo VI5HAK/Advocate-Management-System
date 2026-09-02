@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/client";
+import authService from "../api/services/auth.service";
 import { useAuth } from "../context/AuthContext";
-import { SubmitButton, CancelButton } from "../components/ActionButtons";
+import { SubmitButton, CancelButton } from "../components/common/ActionButtons";
 import { KeyRound, Eye, EyeOff } from "lucide-react";
 
 function ChangePassword() {
@@ -40,7 +40,7 @@ function ChangePassword() {
 
     setSaving(true);
     try {
-      await api.put("/auth/change-password", form);
+      await authService.changePassword(form);
       setSuccess("Password updated successfully.");
       setForm({
         currentPassword: "",

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "../api/client";
+import masterService from "../../api/services/master.service";
 import SearchableSelect from "./SearchableSelect";
 
 /**
@@ -37,7 +37,7 @@ export function CascadingLocationDropdown({
     async function fetchStates() {
       setLoadingStates(true);
       try {
-        const res = await api.get("/locations/states");
+        const res = await masterService.getStates();
         if (active) setStates(res.data);
       } catch (err) {
         console.error("Failed to fetch states:", err);
@@ -61,9 +61,7 @@ export function CascadingLocationDropdown({
     async function fetchDistricts() {
       setLoadingDistricts(true);
       try {
-        const res = await api.get("/locations/districts", {
-          params: { State_ID },
-        });
+        const res = await masterService.getDistricts(State_ID);
         if (active) setDistricts(res.data);
       } catch (err) {
         console.error("Failed to fetch districts:", err);
@@ -87,9 +85,7 @@ export function CascadingLocationDropdown({
     async function fetchTaluks() {
       setLoadingTaluks(true);
       try {
-        const res = await api.get("/locations/taluks", {
-          params: { District_ID },
-        });
+        const res = await masterService.getTaluks(District_ID);
         if (active) setTaluks(res.data);
       } catch (err) {
         console.error("Failed to fetch taluks:", err);
@@ -162,7 +158,7 @@ export function CascadingLocationDropdown({
             disabled={loadingStates}
             className={errors.State_ID ? "border-red-500 focus:ring-red-500/10" : ""}
           />
-          {errors.State_ID && <span className="field-error">{errors.State_ID}</span>}
+          {errors.State_ID && <span className="text-red-500 text-xs font-semibold mt-1 block animate-[fadeIn_0.15s_ease-out]">{errors.State_ID}</span>}
         </div>
       </div>
 
@@ -186,7 +182,7 @@ export function CascadingLocationDropdown({
             disabled={!State_ID || loadingDistricts}
             className={errors.District_ID ? "border-red-500 focus:ring-red-500/10" : ""}
           />
-          {errors.District_ID && <span className="field-error">{errors.District_ID}</span>}
+          {errors.District_ID && <span className="text-red-500 text-xs font-semibold mt-1 block animate-[fadeIn_0.15s_ease-out]">{errors.District_ID}</span>}
         </div>
       </div>
 
@@ -210,7 +206,7 @@ export function CascadingLocationDropdown({
             disabled={!District_ID || loadingTaluks}
             className={errors.Taluk_ID ? "border-red-500 focus:ring-red-500/10" : ""}
           />
-          {errors.Taluk_ID && <span className="field-error">{errors.Taluk_ID}</span>}
+          {errors.Taluk_ID && <span className="text-red-500 text-xs font-semibold mt-1 block animate-[fadeIn_0.15s_ease-out]">{errors.Taluk_ID}</span>}
         </div>
       </div>
     </>

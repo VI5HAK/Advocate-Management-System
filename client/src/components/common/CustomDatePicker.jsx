@@ -1,4 +1,4 @@
-import DatePicker from "./ui/date-picker";
+import DatePicker from "../ui/date-picker";
 
 /**
  * Reusable CustomDatePicker component.

@@ -1,15 +1,15 @@
 import { useEffect, useState, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import api from "../../api/client";
+import entityService from "../../api/services/entity.service";
 import { formatDateDMY } from "../../utils/formatters";
 import {
   CreateButton,
   EditButton,
   DeleteButton,
   HelpButton,
-} from "../../components/ActionButtons";
-import ConfirmDialog from "../../components/ConfirmDialog";
+} from "../../components/common/ActionButtons";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 import { ChevronDown, ChevronUp, Scale } from "lucide-react";
 
 const formatTime12h = (timeStr) => {
@@ -45,9 +45,7 @@ function HearingList() {
     setLoading(true);
     setError("");
     try {
-      const res = await api.get(
-        `/hearings?search=${encodeURIComponent(searchTerm)}`,
-      );
+      const res = await entityService.getHearings(searchTerm);
       setHearings(res.data || []);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load hearings.");
@@ -77,7 +75,7 @@ function HearingList() {
       if (!caseDetailsDict[caseId] && !caseLoadingDict[caseId]) {
         setCaseLoadingDict((prev) => ({ ...prev, [caseId]: true }));
         try {
-          const res = await api.get(`/cases/${caseId}`);
+          const res = await entityService.getCase(caseId);
           setCaseDetailsDict((prev) => ({ ...prev, [caseId]: res.data }));
         } catch (err) {
           console.error("Failed to load case details:", err);
@@ -96,7 +94,7 @@ function HearingList() {
     if (!hearingToDelete) return;
     setError("");
     try {
-      await api.delete(`/hearings/${hearingToDelete.id}`);
+      await entityService.deleteHearing(hearingToDelete.id);
       setHearingToDelete(null);
       fetchHearings(search);
     } catch (err) {

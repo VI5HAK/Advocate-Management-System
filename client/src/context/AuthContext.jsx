@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import api from "../api/client";
+import authService from "../api/services/auth.service";
 
 const TOKEN_KEY = "ams_token";
 const USER_KEY = "ams_user";
@@ -22,8 +22,8 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    api
-      .get("/auth/me")
+    authService
+      .getMe()
       .then((res) => {
         setUser(res.data);
         sessionStorage.setItem(USER_KEY, JSON.stringify(res.data));
@@ -38,7 +38,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const { data } = await api.post("/auth/login", { email, password });
+      const { data } = await authService.login({ email, password });
       sessionStorage.setItem(TOKEN_KEY, data.token);
       sessionStorage.setItem(USER_KEY, JSON.stringify(data.user));
       setUser(data.user);

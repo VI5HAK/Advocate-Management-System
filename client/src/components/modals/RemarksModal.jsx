@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import api from "../api/client";
-import { SubmitButton } from "./ActionButtons";
-import { formatDateDMY, formatRemarkDate } from "../utils/formatters";
+import entityService from "../../api/services/entity.service";
+import { SubmitButton } from "../common/ActionButtons";
+import { formatDateDMY, formatRemarkDate } from "../../utils/formatters";
 
 export function RemarksModal({ appointment, onClose, readOnly = false }) {
   const [remarks, setRemarks] = useState([]);
@@ -18,7 +18,7 @@ export function RemarksModal({ appointment, onClose, readOnly = false }) {
     setLoading(true);
     setError("");
     try {
-      const { data } = await api.get(`/appointments/${appointment.id}/remarks`);
+      const { data } = await entityService.getAppointmentRemarks(appointment.id);
       setRemarks(data.remarks || []);
       setCanAddRemark(data.canAddRemark || false);
       setLockMessage(data.validationMessage || "");
@@ -40,7 +40,7 @@ export function RemarksModal({ appointment, onClose, readOnly = false }) {
     setSaving(true);
     setError("");
     try {
-      await api.post(`/appointments/${appointment.id}/remarks`, {
+      await entityService.addAppointmentRemark(appointment.id, {
         remarkText: newRemark,
       });
       setNewRemark("");

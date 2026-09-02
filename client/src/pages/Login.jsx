@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { motion } from "motion/react";
 import lawyerImage from "../assets/lawyer.webp";
-import "../styles/Login.css";
 
 function Login() {
   const navigate = useNavigate();

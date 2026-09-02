@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import api from "../../api/client";
-import { CustomDatePicker } from "../../components/CustomDatePicker";
-import RemarksModal from "../../components/RemarksModal";
-import { SearchableSelect } from "../../components/SearchableSelect";
-import { HelpButton } from "../../components/ActionButtons";
+import entityService from "../../api/services/entity.service";
+import masterService from "../../api/services/master.service";
+import { CustomDatePicker } from "../../components/common/CustomDatePicker";
+import RemarksModal from "../../components/modals/RemarksModal";
+import { SearchableSelect } from "../../components/common/SearchableSelect";
+import { HelpButton } from "../../components/common/ActionButtons";
 
 export function GenericReportPage({ config }) {
   const IconComponent = config.icon;
@@ -33,7 +34,7 @@ export function GenericReportPage({ config }) {
     async function fetchSelectorOptions() {
       setSelectorLoading(true);
       try {
-        const { data } = await api.get(selector.endpoint);
+        const { data } = await masterService.getMasterItems(selector.endpoint);
         let items = data || [];
         if (selector.extraOptions) {
           items = [...selector.extraOptions, ...items];
@@ -61,12 +62,12 @@ export function GenericReportPage({ config }) {
     setError("");
     setLoading(true);
     try {
-      const params = {
+      const queryString = new URLSearchParams({
         startDate,
         endDate,
         [selector.queryParam]: selectorValue,
-      };
-      const { data } = await api.get(apiPath, { params });
+      }).toString();
+      const { data } = await entityService.getByPath(`${apiPath}?${queryString}`);
       setReportData(data || []);
       setSearched(true);
     } catch (err) {

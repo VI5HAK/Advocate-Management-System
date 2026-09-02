@@ -1,13 +1,16 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import api from "../../api/client";
-import { CascadingLocationDropdown } from "../../components/CascadingLocationDropdown";
-import { SubmitButton, CancelButton } from "../../components/ActionButtons";
-import SearchableSelect from "../../components/SearchableSelect";
+import entityService from "../../api/services/entity.service";
+import masterService from "../../api/services/master.service";
+import { CascadingLocationDropdown } from "../../components/common/CascadingLocationDropdown";
+import { SubmitButton, CancelButton } from "../../components/common/ActionButtons";
+import SearchableSelect from "../../components/common/SearchableSelect";
 import { useForm } from "../../hooks/useForm";
 import DatePicker from "../../components/ui/date-picker";
-import CheckboxDropdown from "../../components/CheckboxDropdown";
+import CheckboxDropdown from "../../components/common/CheckboxDropdown";
 import { Briefcase } from "lucide-react";
+import CasePartiesSection from "./components/case/CasePartiesSection";
+import CaseFilingDetailsSection from "./components/case/CaseFilingDetailsSection";
 import {
   caseSchema,
   uppercaseAlphaAndSpaces,
@@ -77,9 +80,9 @@ function CaseForm() {
     setError("");
     try {
       if (isEdit) {
-        await api.put(`/cases/${id}`, payload);
+        await entityService.updateCase(id, payload);
       } else {
-        await api.post("/cases", payload);
+        await entityService.createCase(payload);
       }
       navigate("/case");
     } catch (err) {
@@ -123,10 +126,10 @@ function CaseForm() {
       try {
         const [clientsRes, caseTypesRes, courtsRes, advocatesRes] =
           await Promise.all([
-            api.get("/clients"),
-            api.get("/masters/case-types"),
-            api.get("/masters/courts"),
-            api.get("/advocates"),
+            entityService.getClients(),
+            masterService.getMasterItems("/masters/case-types"),
+            masterService.getCourts(),
+            entityService.getAdvocates(),
           ]);
 
         if (cancelled) return;
@@ -136,7 +139,7 @@ function CaseForm() {
         setAdvocates(advocatesRes.data);
 
         if (isEdit) {
-          const { data } = await api.get(`/cases/${id}`);
+          const { data } = await entityService.getCase(id);
           if (cancelled) return;
           setValues({
             clientIds: data.clientIds || [],
@@ -428,241 +431,18 @@ function CaseForm() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
-            <label htmlFor="case-petitioner" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Petitioner</label>
-            <div className="relative">
-              <input
-                id="case-petitioner"
-                type="text"
-                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
-                  errors.petitioner
-                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
-                }`}
-                {...register("petitioner", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
-                required
-              />
-              {errors.petitioner && (
-                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
-                  {errors.petitioner}
-                </span>
-              )}
-            </div>
-          </div>
+        <CasePartiesSection
+          errors={errors}
+          register={register}
+        />
 
-          <div className="space-y-1.5">
-            <label htmlFor="case-petitioner-advocate" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Petitioner Advocate</label>
-            <div className="relative">
-              <input
-                id="case-petitioner-advocate"
-                type="text"
-                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
-                  errors.petitionerAdvocate
-                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
-                }`}
-                {...register("petitionerAdvocate", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
-                required
-              />
-              {errors.petitionerAdvocate && (
-                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
-                  {errors.petitionerAdvocate}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
-            <label htmlFor="case-respondent" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Respondent</label>
-            <div className="relative">
-              <input
-                id="case-respondent"
-                type="text"
-                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
-                  errors.respondent
-                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
-                }`}
-                {...register("respondent", { transform: (v) => uppercaseAlphaAndSpaces(v, 49) })}
-                required
-              />
-              {errors.respondent && (
-                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
-                  {errors.respondent}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="case-respondent-advocate" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Respondent Advocate</label>
-            <div className="relative">
-              <input
-                id="case-respondent-advocate"
-                type="text"
-                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
-                  errors.respondentAdvocate
-                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
-                }`}
-                {...register("respondentAdvocate", { transform: (v) => uppercaseAlphaAndSpaces(v, 100) })}
-                required
-              />
-              {errors.respondentAdvocate && (
-                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
-                  {errors.respondentAdvocate}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
-            <label htmlFor="case-filing-num" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Filing Number</label>
-            <div className="relative">
-              <input
-                id="case-filing-num"
-                type="text"
-                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
-                  errors.filingNum
-                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
-                }`}
-                {...register("filingNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
-                required
-              />
-              {errors.filingNum && (
-                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
-                  {errors.filingNum}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="case-filing-date" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Filing Date</label>
-            <div className="relative">
-              <DatePicker
-                id="case-filing-date"
-                value={values.filingDate}
-                onChange={(val) => setValue("filingDate", val)}
-                max={today}
-                required
-              />
-              {errors.filingDate && (
-                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
-                  {errors.filingDate}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
-            <label htmlFor="case-reg-num" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Registration Number</label>
-            <div className="relative">
-              <input
-                id="case-reg-num"
-                type="text"
-                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
-                  errors.regNum
-                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
-                }`}
-                {...register("regNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
-                required
-              />
-              {errors.regNum && (
-                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
-                  {errors.regNum}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="case-reg-date" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Registration Date</label>
-            <div className="relative">
-              <DatePicker
-                id="case-reg-date"
-                value={values.regDate}
-                onChange={(val) => setValue("regDate", val)}
-                required
-              />
-              {errors.regDate && (
-                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
-                  {errors.regDate}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
-            <label htmlFor="case-efiling-num" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">E-Filing Number</label>
-            <div className="relative">
-              <input
-                id="case-efiling-num"
-                type="text"
-                className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
-                  errors.efilingNum
-                    ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
-                }`}
-                {...register("efilingNum", { transform: (v) => uppercaseAlphaNumAndSpaces(v, 100) })}
-              />
-              {errors.efilingNum && (
-                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
-                  {errors.efilingNum}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="case-efiling-date" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">E-Filing Date</label>
-            <div className="relative">
-              <DatePicker
-                id="case-efiling-date"
-                value={values.efilingDate}
-                onChange={(val) => setValue("efilingDate", val)}
-              />
-              {errors.efilingDate && (
-                <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
-                  {errors.efilingDate}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <label htmlFor="case-cnr-num" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">CNR Number</label>
-          <div className="relative">
-            <input
-              id="case-cnr-num"
-              type="text"
-              className={`w-full h-11 px-4 rounded-xl border outline-none text-sm transition-all focus:ring-4 focus:bg-white ${
-                errors.cnrNum
-                  ? "border-red-400 bg-red-50/50 focus:border-red-500 focus:ring-red-500/10"
-                  : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/10 bg-slate-50"
-              }`}
-              {...register("cnrNum", { transform: (v) => uppercaseAlphaNum(v, 16) })}
-              required
-            />
-            {errors.cnrNum && (
-              <span className="text-red-500 text-xs mt-1 block text-left animate-[fadeIn_0.2s_ease-out]">
-                {errors.cnrNum}
-              </span>
-            )}
-          </div>
-        </div>
+        <CaseFilingDetailsSection
+          values={values}
+          errors={errors}
+          register={register}
+          setValue={setValue}
+          today={today}
+        />
 
         <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
           <CancelButton onClick={handleCancel} disabled={saving || isSubmitting} />

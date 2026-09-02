@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import api from "../../api/client";
-import ConfirmDialog from "../../components/ConfirmDialog";
-import SearchableSelect from "../../components/SearchableSelect";
+import masterService from "../../api/services/master.service";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import SearchableSelect from "../../components/common/SearchableSelect";
 import {
   CreateButton,
   EditButton,
@@ -9,7 +9,7 @@ import {
   SubmitButton,
   CancelButton,
   HelpButton,
-} from "../../components/ActionButtons";
+} from "../../components/common/ActionButtons";
 import { uppercaseAlphaAndSpaces } from "../../utils/validation";
 import { MapPin } from "lucide-react";
 
@@ -43,7 +43,7 @@ function LocationMaster() {
     setLoadingStates(true);
     setError("");
     try {
-      const { data } = await api.get("/locations/states");
+      const { data } = await masterService.getStates();
       setStates(data);
     } catch {
       setError("Failed to load states.");
@@ -55,9 +55,7 @@ function LocationMaster() {
   const fetchDistricts = useCallback(async (State_ID) => {
     setLoadingDistricts((prev) => ({ ...prev, [State_ID]: true }));
     try {
-      const { data } = await api.get("/locations/districts", {
-        params: { State_ID },
-      });
+      const { data } = await masterService.getDistricts(State_ID);
       setDistrictsByState((prev) => ({ ...prev, [State_ID]: data }));
     } catch (err) {
       console.error("Failed to load districts:", err);
@@ -69,9 +67,7 @@ function LocationMaster() {
   const fetchTaluks = useCallback(async (District_ID) => {
     setLoadingTaluks((prev) => ({ ...prev, [District_ID]: true }));
     try {
-      const { data } = await api.get("/locations/taluks", {
-        params: { District_ID },
-      });
+      const { data } = await masterService.getTaluks(District_ID);
       setTaluksByDistrict((prev) => ({ ...prev, [District_ID]: data }));
     } catch (err) {
       console.error("Failed to load taluks:", err);
@@ -96,9 +92,7 @@ function LocationMaster() {
     async function getFormDistricts() {
       setLoadingFormDistricts(true);
       try {
-        const { data } = await api.get("/locations/districts", {
-          params: { State_ID: form.State_ID },
-        });
+        const { data } = await masterService.getDistricts(form.State_ID);
         if (active) setFormDistricts(data);
       } catch (err) {
         console.error("Failed to load form districts", err);
@@ -221,11 +215,11 @@ function LocationMaster() {
 
       if (form.type === "state") {
         if (editingItem) {
-          await api.put(`/locations/states/${editingItem.code}`, {
+          await masterService.updateState(editingItem.code, {
             State_Name: name,
           });
         } else {
-          await api.post("/locations/states", { State_Name: name });
+          await masterService.createState({ State_Name: name });
         }
         await fetchStates();
       } else if (form.type === "district") {
@@ -235,12 +229,12 @@ function LocationMaster() {
           return;
         }
         if (editingItem) {
-          await api.put(`/locations/districts/${editingItem.code}`, {
+          await masterService.updateDistrict(editingItem.code, {
             State_ID: Number(form.State_ID),
             District_Name: name,
           });
         } else {
-          await api.post("/locations/districts", {
+          await masterService.createDistrict({
             State_ID: Number(form.State_ID),
             District_Name: name,
           });
@@ -259,12 +253,12 @@ function LocationMaster() {
           return;
         }
         if (editingItem) {
-          await api.put(`/locations/taluks/${editingItem.code}`, {
+          await masterService.updateTaluk(editingItem.code, {
             District_ID: Number(form.District_ID),
             Taluk_Name: name,
           });
         } else {
-          await api.post("/locations/taluks", {
+          await masterService.createTaluk({
             District_ID: Number(form.District_ID),
             Taluk_Name: name,
           });
@@ -302,13 +296,13 @@ function LocationMaster() {
     try {
       const { type, code, parentStateCode, parentDistrictCode } = itemToDelete;
       if (type === "state") {
-        await api.delete(`/locations/states/${code}`);
+        await masterService.deleteState(code);
         await fetchStates();
       } else if (type === "district") {
-        await api.delete(`/locations/districts/${code}`);
+        await masterService.deleteDistrict(code);
         await fetchDistricts(parentStateCode);
       } else if (type === "taluk") {
-        await api.delete(`/locations/taluks/${code}`);
+        await masterService.deleteTaluk(code);
         await fetchTaluks(parentDistrictCode);
       }
       setItemToDelete(null);

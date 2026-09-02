@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { getMenuItemsForRole } from "../config/menu";
-import sidebarLogo from "../assets/sidebar-logo.png";
+import { useAuth } from "../../context/AuthContext";
+import { getMenuItemsForRole } from "../../config/menu";
+import sidebarLogo from "../../assets/sidebar-logo.png";
 import {
   Home,
   LayoutDashboard,
@@ -20,7 +20,6 @@ import {
   LogOut
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import "../styles/Sidebar.css";
 
 const ICON_MAP = {
   home: Home,

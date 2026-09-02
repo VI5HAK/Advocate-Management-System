@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import ProtectedRoute from "./components/ProtectedRoute";
-import AppLayout from "./components/AppLayout";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
+import AppLayout from "./components/layout/AppLayout";
 
 // Lazy-loaded pages
 const Login = lazy(() => import("./pages/Login"));

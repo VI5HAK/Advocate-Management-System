@@ -1,17 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/client";
-import ConfirmDialog from "../components/ConfirmDialog";
+import authService from "../api/services/auth.service";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 import {
   CreateButton,
   SubmitButton,
   CancelButton,
   DeleteButton,
   HelpButton,
-} from "../components/ActionButtons";
+} from "../components/common/ActionButtons";
 import { UserCog } from "lucide-react";
-import "../styles/MasterPage.css";
-import "../styles/AdvocateForm.css";
 
 function AdminUsersPage() {
   const navigate = useNavigate();
@@ -34,7 +32,7 @@ function AdminUsersPage() {
     setLoading(true);
     setError("");
     try {
-      const { data } = await api.get("/admins");
+      const { data } = await authService.getAdminUsers();
       setAdmins(data);
     } catch {
       setError("Failed to load admin users.");
@@ -76,7 +74,7 @@ function AdminUsersPage() {
     setSaving(true);
     setError("");
     try {
-      await api.post("/admins", form);
+      await authService.createAdminUser(form);
       backToList();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to create admin.");
@@ -93,7 +91,7 @@ function AdminUsersPage() {
     if (!adminToDelete) return;
     setError("");
     try {
-      await api.delete(`/admins/${adminToDelete.id}`);
+      await authService.deleteAdminUser(adminToDelete.id);
       setAdminToDelete(null);
       await fetchAdmins();
     } catch (err) {

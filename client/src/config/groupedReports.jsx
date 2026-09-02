@@ -1,7 +1,7 @@
 import { CheckCircle, Scale } from "lucide-react";
 import { formatTime12Hour, formatDateDMY } from "../utils/formatters";
-import RemarksModal from "../components/RemarksModal";
-import HearingNotesModal from "../components/HearingNotesModal";
+import RemarksModal from "../components/modals/RemarksModal";
+import HearingNotesModal from "../components/modals/HearingNotesModal";
 
 export const GROUPED_REPORTS_CONFIG = {
   appointments: {

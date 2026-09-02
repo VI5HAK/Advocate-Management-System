@@ -1,9 +1,9 @@
 import * as React from "react"
 import { useState } from "react"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command"
-import { Button } from "./ui/button"
-import { cn } from "@/lib/utils"
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "../ui/command"
+import { Button } from "../ui/button"
+import { cn } from "@/utils/cn";
 
 /**
  * Reusable SearchableSelect Component

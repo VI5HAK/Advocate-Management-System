@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import api from "../../api/client";
+import entityService from "../../api/services/entity.service";
 import DatePicker from "../../components/ui/date-picker";
 import TimePicker from "../../components/ui/time-picker";
-import { SubmitButton, CancelButton } from "../../components/ActionButtons";
-import SearchableSelect from "../../components/SearchableSelect";
-import CheckboxDropdown from "../../components/CheckboxDropdown";
+import { SubmitButton, CancelButton } from "../../components/common/ActionButtons";
+import SearchableSelect from "../../components/common/SearchableSelect";
+import CheckboxDropdown from "../../components/common/CheckboxDropdown";
 import dayjs from "../../utils/datePicker";
 import { Calendar } from "lucide-react";
 
@@ -58,8 +58,8 @@ function AppointmentForm() {
       setError("");
       try {
         const [clientsRes, advocatesRes] = await Promise.all([
-          api.get("/clients"),
-          api.get("/advocates"),
+          entityService.getClients(),
+          entityService.getAdvocates(),
         ]);
 
         if (cancelled) return;
@@ -67,15 +67,15 @@ function AppointmentForm() {
         setAdvocates(advocatesRes.data);
 
         if (isEdit) {
-          const { data } = await api.get(`/appointments/${id}`);
+          const { data } = await entityService.getAppointment(id);
           if (cancelled) return;
 
-          const casesRes = await api.get(`/cases?clientId=${data.clientId}`);
+          const casesRes = await entityService.getByPath(`/cases?clientId=${data.clientId}`);
           if (cancelled) return;
           setCases(casesRes.data);
 
           if (data.caseId) {
-            const caseDetailRes = await api.get(`/cases/${data.caseId}`);
+            const caseDetailRes = await entityService.getCase(data.caseId);
             if (cancelled) return;
             setCaseAdvocateIds(caseDetailRes.data.advocateIds || []);
           } else {
@@ -162,7 +162,7 @@ function AppointmentForm() {
     setError("");
     if (val) {
       try {
-        const casesRes = await api.get(`/cases?clientId=${val}`);
+        const casesRes = await entityService.getByPath(`/cases?clientId=${val}`);
         setCases(casesRes.data);
       } catch {
         setError("Failed to fetch cases for this client.");
@@ -180,7 +180,7 @@ function AppointmentForm() {
       setCaseAdvocateIds(advocates.map((a) => a.id));
     } else if (val) {
       try {
-        const caseDetailRes = await api.get(`/cases/${val}`);
+        const caseDetailRes = await entityService.getCase(val);
         setCaseAdvocateIds(caseDetailRes.data.advocateIds || []);
       } catch {
         setError("Failed to fetch advocates assigned to this case.");
@@ -232,9 +232,9 @@ function AppointmentForm() {
     setError("");
     try {
       if (isEdit) {
-        await api.put(`/appointments/${id}`, payload);
+        await entityService.updateAppointment(id, payload);
       } else {
-        await api.post("/appointments", payload);
+        await entityService.createAppointment(payload);
       }
       navigate("/appointments");
     } catch (err) {

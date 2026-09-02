@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import api from "../../api/client";
-import { CascadingLocationDropdown } from "../../components/CascadingLocationDropdown";
+import masterService from "../../api/services/master.service";
+import { CascadingLocationDropdown } from "../../components/common/CascadingLocationDropdown";
 import { Landmark } from "lucide-react";
-import SearchableSelect from "../../components/SearchableSelect";
-import ConfirmDialog from "../../components/ConfirmDialog";
+import SearchableSelect from "../../components/common/SearchableSelect";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 import {
   CreateButton,
   EditButton,
@@ -11,14 +11,11 @@ import {
   SubmitButton,
   CancelButton,
   HelpButton,
-} from "../../components/ActionButtons";
-import "../../styles/MasterPage.css";
+} from "../../components/common/ActionButtons";
 import {
   uppercaseAlphaNumAndSpaces,
   descriptionValidation,
 } from "../../utils/validation";
-
-
 
 function CourtMaster() {
   const [view, setView] = useState("list");
@@ -39,14 +36,12 @@ function CourtMaster() {
   const [saving, setSaving] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
-
-
   const fetchItems = useCallback(async (search) => {
     setLoading(true);
     setError("");
     try {
       const params = search ? { search } : {};
-      const { data } = await api.get("/masters/courts", { params });
+      const { data } = await masterService.getCourts({ params });
       setItems(data);
     } catch {
       setError("Failed to load courts.");
@@ -155,9 +150,9 @@ function CourtMaster() {
       };
 
       if (editingItem) {
-        await api.put(`/masters/courts/${editingItem.id}`, payload);
+        await masterService.updateCourt(editingItem.id, payload);
       } else {
-        await api.post("/masters/courts", payload);
+        await masterService.createCourt(payload);
       }
       backToList();
     } catch (err) {
@@ -175,7 +170,7 @@ function CourtMaster() {
     if (!itemToDelete) return;
     setError("");
     try {
-      await api.delete(`/masters/courts/${itemToDelete.id}`);
+      await masterService.deleteCourt(itemToDelete.id);
       setItemToDelete(null);
       await fetchItems(activeSearch);
     } catch (err) {

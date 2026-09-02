@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import api from "../../api/client";
+import entityService from "../../api/services/entity.service";
 import { ChevronDown, Search, RotateCw, FileText } from "lucide-react";
-import { HelpButton } from "../../components/ActionButtons";
-import "../../styles/EntityListPage.css";
+import { HelpButton } from "../../components/common/ActionButtons";
 
 export function GroupedCompletedReport({ config }) {
   const IconComponent = config.icon;
@@ -34,7 +33,7 @@ export function GroupedCompletedReport({ config }) {
     setLoading(true);
     setError("");
     try {
-      const { data } = await api.get(apiPath);
+      const { data } = await entityService.getByPath(apiPath);
       setItems(data || []);
       // Reset expanded states and loaded details on refresh
       setExpandedCases({});
@@ -62,7 +61,7 @@ export function GroupedCompletedReport({ config }) {
     if (isExpanding && !caseDetails[caseId]) {
       setLoadingDetails((prev) => ({ ...prev, [caseId]: true }));
       try {
-        const { data } = await api.get(`${apiPath}?caseId=${caseId}`);
+        const { data } = await entityService.getByPath(`${apiPath}?caseId=${caseId}`);
         setCaseDetails((prev) => ({
           ...prev,
           [caseId]: data || [],
@@ -298,7 +297,7 @@ export function GroupedCompletedReport({ config }) {
             // Refetch details for the specific case to keep UI updated
             setLoadingDetails((prev) => ({ ...prev, [caseKey]: true }));
             try {
-              const { data } = await api.get(`${apiPath}?caseId=${caseKey}`);
+              const { data } = await entityService.getByPath(`${apiPath}?caseId=${caseKey}`);
               setCaseDetails((prev) => ({
                 ...prev,
                 [caseKey]: data || [],

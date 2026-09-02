@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import api from "../../api/client";
+import entityService from "../../api/services/entity.service";
+import masterService from "../../api/services/master.service";
 import DatePicker from "../../components/ui/date-picker";
 import TimePicker from "../../components/ui/time-picker";
-import SearchableSelect from "../../components/SearchableSelect";
-import CheckboxDropdown from "../../components/CheckboxDropdown";
-import { SubmitButton, CancelButton } from "../../components/ActionButtons";
+import SearchableSelect from "../../components/common/SearchableSelect";
+import CheckboxDropdown from "../../components/common/CheckboxDropdown";
+import { SubmitButton, CancelButton } from "../../components/common/ActionButtons";
 import dayjs from "../../utils/datePicker";
 import { Scale } from "lucide-react";
 
@@ -61,7 +62,7 @@ function HearingForm() {
     }
     try {
       const results = await Promise.all(
-        clientIds.map((cid) => api.get(`/cases?clientId=${cid}`))
+        clientIds.map((cid) => entityService.getByPath(`/cases?clientId=${cid}`))
       );
       const allCases = [];
       const seen = new Set();
@@ -88,10 +89,10 @@ function HearingForm() {
       try {
         const [clientsRes, advocatesRes, courtsRes, judgesRes] =
           await Promise.all([
-            api.get("/clients"),
-            api.get("/advocates"),
-            api.get("/masters/courts"),
-            api.get("/masters/judges"),
+            entityService.getClients(),
+            entityService.getAdvocates(),
+            masterService.getCourts(),
+            masterService.getMasterItems("/masters/judges"),
           ]);
 
         if (cancelled) return;
@@ -101,14 +102,14 @@ function HearingForm() {
         setJudges(judgesRes.data || []);
 
         if (isEdit) {
-          const { data } = await api.get(`/hearings/${id}`);
+          const { data } = await entityService.getHearing(id);
           if (cancelled) return;
 
           setSelectedClientIds(data.clientIds || []);
           await fetchCasesForClients(data.clientIds || []);
 
           if (data.caseId) {
-            const caseDetailRes = await api.get(`/cases/${data.caseId}`);
+            const caseDetailRes = await entityService.getCase(data.caseId);
             if (cancelled) return;
             setCaseAdvocateIds(caseDetailRes.data.advocateIds || []);
             setCourtName(caseDetailRes.data.courtName || "");
@@ -171,7 +172,7 @@ function HearingForm() {
     setSelectedAdvocateIds([]);
     if (val) {
       try {
-        const caseDetailRes = await api.get(`/cases/${val}`);
+        const caseDetailRes = await entityService.getCase(val);
         setCaseAdvocateIds(caseDetailRes.data.advocateIds || []);
         if (caseDetailRes.data.courtId) {
           setForm((f) => ({
@@ -222,9 +223,9 @@ function HearingForm() {
     setError("");
     try {
       if (isEdit) {
-        await api.put(`/hearings/${id}`, payload);
+        await entityService.updateHearing(id, payload);
       } else {
-        await api.post("/hearings", payload);
+        await entityService.createHearing(payload);
       }
       navigate("/hearings");
     } catch (err) {

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import api from "../api/client";
-import { SubmitButton } from "./ActionButtons";
-import DatePicker from "./ui/date-picker";
-import dayjs from "../utils/datePicker";
-import { formatDateDMY } from "../utils/formatters";
+import { useAuth } from "../../context/AuthContext";
+import entityService from "../../api/services/entity.service";
+import { SubmitButton } from "../common/ActionButtons";
+import DatePicker from "../ui/date-picker";
+import dayjs from "../../utils/datePicker";
+import { formatDateDMY } from "../../utils/formatters";
 
 export function HearingNotesModal({ hearing, onClose }) {
   const { user } = useAuth();
@@ -32,7 +32,7 @@ export function HearingNotesModal({ hearing, onClose }) {
     const fetchCaseDetails = async () => {
       setCaseLoading(true);
       try {
-        const { data } = await api.get(`/cases/${hearing.caseId}`);
+        const { data } = await entityService.getCase(hearing.caseId);
         if (active) {
           setCaseDetails(data);
         }
@@ -56,7 +56,7 @@ export function HearingNotesModal({ hearing, onClose }) {
     setLoading(true);
     setError("");
     try {
-      const { data } = await api.get(`/hearings/${hearing.id}/notes`);
+      const { data } = await entityService.getHearingNotes(hearing.id);
       setNotes(data.remarks || []);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load progress notes.");
@@ -76,7 +76,7 @@ export function HearingNotesModal({ hearing, onClose }) {
     setSaving(true);
     setError("");
     try {
-      await api.post(`/hearings/${hearing.id}/notes`, {
+      await entityService.addHearingNote(hearing.id, {
         remarkText: newNote,
       });
       setNewNote("");
@@ -95,7 +95,7 @@ export function HearingNotesModal({ hearing, onClose }) {
     setSaving(true);
     setError("");
     try {
-      await api.post(`/hearings/${hearing.id}/notes`, {
+      await entityService.addHearingNote(hearing.id, {
         nextHearingDate,
         nextHearingPurpose: nextHearingPurpose.trim(),
       });

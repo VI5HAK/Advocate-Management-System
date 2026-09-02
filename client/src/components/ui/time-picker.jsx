@@ -2,7 +2,7 @@ import * as React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "./popover"
 import { Button } from "./button"
-import { cn } from "../../lib/utils"
+import { cn } from "@/utils/cn";
 import { Clock } from "lucide-react"
 
 const parseTime = (str) => {

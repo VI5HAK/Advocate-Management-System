@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import api from "../../api/client";
-import ConfirmDialog from "../../components/ConfirmDialog";
-import { CreateButton, EditButton, DeleteButton, SubmitButton, CancelButton, HelpButton } from "../../components/ActionButtons";
-import "../../styles/MasterPage.css";
+import masterService from "../../api/services/master.service";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import { CreateButton, EditButton, DeleteButton, SubmitButton, CancelButton, HelpButton } from "../../components/common/ActionButtons";
 import { uppercaseAlphaAndSpaces, descriptionValidation } from "../../utils/validation";
 import { ShieldCheck, UserSquare2, Briefcase, Activity, Landmark, Gavel, MapPin, Database } from "lucide-react";
 
@@ -63,7 +62,7 @@ function MasterPage({ config }) {
       setError("");
       try {
         const params = search ? { search } : {};
-        const { data } = await api.get(`/masters/${resource}`, { params });
+        const { data } = await masterService.getMasterItems(`/masters/${resource}`, { params });
         setItems(data);
       } catch {
         setError(loadErrorMessage);
@@ -128,9 +127,9 @@ function MasterPage({ config }) {
     setSaving(true);
     try {
       if (editingItem) {
-        await api.put(`/masters/${resource}/${editingItem.id}`, form);
+        await masterService.updateMasterItem(`/masters/${resource}`, editingItem.id, form);
       } else {
-        await api.post(`/masters/${resource}`, form);
+        await masterService.createMasterItem(`/masters/${resource}`, form);
       }
       backToList();
     } catch (err) {
@@ -148,7 +147,7 @@ function MasterPage({ config }) {
     if (!itemToDelete) return;
     setError("");
     try {
-      await api.delete(`/masters/${resource}/${itemToDelete.id}`);
+      await masterService.deleteMasterItem(`/masters/${resource}`, itemToDelete.id);
       setItemToDelete(null);
       await fetchItems(activeSearch);
     } catch (err) {

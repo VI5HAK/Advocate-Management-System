@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/client";
+import entityService from "../api/services/entity.service";
 import {
   UserCheck,
   Users,
@@ -12,7 +12,7 @@ import {
   LayoutDashboard
 } from "lucide-react";
 import { motion } from "motion/react";
-import { HelpButton } from "../components/ActionButtons";
+import { HelpButton } from "../components/common/ActionButtons";
 
 const STAT_LABELS = {
   advocates: "Advocates",
@@ -83,8 +83,8 @@ function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api
-      .get("/dashboard/summary")
+    entityService
+      .getDashboardSummary()
       .then((res) => setSummary(res.data))
       .catch(() => setError("Could not load dashboard data."));
   }, []);

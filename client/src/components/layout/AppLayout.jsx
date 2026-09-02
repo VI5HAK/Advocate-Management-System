@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import Sidebar from "./Sidebar";
 import { Menu, ChevronDown, KeyRound, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import "../styles/AppLayout.css";
 
 function AppLayout() {
   const { user, logout } = useAuth();

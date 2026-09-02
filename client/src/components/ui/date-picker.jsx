@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "./popover"
-import { cn } from "../../lib/utils"
+import { cn } from "@/utils/cn";
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react"
 
 // Helper to format ISO date string (YYYY-MM-DD) to DD/MM/YYYY for display

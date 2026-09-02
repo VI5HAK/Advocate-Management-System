@@ -1,22 +1,20 @@
 import { useCallback, useEffect, useState, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../api/client";
+import entityService from "../../api/services/entity.service";
 import { useAuth } from "../../context/AuthContext";
-import ConfirmDialog from "../../components/ConfirmDialog";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 import {
   CreateButton,
   EditButton,
   DeleteButton,
   HelpButton,
-} from "../../components/ActionButtons";
-import RemarksModal from "../../components/RemarksModal";
+} from "../../components/common/ActionButtons";
+import RemarksModal from "../../components/modals/RemarksModal";
 import {
   formatCellValue,
   formatTime12Hour,
   formatDateDMY,
 } from "../../utils/formatters";
-import "../../styles/MasterPage.css";
-import "../../styles/EntityListPage.css";
 import { UserCheck, Users, Briefcase, Calendar, Scale, Database, ChevronDown, ChevronUp } from "lucide-react";
 
 const ICON_MAP = {
@@ -201,7 +199,7 @@ function EntityListPage({ config, readOnly = false }) {
       setError("");
       try {
         const params = search ? { search } : {};
-        const { data } = await api.get(apiPath, { params });
+        const { data } = await entityService.getByPath(apiPath, { params });
         setItems(data);
       } catch {
         setError(loadErrorMessage);
@@ -253,7 +251,7 @@ function EntityListPage({ config, readOnly = false }) {
     setError("");
     setInfo("");
     try {
-      await api.delete(`${apiPath}/${rowToDelete.id}`);
+      await entityService.deleteByPath(apiPath, rowToDelete.id);
       setRowToDelete(null);
       await fetchItems(activeSearch);
     } catch (err) {
