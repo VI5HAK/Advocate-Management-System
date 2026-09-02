@@ -214,15 +214,16 @@ body {
 /* Home marquee animation */
 @keyframes home-marquee-anim {
   0% {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
 .home-marquee-track {
   display: flex;
   width: max-content;
-  animation: home-marquee-anim 30s linear infinite;
+  will-change: transform;
+  animation: home-marquee-anim 25s linear infinite;
 }

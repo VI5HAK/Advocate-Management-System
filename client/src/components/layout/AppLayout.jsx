@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Sidebar from "./Sidebar";
 import { Menu, ChevronDown, KeyRound, LogOut } from "lucide-react";
@@ -11,6 +11,9 @@ function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isHomePage = location.pathname === "/";
 
   const displayName = user?.fullName || user?.email || "User";
   const userRole = user?.role || "Staff";
@@ -141,14 +144,16 @@ function AppLayout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto animate-gradient-bg p-4 sm:p-6 md:p-8 relative">
+        <main className={`flex-1 overflow-y-auto relative ${isHomePage ? "p-0" : "animate-gradient-bg p-4 sm:p-6 md:p-8"}`}>
           {/* Ambient background decoration container */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-            <div className="absolute top-1/4 right-0 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '0s' }} />
-            <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-sky-300/30 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '5s' }} />
-          </div>
+          {!isHomePage && (
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+              <div className="absolute top-1/4 right-0 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '0s' }} />
+              <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-sky-300/30 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '5s' }} />
+            </div>
+          )}
           
-          <div className="mx-auto max-w-7xl relative z-10">
+          <div className={isHomePage ? "w-full h-full relative z-10" : "mx-auto max-w-7xl relative z-10"}>
             <Outlet />
           </div>
         </main>

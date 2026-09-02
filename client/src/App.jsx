@@ -64,6 +64,7 @@ function AppRoutes() {
           <Route path="/masters/court" element={<CourtMaster />} />
           <Route path="/masters/location" element={<LocationMaster />} />
           <Route path="/masters/judge" element={<MasterPage config={MASTER_PAGE_CONFIG.judge} />} />
+          <Route path="/masters/task-status" element={<MasterPage config={MASTER_PAGE_CONFIG.taskStatus} />} />
           
           <Route path="/advocate" element={<EntityListPage config={ENTITY_LIST_CONFIG.advocate} />} />
           <Route path="/advocate/create" element={<AdvocateForm />} />
