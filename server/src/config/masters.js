@@ -44,6 +44,13 @@ export const MASTER_CONFIG = {
     descriptionColumn: "Court_Description",
     deleteFlagColumn: "Court_Delete_Flag",
   },
+  "task-statuses": {
+    table: "Task_Status_Master",
+    idColumn: "Task_Status_ID",
+    nameColumn: "Task_Status_Name",
+    descriptionColumn: "Task_Status_Description",
+    deleteFlagColumn: "Task_Status_Delete_Flag",
+  },
 };
 
 export function getMasterConfig(resource) {

@@ -17,7 +17,8 @@ import {
   FileSpreadsheet,
   ChevronDown,
   X,
-  LogOut
+  LogOut,
+  ListCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -25,6 +26,7 @@ const ICON_MAP = {
   home: Home,
   dashboard: LayoutDashboard,
   masters: Database,
+  "task-status": ListCheck,
   advocate: UserCheck,
   client: Users,
   case: Briefcase,

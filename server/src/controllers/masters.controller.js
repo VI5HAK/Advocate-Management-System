@@ -365,6 +365,7 @@ const MASTER_REFERENCES = {
   ],
   judges: [],
   statuses: [],
+  "task-statuses": [],
 };
 
 export async function deleteMaster(req, res, next) {
