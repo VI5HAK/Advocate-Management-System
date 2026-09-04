@@ -227,3 +227,262 @@ body {
   will-change: transform;
   animation: home-marquee-anim 25s linear infinite;
 }
+
+/* Modal Overlay and Container Styles */
+@keyframes modal-backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.remarks-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9990;
+  padding: 1rem;
+  box-sizing: border-box;
+  animation: modal-backdrop-fade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.remarks-modal {
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 44rem;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  z-index: 9995;
+  animation: modal-pop-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.remarks-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #f8fafc;
+}
+
+.remarks-modal-header h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.remarks-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.remarks-close-btn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.remarks-modal-content {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-height: calc(90vh - 80px);
+}
+
+.remarks-modal-content h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.remarks-new-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+}
+
+.remarks-new-form label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.remarks-new-form textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.remarks-new-form textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.remarks-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
+
+.remarks-divider {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 0.25rem 0;
+}
+
+.remarks-loading {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.remarks-empty {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #94a3b8;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 0.75rem;
+}
+
+.remarks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.remark-item {
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.remark-item-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.remark-author {
+  color: #4f46e5;
+  background-color: #e0e7ff;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.remark-date {
+  color: #64748b;
+}
+
+.remark-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1e293b;
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.hearing-case-details-summary {
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  background-color: #eef2ff;
+  border: 1px solid #c7d2fe;
+  font-size: 0.875rem;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.hearing-case-details-summary strong {
+  color: #1e1b4b;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .remarks-modal {
+    max-height: 85vh;
+    border-radius: 0.875rem;
+  }
+  
+  .remarks-modal-header {
+    padding: 1rem 1.25rem;
+  }
+  
+  .remarks-modal-content {
+    padding: 1rem;
+    gap: 1rem;
+  }
+}
+
