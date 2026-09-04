@@ -26,7 +26,7 @@ export async function updateHearing(req, res, next) {
 
 export async function deleteHearing(req, res, next) {
   try {
-    const result = await hearingService.deleteHearing(req.params.id);
+    const result = await hearingService.deleteHearing(req.params.id, req.user?.id);
     res.json(result);
   } catch (err) {
     if (err.statusCode) {

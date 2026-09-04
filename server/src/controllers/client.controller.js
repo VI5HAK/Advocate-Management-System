@@ -14,7 +14,7 @@ export async function getClient(req, res, next) {
 
 export async function createClient(req, res, next) {
   try {
-    const result = await clientService.createClient(req.body);
+    const result = await clientService.createClient(req.body, req.user?.id);
     res.status(201).json(result);
   } catch (err) {
     if (err.statusCode) {
@@ -26,7 +26,7 @@ export async function createClient(req, res, next) {
 
 export async function updateClient(req, res, next) {
   try {
-    const result = await clientService.updateClient(req.params.id, req.body);
+    const result = await clientService.updateClient(req.params.id, req.body, req.user?.id);
     res.json(result);
   } catch (err) {
     if (err.statusCode) {
@@ -48,7 +48,7 @@ export async function listClients(req, res, next) {
 
 export async function deleteClient(req, res, next) {
   try {
-    const result = await clientService.deleteClient(req.params.id);
+    const result = await clientService.deleteClient(req.params.id, req.user?.id);
     res.json(result);
   } catch (err) {
     if (err.statusCode) {

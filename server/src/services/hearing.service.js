@@ -73,7 +73,7 @@ export async function createHearing(body, user) {
   const [advocateRows] = await pool.query("SELECT Advocate_ID FROM Advocate_Master WHERE Advocate_ID IN (?)", [advocateIds]);
   if (advocateRows.length === 0) throw new BadRequestError("Invalid advocate(s) selected.");
 
-  const createdBy = user.email || user.fullName || "admin";
+  const createdBy = user?.id || null;
 
   const connection = await pool.getConnection();
   try {
@@ -162,7 +162,7 @@ export async function updateHearing(id, body, user) {
   const [advocateRows] = await pool.query("SELECT Advocate_ID FROM Advocate_Master WHERE Advocate_ID IN (?)", [advocateIds]);
   if (advocateRows.length === 0) throw new BadRequestError("Invalid advocate(s) selected.");
 
-  const modifiedBy = user.email || user.fullName || "admin";
+  const modifiedBy = user?.id || null;
 
   const connection = await pool.getConnection();
   try {
@@ -207,11 +207,11 @@ export async function updateHearing(id, body, user) {
   }
 }
 
-export async function deleteHearing(id) {
+export async function deleteHearing(id, userId) {
   const hearing = await hearingRepository.getById(id);
   if (!hearing) throw new NotFoundError("Hearing not found.");
 
-  await hearingRepository.softDeleteHearingRows([id]);
+  await hearingRepository.softDeleteHearingRows([id], userId);
   return { message: "Deleted successfully." };
 }
 

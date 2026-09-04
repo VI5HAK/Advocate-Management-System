@@ -268,14 +268,16 @@ export async function createAppointment(req, res, next) {
         Appoint_Date,
         Appoint_Start_Time,
         Appoint_End_Time,
+        Appoint_Created_By,
         Appoint_Created_Date
-      ) VALUES (?, ?, ?, ?, ?, CURDATE())`,
+      ) VALUES (?, ?, ?, ?, ?, ?, CURDATE())`,
       [
         parsed.clientId,
         parsed.caseId,
         parsed.filingDate,
         parsed.startTime,
         parsed.endTime,
+        req.user?.id || null,
       ],
     );
     const appointmentId = result.insertId;
@@ -333,7 +335,7 @@ export async function updateAppointment(req, res, next) {
         parsed.filingDate,
         parsed.startTime,
         parsed.endTime,
-        req.user.email || req.user.fullName || "admin",
+        req.user?.id || null,
         req.params.id
       ]
     );
@@ -458,8 +460,8 @@ export async function deleteAppointment(req, res, next) {
     }
 
     await pool.query(
-      `UPDATE Appointment SET Appoint_Delete_Flag = TRUE WHERE Appoint_ID = ?`,
-      [req.params.id],
+      `UPDATE Appointment SET Appoint_Delete_Flag = TRUE, Appoint_Modified_By = ?, Appoint_Modified_Date = CURDATE() WHERE Appoint_ID = ?`,
+      [req.user?.id || null, req.params.id],
     );
 
     res.json({ message: "Deleted successfully." });

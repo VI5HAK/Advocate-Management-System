@@ -18,7 +18,7 @@ export class BadRequestError extends Error {
   }
 }
 
-export async function createClient(body) {
+export async function createClient(body, userId) {
   const clientType = await clientTypeRepository.getById(body.clientTypeId);
   if (!clientType) {
     throw new BadRequestError("Invalid client type selected.");
@@ -29,11 +29,11 @@ export async function createClient(body) {
     throw new BadRequestError(validation.error);
   }
 
-  const insertId = await clientRepository.create(validation.clientData);
+  const insertId = await clientRepository.create(validation.clientData, userId);
   return { id: insertId, message: "Client created." };
 }
 
-export async function updateClient(id, body) {
+export async function updateClient(id, body, userId) {
   const clientType = await clientTypeRepository.getById(body.clientTypeId);
   if (!clientType) {
     throw new BadRequestError("Invalid client type selected.");
@@ -44,7 +44,7 @@ export async function updateClient(id, body) {
     throw new BadRequestError(validation.error);
   }
 
-  const affectedRows = await clientRepository.update(id, validation.clientData);
+  const affectedRows = await clientRepository.update(id, validation.clientData, userId);
   if (affectedRows === 0) {
     throw new NotFoundError("Client not found.");
   }
@@ -64,13 +64,13 @@ export async function listClients(search) {
   return clientRepository.list(search);
 }
 
-export async function deleteClient(id) {
+export async function deleteClient(id, userId) {
   const hasCases = await clientRepository.checkAssignedCases(id);
   if (hasCases) {
     throw new BadRequestError("This client cannot be deleted because it is assigned to a case.");
   }
 
-  const affectedRows = await clientRepository.deleteById(id);
+  const affectedRows = await clientRepository.deleteById(id, userId);
   if (affectedRows === 0) {
     throw new NotFoundError("Client not found.");
   }

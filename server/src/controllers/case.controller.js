@@ -226,9 +226,10 @@ export async function createCase(req, res, next) {
         Case_Efiling_Date,
         Case_Efiling_Num,
         Case_Court_Name,
+        Case_Created_By,
         Case_Created_Date
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
-      parsed.caseValues,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+      [...parsed.caseValues, req.user?.id || null],
     );
 
     const caseId = result.insertId;
@@ -277,10 +278,11 @@ export async function updateCase(req, res, next) {
         Case_Efiling_Date = ?,
         Case_Efiling_Num = ?,
         Case_Court_Name = ?,
+        Case_Modified_By = ?,
         Case_Modified_Date = CURDATE()
       WHERE Case_ID = ?
         AND (Case_Delete_Flag = FALSE OR Case_Delete_Flag = 0)`,
-      [...parsed.caseValues, req.params.id],
+      [...parsed.caseValues, req.user?.id || null, req.params.id],
     );
 
     if (updateResult.affectedRows === 0) {
@@ -413,10 +415,12 @@ export async function deleteCase(req, res, next) {
 
     const [result] = await pool.query(
       `UPDATE Case_Master
-       SET Case_Delete_Flag = TRUE
+       SET Case_Delete_Flag = TRUE,
+           Case_Modified_By = ?,
+           Case_Modified_Date = CURDATE()
        WHERE Case_ID = ?
          AND (Case_Delete_Flag = FALSE OR Case_Delete_Flag = 0)`,
-      [caseId],
+      [req.user?.id || null, caseId],
     );
 
     if (result.affectedRows === 0) {

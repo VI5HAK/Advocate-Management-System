@@ -20,7 +20,7 @@ export async function createAdvocate(req, res, next) {
       return res.status(400).json({ message: validation.error });
     }
 
-    const result = await advocateService.createAdvocate(validation.advocateData, validation.plainPassword);
+    const result = await advocateService.createAdvocate(validation.advocateData, validation.plainPassword, req.user?.id);
     res.status(201).json(result);
   } catch (err) {
     if (err.statusCode) {
@@ -38,7 +38,7 @@ export async function updateAdvocate(req, res, next) {
       return res.status(400).json({ message: validation.error });
     }
 
-    const result = await advocateService.updateAdvocate(req.params.id, validation.advocateData, validation.plainPassword);
+    const result = await advocateService.updateAdvocate(req.params.id, validation.advocateData, validation.plainPassword, req.user?.id);
     res.json(result);
   } catch (err) {
     if (err.statusCode) {
@@ -60,7 +60,7 @@ export async function listAdvocates(req, res, next) {
 
 export async function deleteAdvocate(req, res, next) {
   try {
-    const result = await advocateService.deleteAdvocate(req.params.id);
+    const result = await advocateService.deleteAdvocate(req.params.id, req.user?.id);
     res.json(result);
   } catch (err) {
     if (err.statusCode) {

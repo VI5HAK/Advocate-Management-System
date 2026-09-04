@@ -18,7 +18,7 @@ export class BadRequestError extends Error {
   }
 }
 
-export async function createAdvocate(advocateData, plainPassword) {
+export async function createAdvocate(advocateData, plainPassword, userId) {
   const roleExists = await roleRepository.exists(advocateData.roleId);
   if (!roleExists) {
     throw new BadRequestError("Invalid role selected.");
@@ -34,11 +34,11 @@ export async function createAdvocate(advocateData, plainPassword) {
     passwordHash = await hashPassword(plainPassword);
   }
 
-  const insertId = await advocateRepository.create(advocateData, passwordHash);
+  const insertId = await advocateRepository.create(advocateData, passwordHash, userId);
   return { id: insertId, message: "Advocate created." };
 }
 
-export async function updateAdvocate(id, advocateData, plainPassword) {
+export async function updateAdvocate(id, advocateData, plainPassword, userId) {
   const roleExists = await roleRepository.exists(advocateData.roleId);
   if (!roleExists) {
     throw new BadRequestError("Invalid role selected.");
@@ -52,9 +52,9 @@ export async function updateAdvocate(id, advocateData, plainPassword) {
   let affectedRows;
   if (plainPassword) {
     const passwordHash = await hashPassword(plainPassword);
-    affectedRows = await advocateRepository.updateWithPassword(id, advocateData, passwordHash);
+    affectedRows = await advocateRepository.updateWithPassword(id, advocateData, passwordHash, userId);
   } else {
-    affectedRows = await advocateRepository.updateBasic(id, advocateData);
+    affectedRows = await advocateRepository.updateBasic(id, advocateData, userId);
   }
 
   if (affectedRows === 0) {
@@ -76,13 +76,13 @@ export async function listAdvocates(search) {
   return advocateRepository.list(search);
 }
 
-export async function deleteAdvocate(id) {
+export async function deleteAdvocate(id, userId) {
   const hasCases = await advocateRepository.checkAssignedCases(id);
   if (hasCases) {
     throw new BadRequestError("This advocate cannot be deleted because it is assigned to a case.");
   }
 
-  const affectedRows = await advocateRepository.deleteById(id);
+  const affectedRows = await advocateRepository.deleteById(id, userId);
   if (affectedRows === 0) {
     throw new NotFoundError("Advocate not found.");
   }

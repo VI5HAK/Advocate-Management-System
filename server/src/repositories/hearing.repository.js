@@ -143,10 +143,10 @@ export async function deleteHearingRows(ids, connection = pool) {
   );
 }
 
-export async function softDeleteHearingRows(ids, connection = pool) {
+export async function softDeleteHearingRows(ids, userId = null, connection = pool) {
   await connection.query(
-    `UPDATE HEARING_MASTER SET Hearing_Delete_Flag = TRUE, Hearing_Modified_Date = CURDATE() WHERE Hearing_ID IN (?)`,
-    [ids]
+    `UPDATE HEARING_MASTER SET Hearing_Delete_Flag = TRUE, Hearing_Modified_By = ?, Hearing_Modified_Date = CURDATE() WHERE Hearing_ID IN (?)`,
+    [userId, ids]
   );
 }
 

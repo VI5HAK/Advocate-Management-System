@@ -70,18 +70,19 @@ export async function getById(id) {
   return rows[0] || null;
 }
 
-export async function create(clientData) {
+export async function create(clientData, userId) {
   const [result] = await pool.query(
     `INSERT INTO Client_Master (
       ${INSERT_COLUMNS},
+      Client_Created_By,
       Client_Created_Date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
-    clientValues(clientData)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+    [...clientValues(clientData), userId || null]
   );
   return result.insertId;
 }
 
-export async function update(id, clientData) {
+export async function update(id, clientData, userId) {
   const sql = `UPDATE Client_Master SET
       Client_Clnt_Type_ID = ?,
       Client_Name = ?,
@@ -97,10 +98,11 @@ export async function update(id, clientData) {
       Client_PAN_Num = ?,
       Client_Aadhaar_Num = ?,
       Client_Contact_Person = ?,
+      Client_Modified_By = ?,
       Client_Modified_Date = CURDATE()
       WHERE Client_ID = ? AND ${activeCondition()}`;
   
-  const params = [...clientValues(clientData), id];
+  const params = [...clientValues(clientData), userId || null, id];
   const [result] = await pool.query(sql, params);
   return result.affectedRows;
 }
@@ -151,13 +153,15 @@ export async function checkAssignedCases(id) {
   return rows.length > 0;
 }
 
-export async function deleteById(id) {
+export async function deleteById(id, userId) {
   const [result] = await pool.query(
     `UPDATE Client_Master
-     SET Client_Delete_Flag = TRUE
+     SET Client_Delete_Flag = TRUE,
+         Client_Modified_By = ?,
+         Client_Modified_Date = CURDATE()
      WHERE Client_ID = ?
        AND ${activeCondition()}`,
-    [id]
+    [userId || null, id]
   );
   return result.affectedRows;
 }

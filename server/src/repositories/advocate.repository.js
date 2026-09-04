@@ -49,6 +49,7 @@ const buildUpdateQuery = (includePassword = false) => `
       Advocate_PAN_Num = ?,
       Advocate_Aadhaar_Num = ?
       ${includePassword ? ", Advocate_PWD = ?" : ""}
+      , Advocate_Modified_By = ?
       , Advocate_Modified_Date = CURDATE()
   WHERE Advocate_ID = ?
     AND ${activeCondition()}
@@ -99,30 +100,31 @@ export async function getByEmail(email, excludeId = null) {
   return rows[0] || null;
 }
 
-export async function create(advocateData, passwordHash) {
+export async function create(advocateData, passwordHash, userId) {
   const [result] = await pool.query(
     `INSERT INTO Advocate_Master (
       ${INSERT_COLUMNS},
       Advocate_PWD,
+      Advocate_Created_By,
       Advocate_Created_Date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
-    [...advocateValues(advocateData), passwordHash]
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+    [...advocateValues(advocateData), passwordHash, userId || null]
   );
   return result.insertId;
 }
 
-export async function updateBasic(id, advocateData) {
+export async function updateBasic(id, advocateData, userId) {
   const [result] = await pool.query(
     buildUpdateQuery(false),
-    [...advocateValues(advocateData), id]
+    [...advocateValues(advocateData), userId || null, id]
   );
   return result.affectedRows;
 }
 
-export async function updateWithPassword(id, advocateData, passwordHash) {
+export async function updateWithPassword(id, advocateData, passwordHash, userId) {
   const [result] = await pool.query(
     buildUpdateQuery(true),
-    [...advocateValues(advocateData), passwordHash, id]
+    [...advocateValues(advocateData), passwordHash, userId || null, id]
   );
   return result.affectedRows;
 }
@@ -177,13 +179,15 @@ export async function checkAssignedCases(id) {
   return rows.length > 0;
 }
 
-export async function deleteById(id) {
+export async function deleteById(id, userId) {
   const [result] = await pool.query(
     `UPDATE Advocate_Master
-     SET Advocate_Delete_Flag = TRUE
+     SET Advocate_Delete_Flag = TRUE,
+         Advocate_Modified_By = ?,
+         Advocate_Modified_Date = CURDATE()
      WHERE Advocate_ID = ?
        AND ${activeCondition()}`,
-    [id]
+    [userId || null, id]
   );
   return result.affectedRows;
 }
