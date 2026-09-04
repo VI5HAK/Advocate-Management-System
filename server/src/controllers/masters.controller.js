@@ -113,8 +113,11 @@ export async function createMaster(req, res, next) {
       }
 
       const [result] = await pool.query(
-        `INSERT INTO Court_Master (Court_Name, Court_Description, Court_Type, State_ID, District_ID, Taluk_ID, Court_Delete_Flag)
-         VALUES (?, ?, ?, ?, ?, ?, FALSE)`,
+        `INSERT INTO Court_Master (
+           Court_Name, Court_Description, Court_Type, State_ID, District_ID, Taluk_ID, Court_Delete_Flag,
+           Court_Created_By, Court_Created_Date
+         )
+         VALUES (?, ?, ?, ?, ?, ?, FALSE, ?, CURDATE())`,
         [
           name.trim().replace(/\s+/g, " "),
           description?.trim() || null,
@@ -122,6 +125,7 @@ export async function createMaster(req, res, next) {
           State_ID,
           District_ID,
           Taluk_ID,
+          req.user?.id || null,
         ],
       );
 
@@ -150,8 +154,15 @@ export async function createMaster(req, res, next) {
     }
 
     const config = getMasterConfig(resource);
-    const { table, idColumn, nameColumn, descriptionColumn, deleteFlagColumn } =
-      config;
+    const {
+      table,
+      idColumn,
+      nameColumn,
+      descriptionColumn,
+      deleteFlagColumn,
+      createdByColumn,
+      createdDateColumn,
+    } = config;
     const { name, description } = req.body;
 
     if (!name?.trim()) {
@@ -170,10 +181,11 @@ export async function createMaster(req, res, next) {
       return res.status(400).json({ message: "Name already exists." });
     }
 
+    const userId = req.user?.id || null;
     const [result] = await pool.query(
-      `INSERT INTO ${table} (${nameColumn}, ${descriptionColumn}, ${deleteFlagColumn})
-       VALUES (?, ?, FALSE)`,
-      [name.trim().replace(/\s+/g, " "), description?.trim() || null],
+      `INSERT INTO ${table} (${nameColumn}, ${descriptionColumn}, ${deleteFlagColumn}, ${createdByColumn}, ${createdDateColumn})
+       VALUES (?, ?, FALSE, ?, CURDATE())`,
+      [name.trim().replace(/\s+/g, " "), description?.trim() || null, userId],
     );
 
     const [rows] = await pool.query(
@@ -236,7 +248,8 @@ export async function updateMaster(req, res, next) {
 
       const [result] = await pool.query(
         `UPDATE Court_Master
-         SET Court_Name = ?, Court_Description = ?, Court_Type = ?, State_ID = ?, District_ID = ?, Taluk_ID = ?
+         SET Court_Name = ?, Court_Description = ?, Court_Type = ?, State_ID = ?, District_ID = ?, Taluk_ID = ?,
+             Court_Modified_By = ?, Court_Modified_Date = CURDATE()
          WHERE Court_ID = ? AND (Court_Delete_Flag = FALSE OR Court_Delete_Flag = 0)`,
         [
           name.trim().replace(/\s+/g, " "),
@@ -245,6 +258,7 @@ export async function updateMaster(req, res, next) {
           State_ID,
           District_ID,
           Taluk_ID,
+          req.user?.id || null,
           id,
         ],
       );
@@ -278,8 +292,15 @@ export async function updateMaster(req, res, next) {
     }
 
     const config = getMasterConfig(resource);
-    const { table, idColumn, nameColumn, descriptionColumn, deleteFlagColumn } =
-      config;
+    const {
+      table,
+      idColumn,
+      nameColumn,
+      descriptionColumn,
+      deleteFlagColumn,
+      modifiedByColumn,
+      modifiedDateColumn,
+    } = config;
     const { name, description } = req.body;
 
     if (!name?.trim()) {
@@ -299,11 +320,12 @@ export async function updateMaster(req, res, next) {
       return res.status(400).json({ message: "Name already exists." });
     }
 
+    const userId = req.user?.id || null;
     const [result] = await pool.query(
       `UPDATE ${table}
-       SET ${nameColumn} = ?, ${descriptionColumn} = ?
+       SET ${nameColumn} = ?, ${descriptionColumn} = ?, ${modifiedByColumn} = ?, ${modifiedDateColumn} = CURDATE()
        WHERE ${idColumn} = ? AND (${deleteFlagColumn} = FALSE OR ${deleteFlagColumn} = 0)`,
-      [name.trim().replace(/\s+/g, " "), description?.trim() || null, id],
+      [name.trim().replace(/\s+/g, " "), description?.trim() || null, userId, id],
     );
 
     if (result.affectedRows === 0) {
@@ -366,13 +388,15 @@ const MASTER_REFERENCES = {
   judges: [],
   statuses: [],
   "task-statuses": [],
+  "task-categories": [],
 };
 
 export async function deleteMaster(req, res, next) {
   try {
     const config = getMasterConfig(req.params.resource);
-    const { table, idColumn, deleteFlagColumn } = config;
+    const { table, idColumn, deleteFlagColumn, modifiedByColumn, modifiedDateColumn } = config;
     const id = req.params.id;
+    const userId = req.user?.id || null;
 
     // Check if the master item is assigned or in use
     const refs = MASTER_REFERENCES[req.params.resource] || [];
@@ -416,12 +440,16 @@ export async function deleteMaster(req, res, next) {
       }
     }
 
-    const [result] = await pool.query(
-      `UPDATE ${table}
-       SET ${deleteFlagColumn} = TRUE
-       WHERE ${idColumn} = ? AND (${deleteFlagColumn} = FALSE OR ${deleteFlagColumn} = 0)`,
-      [id],
-    );
+    let deleteSql = `UPDATE ${table} SET ${deleteFlagColumn} = TRUE`;
+    const deleteParams = [];
+    if (modifiedByColumn && modifiedDateColumn) {
+      deleteSql += `, ${modifiedByColumn} = ?, ${modifiedDateColumn} = CURDATE()`;
+      deleteParams.push(userId);
+    }
+    deleteSql += ` WHERE ${idColumn} = ? AND (${deleteFlagColumn} = FALSE OR ${deleteFlagColumn} = 0)`;
+    deleteParams.push(id);
+
+    const [result] = await pool.query(deleteSql, deleteParams);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Record not found." });

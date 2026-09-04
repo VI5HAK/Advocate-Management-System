@@ -12,6 +12,7 @@ export const ADMIN_MENU_ITEMS = [
       { id: "location", label: "Location", path: "/masters/location" },
       { id: "judge", label: "Judge", path: "/masters/judge" },
       { id: "task-status", label: "Task Status", path: "/masters/task-status" },
+      { id: "task-category", label: "Task Category", path: "/masters/task-category" },
     ],
   },
   //Remove comment to add admins page
@@ -19,7 +20,6 @@ export const ADMIN_MENU_ITEMS = [
   { id: "advocate", label: "Advocate", path: "/advocate" },
   { id: "client", label: "Client", path: "/client" },
   { id: "case", label: "Case", path: "/case" },
-  { id: "task-status", label: "Task Status", path: "/masters/task-status" },
   { id: "appointments", label: "Appointments", path: "/appointments" },
   {
     id: "completed-appointments",
