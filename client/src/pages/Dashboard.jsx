@@ -9,7 +9,8 @@ import {
   Scale,
   Shield,
   ArrowRight,
-  LayoutDashboard
+  LayoutDashboard,
+  CheckSquare,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { HelpButton } from "../components/common/ActionButtons";
@@ -18,6 +19,7 @@ const STAT_LABELS = {
   advocates: "Advocates",
   clients: "Clients",
   cases: "Cases",
+  tasks: "Tasks",
   appointments: "Appointments",
   hearings: "Hearings",
   roles: "Roles",
@@ -27,6 +29,7 @@ const STAT_ROUTES = {
   advocates: "/advocate",
   clients: "/client",
   cases: "/case",
+  tasks: "/tasks",
   appointments: "/appointments",
   hearings: "/hearings",
   roles: "/masters/role",
@@ -53,6 +56,13 @@ const CARD_THEMES = {
     bg: "bg-purple-50/30 hover:bg-purple-50/60 border-purple-200/60",
     text: "text-purple-700",
     iconBg: "bg-purple-100/80",
+  },
+  tasks: {
+    icon: CheckSquare,
+    color: "from-cyan-500 to-blue-600",
+    bg: "bg-cyan-50/30 hover:bg-cyan-50/60 border-cyan-200/60",
+    text: "text-cyan-700",
+    iconBg: "bg-cyan-100/80",
   },
   appointments: {
     icon: Calendar,

@@ -19,9 +19,27 @@ const storage = multer.diskStorage({
   },
 });
 
-export const uploadTaskFileMiddleware = multer({
+const multerUpload = multer({
   storage,
   limits: {
-    fileSize: 20 * 1024 * 1024, // 20 MB max file size
+    fileSize: 50 * 1024 * 1024, // 50 MB max file size
   },
 });
+
+export const uploadTaskFileMiddleware = {
+  single: (fieldName) => (req, res, next) => {
+    multerUpload.single(fieldName)(req, res, (err) => {
+      if (err) {
+        if (err.code === "LIMIT_FILE_SIZE" || (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE")) {
+          return res.status(400).json({
+            message: "File size is too large and cannot be over 50mb",
+          });
+        }
+        return res.status(400).json({
+          message: err.message || "File upload failed.",
+        });
+      }
+      next();
+    });
+  },
+};

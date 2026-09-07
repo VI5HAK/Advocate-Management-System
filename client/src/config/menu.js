@@ -20,6 +20,12 @@ export const ADMIN_MENU_ITEMS = [
   { id: "advocate", label: "Advocate", path: "/advocate" },
   { id: "client", label: "Client", path: "/client" },
   { id: "case", label: "Case", path: "/case" },
+  { id: "tasks", label: "Task Management", path: "/tasks" },
+  {
+    id: "completed-tasks",
+    label: "Completed Tasks",
+    path: "/completed-tasks",
+  },
   { id: "appointments", label: "Appointments", path: "/appointments" },
   {
     id: "completed-appointments",
@@ -27,7 +33,6 @@ export const ADMIN_MENU_ITEMS = [
     path: "/completed-appointments",
   },
   { id: "hearings", label: "Hearings", path: "/hearings" },
-  { id: "tasks", label: "Task Management", path: "/tasks" },
   {
     id: "hearing-report",
     label: "Completed Hearings",
@@ -54,6 +59,12 @@ export const ADMIN_MENU_ITEMS = [
 
 export const ADVOCATE_MENU_ITEMS = [
   { id: "home", label: "Home", path: "/" },
+  { id: "tasks", label: "Task Management", path: "/tasks" },
+  {
+    id: "completed-tasks",
+    label: "Completed Tasks",
+    path: "/completed-tasks",
+  },
   { id: "appointments", label: "Appointments", path: "/appointments" },
   {
     id: "completed-appointments",
@@ -61,7 +72,6 @@ export const ADVOCATE_MENU_ITEMS = [
     path: "/completed-appointments",
   },
   { id: "hearings", label: "Hearings", path: "/hearings" },
-  { id: "tasks", label: "Task Management", path: "/tasks" },
   {
     id: "hearing-report",
     label: "Completed Hearings",

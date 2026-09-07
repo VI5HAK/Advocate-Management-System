@@ -12,6 +12,6 @@ server/dist/
 
 # Resorces
 /resources
-
+server/uploads/
 # Logs
 *.log

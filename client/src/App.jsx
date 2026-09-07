@@ -25,6 +25,7 @@ const HearingList = lazy(() => import("./pages/entities/HearingList"));
 const HearingForm = lazy(() => import("./pages/entities/HearingForm"));
 const TaskList = lazy(() => import("./pages/entities/TaskList"));
 const TaskForm = lazy(() => import("./pages/entities/TaskForm"));
+const CompletedTaskList = lazy(() => import("./pages/entities/CompletedTaskList"));
 const EntityListPage = lazy(() => import("./pages/entities/EntityListPage"));
 
 // Reports & Grouped Completed Pages
@@ -99,6 +100,7 @@ function AppRoutes() {
         <Route path="/hearings/create" element={<HearingForm />} />
         <Route path="/hearings/:id/edit" element={<HearingForm />} />
         <Route path="/tasks" element={<TaskList />} />
+        <Route path="/completed-tasks" element={<CompletedTaskList />} />
         <Route path="/reports/hearing" element={<GroupedCompletedReport config={GROUPED_REPORTS_CONFIG.hearings} />} />
       </Route>
       

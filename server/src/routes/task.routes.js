@@ -4,6 +4,7 @@ import { requireAdmin } from "../middleware/role.middleware.js";
 import { uploadTaskFileMiddleware } from "../middleware/upload.middleware.js";
 import {
   getTasks,
+  getCompletedTasks,
   getTaskById,
   createTask,
   updateTask,
@@ -23,6 +24,7 @@ router.use(authenticate);
 
 // Task CRUD
 router.get("/", getTasks);
+router.get("/completed", getCompletedTasks);
 router.get("/:id", getTaskById);
 
 router.post("/", requireAdmin, createTask);

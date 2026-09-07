@@ -18,7 +18,8 @@ import {
   ChevronDown,
   X,
   LogOut,
-  ListCheck
+  ListCheck,
+  CheckSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -32,6 +33,8 @@ const ICON_MAP = {
   case: Briefcase,
   appointments: Calendar,
   hearings: Scale,
+  tasks: CheckSquare,
+  "completed-tasks": CheckCircle,
   reports: ClipboardList,
   "completed-appointments": CheckCircle,
   "hearing-report": FileSpreadsheet,

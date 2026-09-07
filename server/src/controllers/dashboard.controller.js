@@ -8,6 +8,7 @@ const ENTITY_COUNTS = [
   },
   { key: "clients", table: "Client_Master", deleteFlag: "Client_Delete_Flag" },
   { key: "cases", table: "Case_Master", deleteFlag: "Case_Delete_Flag" },
+  { key: "tasks", table: "Task_Management" },
   {
     key: "appointments",
     table: "Appointment",
@@ -26,7 +27,14 @@ export async function getSummary(req, res, next) {
 
     for (const { key, table, deleteFlag } of ENTITY_COUNTS) {
       let sql;
-      if (key === "appointments") {
+      if (key === "tasks") {
+        sql = `
+          SELECT COUNT(*) AS count
+          FROM Task_Management t
+          WHERE (t.Task_Mgmt_Delete_Flag = FALSE OR t.Task_Mgmt_Delete_Flag = 0)
+            AND (t.Task_Mgmt_Complete_Flag = FALSE OR t.Task_Mgmt_Complete_Flag = 0 OR t.Task_Mgmt_Complete_Flag IS NULL)
+        `;
+      } else if (key === "appointments") {
         sql = `
           SELECT COUNT(*) AS count
           FROM Appointment ap

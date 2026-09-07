@@ -1,6 +1,14 @@
 import pool from "../config/db.js";
 
 export const taskRepository = {
+  async getStatusNameById(statusId) {
+    const [rows] = await pool.query(
+      `SELECT Task_Status_Name FROM Task_Status_Master WHERE Task_Status_ID = ? LIMIT 1`,
+      [statusId]
+    );
+    return rows[0]?.Task_Status_Name || "";
+  },
+
   async findAll(search = "") {
     let query = `
       SELECT 
@@ -20,6 +28,7 @@ export const taskRepository = {
         t.Task_Mgmt_End_Date AS endDate,
         t.Task_Mgmt_Status_ID AS statusId,
         ts.Task_Status_Name AS statusName,
+        t.Task_Mgmt_Complete_Flag AS completeFlag,
         t.Task_Mgmt_Created_By AS createdBy,
         t.Task_Mgmt_Created_Date AS createdDate,
         t.Task_Mgmt_Modified_By AS modifiedBy,
@@ -31,6 +40,63 @@ export const taskRepository = {
       INNER JOIN Advocate_Master a ON t.Task_Mgmt_Advocate_ID = a.Advocate_ID
       INNER JOIN Task_Status_Master ts ON t.Task_Mgmt_Status_ID = ts.Task_Status_ID
       WHERE (t.Task_Mgmt_Delete_Flag = FALSE OR t.Task_Mgmt_Delete_Flag = 0)
+        AND (t.Task_Mgmt_Complete_Flag = FALSE OR t.Task_Mgmt_Complete_Flag = 0 OR t.Task_Mgmt_Complete_Flag IS NULL)
+    `;
+
+    const params = [];
+    if (search && search.trim()) {
+      const term = `%${search.trim()}%`;
+      query += `
+        AND (
+          t.Task_Mgmt_Name LIKE ? OR
+          c.Client_Name LIKE ? OR
+          cm.Case_Num LIKE ? OR
+          tc.Task_Cat_Name LIKE ? OR
+          a.Advocate_Name LIKE ? OR
+          ts.Task_Status_Name LIKE ?
+        )
+      `;
+      params.push(term, term, term, term, term, term);
+    }
+
+    query += ` ORDER BY t.Task_Mgmt_ID DESC`;
+
+    const [rows] = await pool.query(query, params);
+    return rows;
+  },
+
+  async findCompleted(search = "") {
+    let query = `
+      SELECT 
+        t.Task_Mgmt_ID AS id,
+        t.Task_Mgmt_Name AS name,
+        t.Task_Mgmt_Desc AS description,
+        t.Task_Mgmt_Client_ID AS clientId,
+        c.Client_Name AS clientName,
+        t.Task_Mgmt_Case_ID AS caseId,
+        cm.Case_Num AS caseNumber,
+        t.Task_Mgmt_Cat_ID AS catId,
+        tc.Task_Cat_Name AS catName,
+        t.Task_Mgmt_Advocate_ID AS advocateId,
+        a.Advocate_Name AS advocateName,
+        t.Task_Mgmt_Priority AS priority,
+        t.Task_Mgmt_Start_Date AS startDate,
+        t.Task_Mgmt_End_Date AS endDate,
+        t.Task_Mgmt_Status_ID AS statusId,
+        ts.Task_Status_Name AS statusName,
+        t.Task_Mgmt_Complete_Flag AS completeFlag,
+        t.Task_Mgmt_Created_By AS createdBy,
+        t.Task_Mgmt_Created_Date AS createdDate,
+        t.Task_Mgmt_Modified_By AS modifiedBy,
+        t.Task_Mgmt_Modified_Date AS modifiedDate
+      FROM Task_Management t
+      LEFT JOIN Client_Master c ON t.Task_Mgmt_Client_ID = c.Client_ID
+      LEFT JOIN Case_Master cm ON t.Task_Mgmt_Case_ID = cm.Case_ID
+      INNER JOIN Task_Category_Master tc ON t.Task_Mgmt_Cat_ID = tc.Task_Cat_ID
+      INNER JOIN Advocate_Master a ON t.Task_Mgmt_Advocate_ID = a.Advocate_ID
+      INNER JOIN Task_Status_Master ts ON t.Task_Mgmt_Status_ID = ts.Task_Status_ID
+      WHERE (t.Task_Mgmt_Delete_Flag = FALSE OR t.Task_Mgmt_Delete_Flag = 0)
+        AND t.Task_Mgmt_Complete_Flag = TRUE
     `;
 
     const params = [];
@@ -74,6 +140,7 @@ export const taskRepository = {
         t.Task_Mgmt_End_Date AS endDate,
         t.Task_Mgmt_Status_ID AS statusId,
         ts.Task_Status_Name AS statusName,
+        t.Task_Mgmt_Complete_Flag AS completeFlag,
         t.Task_Mgmt_Created_By AS createdBy,
         t.Task_Mgmt_Created_Date AS createdDate,
         t.Task_Mgmt_Modified_By AS modifiedBy,
@@ -106,9 +173,10 @@ export const taskRepository = {
         Task_Mgmt_Start_Date,
         Task_Mgmt_End_Date,
         Task_Mgmt_Status_ID,
+        Task_Mgmt_Complete_Flag,
         Task_Mgmt_Created_By,
         Task_Mgmt_Created_Date
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())
     `;
 
     const params = [
@@ -122,6 +190,7 @@ export const taskRepository = {
       data.startDate || null,
       data.endDate || null,
       data.statusId,
+      data.completeFlag ? 1 : 0,
       userId,
     ];
 
@@ -142,6 +211,7 @@ export const taskRepository = {
         Task_Mgmt_Start_Date = ?,
         Task_Mgmt_End_Date = ?,
         Task_Mgmt_Status_ID = ?,
+        Task_Mgmt_Complete_Flag = ?,
         Task_Mgmt_Modified_By = ?,
         Task_Mgmt_Modified_Date = CURDATE()
       WHERE Task_Mgmt_ID = ?
@@ -159,6 +229,7 @@ export const taskRepository = {
       data.startDate || null,
       data.endDate || null,
       data.statusId,
+      data.completeFlag ? 1 : 0,
       userId,
       id,
     ];

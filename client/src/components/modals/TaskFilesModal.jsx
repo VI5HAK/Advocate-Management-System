@@ -34,15 +34,30 @@ export function TaskFilesModal({ task, onClose }) {
     fetchFiles();
   }, [fetchFiles]);
 
+  const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
+
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        setError("File size is too large and cannot be over 50mb");
+        setSelectedFile(null);
+        e.target.value = "";
+        return;
+      }
+      setError("");
+      setSelectedFile(file);
     }
   };
 
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!selectedFile) return;
+
+    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      setError("File size is too large and cannot be over 50mb");
+      return;
+    }
 
     setUploading(true);
     setError("");

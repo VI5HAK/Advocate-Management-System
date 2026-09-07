@@ -42,6 +42,7 @@ export const entityService = {
 
   // Tasks
   getTasks: (search) => api.get("/tasks", { params: { search } }),
+  getCompletedTasks: (search) => api.get("/tasks/completed", { params: { search } }),
   getTask: (id) => api.get(`/tasks/${id}`),
   createTask: (data) => api.post("/tasks", data),
   updateTask: (id, data) => api.put(`/tasks/${id}`, data),

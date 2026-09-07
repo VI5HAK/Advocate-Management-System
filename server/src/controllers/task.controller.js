@@ -12,6 +12,16 @@ export async function getTasks(req, res, next) {
   }
 }
 
+export async function getCompletedTasks(req, res, next) {
+  try {
+    const search = req.query.search || "";
+    const tasks = await taskService.getCompletedTasks(search);
+    res.json(tasks);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getTaskById(req, res, next) {
   try {
     const { id } = req.params;

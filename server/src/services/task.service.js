@@ -7,6 +7,10 @@ export const taskService = {
     return await taskRepository.findAll(search);
   },
 
+  async getCompletedTasks(search) {
+    return await taskRepository.findCompleted(search);
+  },
+
   async getTaskById(id) {
     const task = await taskRepository.findById(id);
     if (!task) {
@@ -44,6 +48,9 @@ export const taskService = {
       throw error;
     }
 
+    const statusName = await taskRepository.getStatusNameById(data.statusId);
+    data.completeFlag = Boolean(statusName && statusName.trim().toUpperCase() === "COMPLETED");
+
     const taskId = await taskRepository.create(data, userId);
     return await taskRepository.findById(taskId);
   },
@@ -76,6 +83,9 @@ export const taskService = {
       error.statusCode = 400;
       throw error;
     }
+
+    const statusName = await taskRepository.getStatusNameById(data.statusId);
+    data.completeFlag = Boolean(statusName && statusName.trim().toUpperCase() === "COMPLETED");
 
     await taskRepository.update(id, data, userId);
     return await taskRepository.findById(id);
