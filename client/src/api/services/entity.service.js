@@ -40,6 +40,24 @@ export const entityService = {
   getHearingNotes: (id) => api.get(`/hearings/${id}/notes`),
   addHearingNote: (id, data) => api.post(`/hearings/${id}/notes`, data),
 
+  // Tasks
+  getTasks: (search) => api.get("/tasks", { params: { search } }),
+  getTask: (id) => api.get(`/tasks/${id}`),
+  createTask: (data) => api.post("/tasks", data),
+  updateTask: (id, data) => api.put(`/tasks/${id}`, data),
+  deleteTask: (id) => api.delete(`/tasks/${id}`),
+  getTaskRemarks: (id) => api.get(`/tasks/${id}/remarks`),
+  addTaskRemark: (id, data) => api.post(`/tasks/${id}/remarks`, data),
+  getTaskFiles: (id) => api.get(`/tasks/${id}/files`),
+  uploadTaskFile: (id, formData) =>
+    api.post(`/tasks/${id}/files`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  deleteTaskFile: (taskId, fileId) =>
+    api.delete(`/tasks/${taskId}/files/${fileId}`),
+  downloadTaskFile: (taskId, fileId) =>
+    api.get(`/tasks/${taskId}/files/${fileId}/download`, { responseType: "blob" }),
+
   // Generic Entity Methods
   getByPath: (path, config) => api.get(path, config),
   deleteByPath: (path, id) => api.delete(`${path}/${id}`),

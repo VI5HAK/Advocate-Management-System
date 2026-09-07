@@ -92,6 +92,10 @@ export const MASTER_CONFIG = {
   },
 };
 
+// Add singular resource aliases for convenience
+MASTER_CONFIG["task-status"] = MASTER_CONFIG["task-statuses"];
+MASTER_CONFIG["task-category"] = MASTER_CONFIG["task-categories"];
+
 export function getMasterConfig(resource) {
   const config = MASTER_CONFIG[resource];
   if (!config) {

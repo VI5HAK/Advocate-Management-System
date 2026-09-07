@@ -27,6 +27,7 @@ export const ADMIN_MENU_ITEMS = [
     path: "/completed-appointments",
   },
   { id: "hearings", label: "Hearings", path: "/hearings" },
+  { id: "tasks", label: "Task Management", path: "/tasks" },
   {
     id: "hearing-report",
     label: "Completed Hearings",
@@ -60,6 +61,7 @@ export const ADVOCATE_MENU_ITEMS = [
     path: "/completed-appointments",
   },
   { id: "hearings", label: "Hearings", path: "/hearings" },
+  { id: "tasks", label: "Task Management", path: "/tasks" },
   {
     id: "hearing-report",
     label: "Completed Hearings",

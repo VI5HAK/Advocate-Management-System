@@ -23,6 +23,8 @@ const CaseForm = lazy(() => import("./pages/entities/CaseForm"));
 const AppointmentForm = lazy(() => import("./pages/entities/AppointmentForm"));
 const HearingList = lazy(() => import("./pages/entities/HearingList"));
 const HearingForm = lazy(() => import("./pages/entities/HearingForm"));
+const TaskList = lazy(() => import("./pages/entities/TaskList"));
+const TaskForm = lazy(() => import("./pages/entities/TaskForm"));
 const EntityListPage = lazy(() => import("./pages/entities/EntityListPage"));
 
 // Reports & Grouped Completed Pages
@@ -79,6 +81,9 @@ function AppRoutes() {
           <Route path="/case/create" element={<CaseForm />} />
           <Route path="/case/:id/edit" element={<CaseForm />} />
           
+          <Route path="/tasks/create" element={<TaskForm />} />
+          <Route path="/tasks/:id/edit" element={<TaskForm />} />
+
           <Route path="/reports/advocate" element={<GenericReportPage config={REPORTS_CONFIG.advocate} />} />
           <Route path="/reports/client" element={<GenericReportPage config={REPORTS_CONFIG.client} />} />
           <Route path="/reports/appointment" element={<GenericReportPage config={REPORTS_CONFIG.appointment} />} />
@@ -93,6 +98,7 @@ function AppRoutes() {
         <Route path="/hearings" element={<HearingList />} />
         <Route path="/hearings/create" element={<HearingForm />} />
         <Route path="/hearings/:id/edit" element={<HearingForm />} />
+        <Route path="/tasks" element={<TaskList />} />
         <Route path="/reports/hearing" element={<GroupedCompletedReport config={GROUPED_REPORTS_CONFIG.hearings} />} />
       </Route>
       

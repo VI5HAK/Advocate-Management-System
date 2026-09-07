@@ -389,6 +389,8 @@ const MASTER_REFERENCES = {
   statuses: [],
   "task-statuses": [],
   "task-categories": [],
+  "task-status": [],
+  "task-category": [],
 };
 
 export async function deleteMaster(req, res, next) {
